@@ -1,0 +1,63 @@
+import { environment } from '../../environments/environment';
+import { EMULATOR_HOSTS } from '../../environments/environment.model';
+
+// Reads the emulators' REST APIs directly. `Bearer owner` bypasses security rules, which only
+// the Firestore emulator accepts, so no rule ever has to open devOutbox.
+
+export interface DevMessage {
+  id: string;
+  channel: string;
+  to: string;
+  sender?: string;
+  subject?: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface SignInLink {
+  email: string;
+  link: string;
+}
+
+type FirestoreValue = { stringValue?: string; timestampValue?: string };
+interface FirestoreDocument {
+  name: string;
+  fields?: Record<string, FirestoreValue>;
+}
+
+const projectId = environment.firebase.projectId;
+
+export async function listDevMessages(): Promise<DevMessage[]> {
+  const { host, port } = EMULATOR_HOSTS.firestore;
+  const url = `http://${host}:${port}/v1/projects/${projectId}/databases/(default)/documents/devOutbox?pageSize=100&orderBy=createdAt%20desc`;
+  const response = await fetch(url, { headers: { Authorization: 'Bearer owner' } });
+  if (!response.ok) throw new Error(`Firestore emulator responded ${response.status}`);
+  const body = (await response.json()) as { documents?: FirestoreDocument[] };
+  return (body.documents ?? []).map((doc) => {
+    const field = (key: string) => {
+      const value = doc.fields?.[key];
+      return value?.stringValue ?? value?.timestampValue;
+    };
+    return {
+      id: doc.name.split('/').pop() ?? '',
+      channel: field('channel') ?? '',
+      to: field('to') ?? '',
+      sender: field('sender'),
+      subject: field('subject'),
+      text: field('text') ?? field('body') ?? '',
+      createdAt: field('createdAt') ?? '',
+    };
+  });
+}
+
+export async function listSignInLinks(): Promise<SignInLink[]> {
+  const response = await fetch(`${EMULATOR_HOSTS.auth}/emulator/v1/projects/${projectId}/oobCodes`);
+  if (!response.ok) throw new Error(`Auth emulator responded ${response.status}`);
+  const body = (await response.json()) as {
+    oobCodes?: { email: string; oobLink: string; requestType: string }[];
+  };
+  return (body.oobCodes ?? [])
+    .filter((code) => code.requestType === 'EMAIL_SIGNIN')
+    .map((code) => ({ email: code.email, link: code.oobLink }))
+    .reverse();
+}

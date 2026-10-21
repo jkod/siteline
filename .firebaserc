@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "demo-siteline",
+    "staging": "siteline-staging",
+    "production": "siteline-prod"
+  }
+}

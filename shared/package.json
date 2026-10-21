@@ -1,0 +1,13 @@
+{
+  "name": "@siteline/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "rrule": "^2.8.1",
+    "zod": "^4.6.7"
+  },
+  "sideEffects": false
+}

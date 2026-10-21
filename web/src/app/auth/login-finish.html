@@ -1,0 +1,37 @@
+<main class="layout" id="main">
+  <p class="brand">
+    <img ngSrc="icons/favicon.svg" alt="" width="32" height="32" priority />
+    Siteline
+  </p>
+
+  @switch (state()) {
+    @case ('working') {
+      <h1>{{ 'loginFinish.working' | translate }}</h1>
+    }
+    @case ('needEmail') {
+      <div class="sl-stack">
+        <h1>{{ 'loginFinish.confirmTitle' | translate }}</h1>
+        <p class="intro">{{ 'loginFinish.confirmBody' | translate }}</p>
+      </div>
+      <form novalidate (submit)="confirmEmail($event)">
+        <sl-field
+          [label]="'login.email' | translate"
+          [errors]="form.email().errors()"
+          [touched]="form.email().touched()"
+        >
+          <input slInput type="email" autocomplete="email" [formField]="form.email" />
+        </sl-field>
+        <button slButton size="large" block type="submit" [busy]="busy()" [disabled]="busy()">
+          {{ 'loginFinish.signIn' | translate }}
+        </button>
+      </form>
+    }
+    @case ('failed') {
+      <section slCard class="sent" aria-labelledby="failed-title">
+        <h1 id="failed-title">{{ 'loginFinish.failedTitle' | translate }}</h1>
+        <p role="alert">{{ errorKey() ?? 'errors.unknown' | translate }}</p>
+        <a slButton routerLink="/login">{{ 'loginFinish.backToLogin' | translate }}</a>
+      </section>
+    }
+  }
+</main>

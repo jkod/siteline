@@ -1,0 +1,130 @@
+name: Siteline
+
+# Siteline builds inside the ngxns-workspace monorepo (root package.json workspaces and
+# overrides, angular.json, tsconfig, ESLint), so CI checks out the workspace and places this
+# repo at apps/siteline. Manual-only until the workspace's Siteline registration is published
+# to WORKSPACE_REPO; then add pull_request and push triggers.
+on:
+  workflow_dispatch:
+
+env:
+  WORKSPACE_REPO: ngxns/workspace
+
+concurrency:
+  group: siteline-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: apps/siteline
+
+jobs:
+  checks:
+    name: Lint, types, unit and rules tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.WORKSPACE_REPO }}
+      - uses: actions/checkout@v4
+        with:
+          path: apps/siteline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install (from the workspace root, so overrides and patches apply)
+        run: npm ci
+        working-directory: .
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:rules
+      - run: npm run build
+      - name: Audit Siteline production dependencies
+        # Gates on critical findings. The Firebase web SDK pins @grpc/grpc-js ~1.9 for its Node
+        # build, which audit reports as high; the browser bundle doesn't include it.
+        run: >
+          npm audit --workspace @siteline/app --workspace @siteline/functions
+          --workspace @siteline/shared --omit=dev --audit-level=critical
+        working-directory: .
+
+  e2e:
+    name: End-to-end tests (emulators)
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.WORKSPACE_REPO }}
+      - uses: actions/checkout@v4
+        with:
+          path: apps/siteline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+        working-directory: .
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/siteline/playwright-report
+          retention-days: 7
+
+  preview:
+    name: Hosting preview channel
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      # Skipped until the staging project and its service account secret exist (PRD section 15).
+      HAS_STAGING_SECRET: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        if: env.HAS_STAGING_SECRET == 'true'
+        with:
+          repository: ${{ env.WORKSPACE_REPO }}
+      - uses: actions/checkout@v4
+        if: env.HAS_STAGING_SECRET == 'true'
+        with:
+          path: apps/siteline
+      - uses: actions/setup-node@v4
+        if: env.HAS_STAGING_SECRET == 'true'
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+        if: env.HAS_STAGING_SECRET == 'true'
+        working-directory: .
+      - run: npm run build
+        if: env.HAS_STAGING_SECRET == 'true'
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: env.HAS_STAGING_SECRET == 'true'
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}
+          projectId: siteline-staging
+          entryPoint: apps/siteline
+          expires: 7d
+      - if: env.HAS_STAGING_SECRET != 'true'
+        run: echo "No FIREBASE_SERVICE_ACCOUNT_STAGING secret yet; skipping the preview deploy."
+        working-directory: .

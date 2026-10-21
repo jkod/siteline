@@ -1,0 +1,4 @@
+/* Fonts (@fontsource) and the CDK overlay styles are added in angular.json. */
+@import './styles/tokens.css';
+@import './styles/base.css';
+@import './styles/components.css';

@@ -1,0 +1,74 @@
+/* Design tokens (PRD section 12). Every colour, radius and font lives here, so a firm's colour
+   can replace the accent in the client view and dark mode can be added later. */
+:root {
+  /* Surfaces */
+  --sl-bg: #faf8f4;
+  --sl-surface: #ffffff;
+  --sl-panel: #f7f4ee;
+  --sl-panel-2: #f2eee6;
+  --sl-dark: #1c1f26;
+  --sl-dark-2: #262a33;
+
+  /* Text */
+  --sl-text: #1c1f26;
+  --sl-text-2: #4a4f5a;
+  --sl-text-3: #5a5f6b;
+
+  /* Lines */
+  --sl-border: #ece7de;
+  --sl-border-strong: #ddd6ca;
+  --sl-border-control: #c9c1b3;
+
+  /* Brand: replaced per firm in the client view */
+  --sl-accent: #127a69;
+  --sl-accent-text: #0f5f52;
+  --sl-accent-tint: #dcefea;
+  --sl-on-accent: #ffffff;
+
+  /* Signals */
+  --sl-highlight: #5fd3bc;
+  --sl-alert: #e8553a;
+  --sl-alert-text: #b8341c;
+  --sl-alert-tint: #fbe6e1;
+
+  /* Shape */
+  --sl-radius-card: 24px;
+  --sl-radius-panel: 16px;
+  --sl-radius-control: 12px;
+  --sl-radius-pill: 999px;
+  --sl-shadow-card: 0 2px 8px rgba(28, 31, 38, 0.06);
+  --sl-shadow-raised: 0 12px 32px rgba(28, 31, 38, 0.16);
+
+  /* Type */
+  --sl-font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --sl-font-body: 'Manrope', system-ui, sans-serif;
+  --sl-text-title: 800 28px/32px var(--sl-font-display);
+  --sl-text-section: 700 20px/26px var(--sl-font-display);
+  --sl-text-body: 400 16px/24px var(--sl-font-body);
+  --sl-text-small: 400 13px/18px var(--sl-font-body);
+
+  /* Spacing: 4 px base */
+  --sl-space-1: 4px;
+  --sl-space-2: 8px;
+  --sl-space-3: 12px;
+  --sl-space-4: 16px;
+  --sl-space-5: 20px;
+  --sl-space-6: 24px;
+  --sl-space-8: 32px;
+  --sl-space-10: 40px;
+
+  /* Controls */
+  --sl-target: 44px;
+  --sl-target-large: 52px;
+  --sl-focus-ring: 0 0 0 3px var(--sl-bg), 0 0 0 5px var(--sl-accent-text);
+
+  /* Motion */
+  --sl-duration: 200ms;
+  --sl-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sl-duration: 0ms;
+  }
+}

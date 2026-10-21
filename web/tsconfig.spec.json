@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../../out-tsc/siteline-spec",
+    "strict": true,
+    "rootDir": "..",
+    "types": ["vitest/globals"]
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": true
+  },
+  "include": ["src/**/*.d.ts", "src/**/*.spec.ts"]
+}

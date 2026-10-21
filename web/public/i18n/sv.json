@@ -1,0 +1,141 @@
+{
+  "common": {
+    "skipToContent": "Hoppa till innehållet",
+    "signOut": "Logga ut",
+    "dismiss": "Stäng",
+    "cancel": "Avbryt"
+  },
+  "language": {
+    "label": "Språk",
+    "sv": "Svenska",
+    "en": "English"
+  },
+  "placeholder": {
+    "body": "Den här sidan byggs i en senare milstolpe."
+  },
+  "pages": {
+    "login": "Logga in",
+    "loginFinish": "Loggar in",
+    "onboarding": "Kom igång",
+    "staffHome": "Översikt",
+    "newProject": "Nytt projekt",
+    "newClient": "Ny kund",
+    "projectFeed": "Flöde",
+    "decisions": "Beslut",
+    "visit": "Nästa besök",
+    "handover": "Överlämning",
+    "people": "Personer",
+    "settingsCompany": "Företag",
+    "settingsTeam": "Team",
+    "settingsBilling": "Abonnemang",
+    "settingsMe": "Mitt konto",
+    "clientHome": "Hem",
+    "clientSettings": "Inställningar",
+    "redeem": "Öppnar ditt projekt",
+    "linkExpired": "Länken fungerar inte längre",
+    "referral": "Välkommen till Siteline",
+    "privacy": "Integritetspolicy",
+    "terms": "Villkor",
+    "notFound": "Sidan finns inte",
+    "devOutbox": "Dev-utkorg",
+    "devUi": "Komponenter"
+  },
+  "staff": {
+    "nav": "Huvudmeny"
+  },
+  "login": {
+    "title": "Logga in",
+    "intro": "Vi mejlar en inloggningslänk till dig. Inga lösenord att komma ihåg.",
+    "email": "E-postadress",
+    "sendLink": "Skicka inloggningslänk",
+    "or": "eller",
+    "google": "Fortsätt med Google",
+    "sentTitle": "Kolla din inkorg",
+    "sentBody": "Vi har skickat en inloggningslänk till {{email}}. Öppna den på den här enheten.",
+    "useAnotherEmail": "Använd en annan e-postadress",
+    "devOpenOutbox": "Utveckling: öppna länken i dev-utkorgen"
+  },
+  "loginFinish": {
+    "working": "Loggar in…",
+    "confirmTitle": "Bekräfta din e-postadress",
+    "confirmBody": "Länken öppnades på en annan enhet eller webbläsare. Skriv e-postadressen du loggade in med.",
+    "signIn": "Logga in",
+    "failedTitle": "Det gick inte att logga in",
+    "backToLogin": "Till inloggningen"
+  },
+  "onboarding": {
+    "comingSoon": "Här lägger du snart upp ditt företag: namn, logotyp och färg.",
+    "signedInAs": "Inloggad som {{email}}"
+  },
+  "errors": {
+    "unknown": "Något gick fel. Försök igen.",
+    "validation": {
+      "required": "Fyll i fältet.",
+      "email": "Skriv en giltig e-postadress.",
+      "minLength": "Texten är för kort.",
+      "maxLength": "Texten är för lång."
+    },
+    "auth": {
+      "invalid-email": "Skriv en giltig e-postadress.",
+      "invalid-action-code": "Länken är ogiltig eller har redan använts. Be om en ny.",
+      "expired-action-code": "Länken har gått ut. Be om en ny.",
+      "network-request-failed": "Ingen anslutning. Kontrollera nätet och försök igen.",
+      "popup-blocked": "Webbläsaren blockerade inloggningsfönstret. Tillåt popup-fönster och försök igen.",
+      "too-many-requests": "För många försök. Vänta en stund och försök igen.",
+      "user-disabled": "Kontot är avstängt."
+    },
+    "functions": {
+      "permission-denied": "Du har inte behörighet att göra det här.",
+      "failed-precondition": "Det går inte just nu.",
+      "resource-exhausted": "För många försök. Vänta en stund och försök igen.",
+      "not-found": "Det du letar efter finns inte längre.",
+      "invalid-argument": "Något av fälten är inte rätt ifyllt.",
+      "unauthenticated": "Logga in igen för att fortsätta.",
+      "unavailable": "Tjänsten svarar inte just nu. Försök igen om en stund."
+    }
+  },
+  "dev": {
+    "outboxIntro": "Meddelanden som skulle ha skickats och inloggningslänkar från Auth-emulatorn. Uppdateras var tredje sekund.",
+    "emulatorsDown": "Når inte emulatorerna. Kör npm run dev.",
+    "signInLinks": "Inloggningslänkar",
+    "openLink": "Öppna länken",
+    "noLinks": "Inga inloggningslänkar än.",
+    "messages": "Meddelanden",
+    "from": "från",
+    "characters": "{{count}} tecken",
+    "noMessages": "Inga meddelanden än.",
+    "ui": {
+      "buttons": "Knappar",
+      "primary": "Godkänn",
+      "secondary": "Ställ en fråga",
+      "ghost": "Avbryt",
+      "busy": "Sparar",
+      "mainAction": "Publicera uppdatering",
+      "cards": "Kort",
+      "panel": "En panel inuti ett kort.",
+      "dark": "Fas 3 av 4 · Installation",
+      "price": "Pris",
+      "fields": "Fält",
+      "nameLabel": "Projektnamn",
+      "nameHint": "Till exempel Köksrenovering Lindqvist",
+      "validate": "Kontrollera",
+      "tabs": "Flikar",
+      "tabFeed": "Flöde",
+      "tabFeedBody": "Uppdateringar och foton visas här.",
+      "tabDecisions": "Beslut",
+      "tabDecisionsBody": "Inget att besluta just nu.",
+      "tabVisit": "Nästa besök",
+      "tabVisitBody": "Inget besök bokat.",
+      "overlays": "Dialoger och notiser",
+      "openDialog": "Öppna dialog",
+      "toastSuccess": "Visa bekräftelse",
+      "toastError": "Visa fel",
+      "toastSuccessText": "Uppdateringen är publicerad.",
+      "confirmed": "Du bekräftade.",
+      "cancelled": "Du avbröt.",
+      "dialogTitle": "Dra tillbaka beslutet?",
+      "dialogBody": "Kunden får veta att beslutet har dragits tillbaka.",
+      "dialogConfirm": "Dra tillbaka"
+    }
+  }
+}

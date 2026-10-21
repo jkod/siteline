@@ -1,0 +1,206 @@
+/* Styles for directive-based components (button, card, input, tabs, dialog panel), which can't
+   carry their own component styles. */
+
+/* Button: pill-shaped, 44 px tall, 52 px for the main action on a screen. */
+.sl-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sl-space-2);
+  min-height: var(--sl-target);
+  min-width: var(--sl-target);
+  padding: 0 var(--sl-space-5);
+  border: 1.5px solid transparent;
+  border-radius: var(--sl-radius-pill);
+  font: 600 16px/20px var(--sl-font-body);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--sl-duration) var(--sl-ease),
+    border-color var(--sl-duration) var(--sl-ease),
+    transform var(--sl-duration) var(--sl-ease);
+}
+
+.sl-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.sl-button:disabled,
+.sl-button[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.sl-button--primary {
+  background: var(--sl-accent);
+  color: var(--sl-on-accent);
+}
+
+.sl-button--primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--sl-accent) 88%, black);
+}
+
+.sl-button--secondary {
+  background: var(--sl-surface);
+  color: var(--sl-text);
+  border-color: var(--sl-border-control);
+}
+
+.sl-button--secondary:hover:not(:disabled) {
+  background: var(--sl-panel);
+}
+
+.sl-button--ghost {
+  background: transparent;
+  color: var(--sl-text);
+}
+
+.sl-button--ghost:hover:not(:disabled) {
+  background: var(--sl-panel-2);
+}
+
+.sl-button--danger {
+  background: var(--sl-alert-text);
+  color: #fff;
+}
+
+.sl-button--large {
+  min-height: var(--sl-target-large);
+  padding: 0 var(--sl-space-6);
+  font-size: 17px;
+}
+
+.sl-button--block {
+  width: 100%;
+}
+
+.sl-button--icon {
+  padding: 0;
+}
+
+.sl-button[aria-busy='true']::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: sl-spin 0.8s linear infinite;
+}
+
+@keyframes sl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Card */
+.sl-card {
+  display: block;
+  padding: var(--sl-space-5);
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-border);
+  border-radius: var(--sl-radius-card);
+  box-shadow: var(--sl-shadow-card);
+}
+
+.sl-card--panel {
+  background: var(--sl-panel);
+  border-color: transparent;
+  border-radius: var(--sl-radius-panel);
+  box-shadow: none;
+}
+
+.sl-card--dark {
+  background: var(--sl-dark);
+  border-color: var(--sl-dark);
+  color: #fff;
+}
+
+/* Input: never below 16 px, so iPhones don't zoom in. */
+.sl-input {
+  width: 100%;
+  min-height: var(--sl-target);
+  padding: var(--sl-space-3) var(--sl-space-4);
+  background: var(--sl-surface);
+  color: var(--sl-text);
+  border: 1.5px solid var(--sl-border-control);
+  border-radius: var(--sl-radius-control);
+  font: 400 16px/22px var(--sl-font-body);
+  transition: border-color var(--sl-duration) var(--sl-ease);
+}
+
+.sl-input::placeholder {
+  color: var(--sl-text-3);
+}
+
+.sl-input:hover {
+  border-color: var(--sl-text-3);
+}
+
+.sl-input:focus-visible {
+  border-color: var(--sl-accent-text);
+}
+
+.sl-input[aria-invalid='true'] {
+  border-color: var(--sl-alert-text);
+}
+
+textarea.sl-input {
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* Tabs (Angular Aria) */
+.sl-tablist {
+  display: flex;
+  gap: var(--sl-space-1);
+  margin: 0;
+  padding: var(--sl-space-1);
+  list-style: none;
+  background: var(--sl-panel-2);
+  border-radius: var(--sl-radius-pill);
+  overflow-x: auto;
+}
+
+.sl-tab {
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sl-target);
+  padding: 0 var(--sl-space-4);
+  border-radius: var(--sl-radius-pill);
+  font: 600 15px/20px var(--sl-font-body);
+  color: var(--sl-text-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sl-tab[aria-selected='true'] {
+  background: var(--sl-surface);
+  color: var(--sl-text);
+  box-shadow: var(--sl-shadow-card);
+}
+
+.sl-tabpanel {
+  padding-top: var(--sl-space-4);
+}
+
+.sl-tabpanel[inert] {
+  display: none;
+}
+
+/* Dialog (CDK) */
+.sl-dialog-backdrop {
+  background: rgba(28, 31, 38, 0.48);
+}
+
+.sl-dialog-panel {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: var(--sl-surface);
+  border-radius: var(--sl-radius-card);
+  box-shadow: var(--sl-shadow-raised);
+}

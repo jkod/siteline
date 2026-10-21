@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// Deny by default (PRD section 10). Each milestone opens only what its features need, and every
+// change comes with rules tests in tests/rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isStaffOf(companyId) {
+      return signedIn() && request.auth.token.cid == companyId;
+    }
+
+    // One per person; readable only by that person. Written by functions.
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+    }
+
+    // The firm, readable by its staff. Written by functions.
+    match /companies/{companyId} {
+      allow read: if isStaffOf(companyId);
+
+      match /staff/{uid} {
+        allow read: if isStaffOf(companyId);
+      }
+
+      // Billing details are read through functions only.
+    }
+
+    // Everything else, including invites, the outbox, approvals and devOutbox, is denied.
+  }
+}

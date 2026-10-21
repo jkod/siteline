@@ -1,0 +1,141 @@
+{
+  "common": {
+    "skipToContent": "Skip to content",
+    "signOut": "Sign out",
+    "dismiss": "Dismiss",
+    "cancel": "Cancel"
+  },
+  "language": {
+    "label": "Language",
+    "sv": "Svenska",
+    "en": "English"
+  },
+  "placeholder": {
+    "body": "This page is built in a later milestone."
+  },
+  "pages": {
+    "login": "Sign in",
+    "loginFinish": "Signing in",
+    "onboarding": "Get started",
+    "staffHome": "Overview",
+    "newProject": "New project",
+    "newClient": "New client",
+    "projectFeed": "Feed",
+    "decisions": "Decisions",
+    "visit": "Next visit",
+    "handover": "Handover",
+    "people": "People",
+    "settingsCompany": "Company",
+    "settingsTeam": "Team",
+    "settingsBilling": "Billing",
+    "settingsMe": "My account",
+    "clientHome": "Home",
+    "clientSettings": "Settings",
+    "redeem": "Opening your project",
+    "linkExpired": "This link no longer works",
+    "referral": "Welcome to Siteline",
+    "privacy": "Privacy policy",
+    "terms": "Terms",
+    "notFound": "Page not found",
+    "devOutbox": "Dev outbox",
+    "devUi": "Components"
+  },
+  "staff": {
+    "nav": "Main menu"
+  },
+  "login": {
+    "title": "Sign in",
+    "intro": "We'll email you a sign-in link. No passwords to remember.",
+    "email": "Email address",
+    "sendLink": "Send sign-in link",
+    "or": "or",
+    "google": "Continue with Google",
+    "sentTitle": "Check your inbox",
+    "sentBody": "We sent a sign-in link to {{email}}. Open it on this device.",
+    "useAnotherEmail": "Use another email address",
+    "devOpenOutbox": "Development: open the link in the dev outbox"
+  },
+  "loginFinish": {
+    "working": "Signing in…",
+    "confirmTitle": "Confirm your email address",
+    "confirmBody": "The link was opened on another device or browser. Enter the email address you signed in with.",
+    "signIn": "Sign in",
+    "failedTitle": "Couldn't sign you in",
+    "backToLogin": "Back to sign-in"
+  },
+  "onboarding": {
+    "comingSoon": "This is where you'll set up your company soon: name, logo and colour.",
+    "signedInAs": "Signed in as {{email}}"
+  },
+  "errors": {
+    "unknown": "Something went wrong. Please try again.",
+    "validation": {
+      "required": "Please fill in this field.",
+      "email": "Enter a valid email address.",
+      "minLength": "The text is too short.",
+      "maxLength": "The text is too long."
+    },
+    "auth": {
+      "invalid-email": "Enter a valid email address.",
+      "invalid-action-code": "This link is invalid or has already been used. Ask for a new one.",
+      "expired-action-code": "This link has expired. Ask for a new one.",
+      "network-request-failed": "No connection. Check your network and try again.",
+      "popup-blocked": "Your browser blocked the sign-in window. Allow pop-ups and try again.",
+      "too-many-requests": "Too many attempts. Wait a moment and try again.",
+      "user-disabled": "This account has been disabled."
+    },
+    "functions": {
+      "permission-denied": "You don't have permission to do this.",
+      "failed-precondition": "This can't be done right now.",
+      "resource-exhausted": "Too many attempts. Wait a moment and try again.",
+      "not-found": "What you're looking for no longer exists.",
+      "invalid-argument": "One of the fields isn't filled in correctly.",
+      "unauthenticated": "Sign in again to continue.",
+      "unavailable": "The service isn't responding. Try again in a moment."
+    }
+  },
+  "dev": {
+    "outboxIntro": "Messages that would have been sent, and sign-in links from the Auth emulator. Refreshes every three seconds.",
+    "emulatorsDown": "Can't reach the emulators. Run npm run dev.",
+    "signInLinks": "Sign-in links",
+    "openLink": "Open link",
+    "noLinks": "No sign-in links yet.",
+    "messages": "Messages",
+    "from": "from",
+    "characters": "{{count}} characters",
+    "noMessages": "No messages yet.",
+    "ui": {
+      "buttons": "Buttons",
+      "primary": "Approve",
+      "secondary": "Ask a question",
+      "ghost": "Cancel",
+      "busy": "Saving",
+      "mainAction": "Post update",
+      "cards": "Cards",
+      "panel": "A panel inside a card.",
+      "dark": "Phase 3 of 4 · Installation",
+      "price": "Price",
+      "fields": "Fields",
+      "nameLabel": "Project name",
+      "nameHint": "For example Köksrenovering Lindqvist",
+      "validate": "Check",
+      "tabs": "Tabs",
+      "tabFeed": "Feed",
+      "tabFeedBody": "Updates and photos show here.",
+      "tabDecisions": "Decisions",
+      "tabDecisionsBody": "Nothing to decide right now.",
+      "tabVisit": "Next visit",
+      "tabVisitBody": "No visit booked.",
+      "overlays": "Dialogs and toasts",
+      "openDialog": "Open dialog",
+      "toastSuccess": "Show confirmation",
+      "toastError": "Show error",
+      "toastSuccessText": "Your update is posted.",
+      "confirmed": "You confirmed.",
+      "cancelled": "You cancelled.",
+      "dialogTitle": "Withdraw this decision?",
+      "dialogBody": "The client is told that the decision has been withdrawn.",
+      "dialogConfirm": "Withdraw"
+    }
+  }
+}

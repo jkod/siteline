@@ -1,0 +1,64 @@
+<main class="layout" id="main">
+  <p class="brand">
+    <img ngSrc="icons/favicon.svg" alt="" width="32" height="32" priority />
+    Siteline
+  </p>
+
+  @if (sentTo(); as address) {
+    <section slCard class="sent" aria-labelledby="sent-title">
+      <svg lucideMail [size]="28" aria-hidden="true"></svg>
+      <h1 id="sent-title">{{ 'login.sentTitle' | translate }}</h1>
+      <p>{{ 'login.sentBody' | translate: { email: address } }}</p>
+      @if (emulators) {
+        <p class="sl-small">
+          <a routerLink="/dev/outbox">{{ 'login.devOpenOutbox' | translate }}</a>
+        </p>
+      }
+      <button slButton="secondary" type="button" (click)="useAnotherEmail()">
+        {{ 'login.useAnotherEmail' | translate }}
+      </button>
+    </section>
+  } @else {
+    <div class="sl-stack">
+      <h1>{{ 'login.title' | translate }}</h1>
+      <p class="intro">{{ 'login.intro' | translate }}</p>
+    </div>
+
+    <form novalidate (submit)="sendLink($event)">
+      <sl-field
+        [label]="'login.email' | translate"
+        [errors]="form.email().errors()"
+        [touched]="form.email().touched()"
+      >
+        <input
+          slInput
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          [formField]="form.email"
+        />
+      </sl-field>
+      <button slButton size="large" block type="submit" [busy]="sending()" [disabled]="sending()">
+        {{ 'login.sendLink' | translate }}
+      </button>
+    </form>
+
+    <p class="divider">{{ 'login.or' | translate }}</p>
+
+    <button
+      slButton="secondary"
+      size="large"
+      block
+      type="button"
+      [busy]="signingInWithGoogle()"
+      [disabled]="signingInWithGoogle()"
+      (click)="google()"
+    >
+      {{ 'login.google' | translate }}
+    </button>
+  }
+
+  <div class="footer">
+    <sl-language-switch />
+  </div>
+</main>
