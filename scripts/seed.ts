@@ -1,34 +1,39 @@
 /**
  * Seeds the Emulator Suite with the fictional data from PRD section 13. Run through
- * `npm run dev` (with --wait, so it waits for the emulators) or `npm run seed`.
+ * `npm run dev`, `npm run seed` (add --wait to wait for emulators started separately) or `npm run e2e`.
  *
- * M0 creates the companies, staff, the client and their sign-in accounts. Projects, posts,
- * decisions and visits are added by the milestones that build them.
+ * Ek & Lind Snickeri (owner Erik, crew Omar) runs "Köksrenovering Lindqvist" for Anna Lindqvist,
+ * with ten posts and placeholder photos. Berg Mattehjälp (tutor Karin) has "Matte med Elsa" for
+ * the same client, so her home screen shows both firms. Decisions and visits are added by M2.
  */
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { readFileSync } from 'node:fs';
 
-import { DevSmsSender } from '../functions/src/adapters/dev-outbox';
 import {
   DEFAULT_ACCENT,
+  maskPhone,
   type Plan,
   PLAN_LIMITS,
+  type Post,
   type StaffRole,
   TIME_ZONE,
 } from '../shared/src/index';
 
-const PROJECT_ID = 'demo-siteline';
-
-process.env['GCLOUD_PROJECT'] ??= PROJECT_ID;
+process.env['GCLOUD_PROJECT'] ??= 'demo-siteline';
 process.env['FIRESTORE_EMULATOR_HOST'] ??= '127.0.0.1:8080';
 process.env['FIREBASE_AUTH_EMULATOR_HOST'] ??= '127.0.0.1:9099';
 process.env['FIREBASE_STORAGE_EMULATOR_HOST'] ??= '127.0.0.1:9199';
+process.env['APP_URL'] ??=
+  process.env['GCLOUD_PROJECT'] === 'demo-siteline-test'
+    ? 'http://localhost:4300'
+    : 'http://localhost:4200';
 
 if (!process.env['GCLOUD_PROJECT']?.startsWith('demo-')) {
   throw new Error('The seed only runs against a demo- project in the Emulator Suite.');
 }
 
 const HUB = 'http://127.0.0.1:4400/emulators';
-const APP_URL = 'http://localhost:4200';
+const DAY = 86_400_000;
 
 interface Person {
   uid: string;
@@ -42,14 +47,7 @@ interface StaffSeed extends Person {
   role: StaffRole;
 }
 
-interface CompanySeed {
-  id: string;
-  name: string;
-  plan: Plan;
-  accentColor: string;
-}
-
-const companies: CompanySeed[] = [
+const companies: { id: string; name: string; plan: Plan; accentColor: string }[] = [
   { id: 'ek-lind', name: 'Ek & Lind Snickeri', plan: 'team', accentColor: DEFAULT_ACCENT },
   { id: 'berg-mattehjalp', name: 'Berg Mattehjälp', plan: 'visits', accentColor: '#2F5DA8' },
 ];
@@ -88,9 +86,8 @@ async function waitForEmulators(timeoutMs = 120_000): Promise<void> {
   const started = Date.now();
   for (;;) {
     try {
-      const response = await fetch(HUB);
-      const running = (await response.json()) as Record<string, unknown>;
-      if (running['auth'] && running['firestore']) return;
+      const running = (await (await fetch(HUB)).json()) as Record<string, unknown>;
+      if (running['auth'] && running['firestore'] && running['storage']) return;
     } catch {
       // Not up yet.
     }
@@ -103,8 +100,11 @@ async function main(): Promise<void> {
   if (process.argv.includes('--wait')) await waitForEmulators();
 
   // Import after the emulator variables are set, so the Admin SDK connects to the emulators.
-  const { auth, db } = await import('../functions/src/lib/admin');
+  const { auth, bucket, db } = await import('../functions/src/lib/admin');
   const { setStaffClaims } = await import('../functions/src/lib/claims');
+  const { sha256Hex } = await import('../functions/src/lib/crypto');
+  const { createInvite, inviteLink } = await import('../functions/src/lib/invites');
+  const { queueMessage } = await import('../functions/src/lib/outbox');
 
   async function upsertAuthUser(person: Person): Promise<void> {
     // Client accounts hold no contact details in Firebase Authentication (PRD 4.1).
@@ -115,6 +115,21 @@ async function main(): Promise<void> {
       await auth.createUser({ uid: person.uid, ...props, emailVerified: Boolean(person.email) });
     }
   }
+
+  const photo = async (projectId: string, name: string) => {
+    const base = `projects/${projectId}/media/seed-${name}`;
+    for (const size of ['display', 'thumb'] as const) {
+      const file = readFileSync(new URL(`./seed-photos/${name}-${size}.jpg`, import.meta.url));
+      await bucket().file(`${base}/${size}.jpg`).save(file, { contentType: 'image/jpeg' });
+    }
+    return {
+      path: `${base}/display.jpg`,
+      thumbPath: `${base}/thumb.jpg`,
+      width: 1600,
+      height: 1200,
+      tags: [],
+    };
+  };
 
   const now = FieldValue.serverTimestamp();
   const batch = db.batch();
@@ -131,7 +146,12 @@ async function main(): Promise<void> {
       plan: company.plan,
       compedUntil: null,
       limits: PLAN_LIMITS[company.plan],
-      usage: { activeProjects: 0, serviceClients: 0, staff: members.length, smsThisMonth: 0 },
+      usage: {
+        activeProjects: company.id === 'ek-lind' ? 1 : 0,
+        serviceClients: company.id === 'berg-mattehjalp' ? 1 : 0,
+        staff: members.length,
+        smsThisMonth: 0,
+      },
       referredBy: null,
       settings: {
         digestTime: '18:00',
@@ -180,25 +200,244 @@ async function main(): Promise<void> {
     createdAt: now,
     updatedAt: now,
   });
+  batch.set(db.doc(`clientPhones/${sha256Hex(anna.phoneE164!)}`), {
+    uid: anna.uid,
+    createdAt: now,
+  });
+
+  const branding = (company: (typeof companies)[number]) => ({
+    name: company.name,
+    logoUrl: null,
+    accentColor: company.accentColor,
+    showSitelineFooter: company.plan === 'free' || company.plan === 'visits',
+  });
+  const member = (role: 'client' | 'crew', name: string, phone?: string) => ({
+    role,
+    name,
+    phoneMasked: phone ? maskPhone(phone) : null,
+    joinedAt: Timestamp.fromMillis(Date.now() - 9 * DAY),
+    lastSeenAt: role === 'client' ? Timestamp.fromMillis(Date.now() - DAY / 2) : null,
+    notify:
+      role === 'client'
+        ? { instant: false, digest: true, channel: 'sms' }
+        : { instant: true, digest: false, channel: 'email' },
+    phoneVerifiedAt: null,
+    invite:
+      role === 'client'
+        ? { sentAt: Timestamp.fromMillis(Date.now() - 10 * DAY), revokedAt: null }
+        : null,
+    createdAt: now,
+  });
+
+  // Köksrenovering Lindqvist
+  const kitchen = 'lindqvist-kok';
+  batch.set(db.doc(`projects/${kitchen}`), {
+    companyId: 'ek-lind',
+    kind: 'project',
+    title: 'Köksrenovering Lindqvist',
+    address: { street: 'Tallvägen 4', postalCode: '133 34', city: 'Saltsjöbaden' },
+    schedule: null,
+    status: 'active',
+    startDate: '2026-10-12',
+    endDate: '2026-11-20',
+    branding: branding(companies[0]!),
+    roles: { 'omar-haddad': 'crew', [anna.uid]: 'client' },
+    clientUids: [anna.uid],
+    crewUids: ['omar-haddad'],
+    totals: { approvedExtraWorkOre: 0, openDecisions: 0, unansweredQuestions: 1 },
+    nextVisitId: null,
+    lastPostAt: Timestamp.fromMillis(Date.now() - 2 * 3600_000),
+    completedAt: null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  batch.set(
+    db.doc(`projects/${kitchen}/members/${anna.uid}`),
+    member('client', anna.name, anna.phoneE164),
+  );
+  batch.set(db.doc(`projects/${kitchen}/members/omar-haddad`), member('crew', 'Omar Haddad'));
+
+  const author = (uid: string) => {
+    if (uid === anna.uid)
+      return { authorUid: uid, authorName: anna.name, authorRole: 'client' as const };
+    const s = staff.find((p) => p.uid === uid)!;
+    return { authorUid: uid, authorName: s.name, authorRole: s.role };
+  };
+  const post = (uid: string, daysAgo: number, fields: Partial<Post>): Post<Timestamp> => ({
+    type: 'update',
+    ...author(uid),
+    text: '',
+    media: [],
+    visibility: 'all',
+    milestone: null,
+    commentCount: 0,
+    unanswered: false,
+    createdAt: Timestamp.fromMillis(Date.now() - daysAgo * DAY),
+    editedAt: null,
+    deletedAt: null,
+    ...(fields as Partial<Post<Timestamp>>),
+  });
+
+  const kitchenPosts: [string, Post<Timestamp>][] = [
+    [
+      'p01',
+      post('erik-ek', 9, {
+        text: 'Vi har börjat riva köket. De gamla skåpen är ute och golvet ligger öppet.',
+        media: [await photo(kitchen, 'rivning')],
+      }),
+    ],
+    [
+      'p02',
+      post('omar-haddad', 8.6, {
+        text: 'Golvbjälken under diskbänken är rutten och behöver bytas. Vi återkommer med pris i morgon.',
+        media: [await photo(kitchen, 'bjalke')],
+      }),
+    ],
+    [
+      'p03',
+      post('erik-ek', 8, {
+        type: 'milestone',
+        text: 'Rivning klar',
+        milestone: { stage: 1, stageCount: 4 },
+      }),
+    ],
+    [
+      'p04',
+      post(anna.uid, 6.5, {
+        type: 'question',
+        text: 'Hur länge blir vi utan vatten på torsdag?',
+        commentCount: 1,
+      }),
+    ],
+    [
+      'p05',
+      post('omar-haddad', 5, {
+        text: 'Elektrikern har dragit nya uttag vid bänken och under överskåpen.',
+        media: [await photo(kitchen, 'el')],
+      }),
+    ],
+    [
+      'p06',
+      post('erik-ek', 4.2, {
+        type: 'milestone',
+        text: 'El och VVS klart',
+        milestone: { stage: 2, stageCount: 4 },
+      }),
+    ],
+    [
+      'p07',
+      post('erik-ek', 3, {
+        text: 'Kaklet bakom spisen är uppsatt. Fogningen görs i morgon.',
+        media: [await photo(kitchen, 'kakel')],
+      }),
+    ],
+    [
+      'p08',
+      post('omar-haddad', 1.5, {
+        text: 'Skåpstommarna är på plats. Luckorna kommer på fredag.',
+        media: [await photo(kitchen, 'skap1'), await photo(kitchen, 'skap2')],
+      }),
+    ],
+    [
+      'p09',
+      post(anna.uid, 0.4, {
+        type: 'question',
+        text: 'Kan vi få ett extra uttag vid fönstret?',
+        unanswered: true,
+      }),
+    ],
+    [
+      'p10',
+      post('erik-ek', 0.08, {
+        text: 'Bänkskivan levereras på måndag förmiddag. Vi bär in den direkt.',
+      }),
+    ],
+  ];
+  for (const [id, data] of kitchenPosts) batch.set(db.doc(`projects/${kitchen}/posts/${id}`), data);
+  batch.set(db.doc(`projects/${kitchen}/posts/p04/comments/c1`), {
+    ...author('erik-ek'),
+    text: 'Vattnet är avstängt 09:00-11:00. Vi ställer fram en dunk i hallen.',
+    media: [],
+    createdAt: Timestamp.fromMillis(Date.now() - 6.4 * DAY),
+    editedAt: null,
+    deletedAt: null,
+  });
+
+  // Matte med Elsa (service client; schedule and visits arrive with M2)
+  const tutoring = 'matte-elsa';
+  batch.set(db.doc(`projects/${tutoring}`), {
+    companyId: 'berg-mattehjalp',
+    kind: 'service',
+    title: 'Matte med Elsa',
+    address: null,
+    schedule: null,
+    status: 'active',
+    startDate: '2026-09-01',
+    endDate: null,
+    branding: branding(companies[1]!),
+    roles: { [anna.uid]: 'client' },
+    clientUids: [anna.uid],
+    crewUids: [],
+    totals: { approvedExtraWorkOre: 0, openDecisions: 0, unansweredQuestions: 0 },
+    nextVisitId: null,
+    lastPostAt: Timestamp.fromMillis(Date.now() - 2 * DAY),
+    completedAt: null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  batch.set(
+    db.doc(`projects/${tutoring}/members/${anna.uid}`),
+    member('client', anna.name, anna.phoneE164),
+  );
+  batch.set(
+    db.doc(`projects/${tutoring}/posts/p01`),
+    post('karin-berg', 2, {
+      text: 'Vi gick igenom ekvationer med en okänd. Elsa jobbade bra! Öva på sidan 42 till nästa gång.',
+      media: [await photo(tutoring, 'matte')],
+    }),
+  );
 
   await batch.commit();
 
-  // One sample text through the dev SMS adapter, so /dev/outbox has something to show.
-  const outbox = await db.collection('devOutbox').limit(1).get();
-  if (outbox.empty) {
-    await new DevSmsSender(db).send({
-      to: anna.phoneE164 ?? '',
-      sender: 'Ek & Lind',
-      text: `Hej Anna! Ek & Lind Snickeri delar uppdateringar om Köksrenovering Lindqvist här: ${APP_URL}/p/seed-example`,
-    });
-  }
+  // Anna's link to the kitchen project, sent the real way: the outbox, then the dev SMS sender.
+  const { token, hash } = await createInvite(db, {
+    kind: 'client',
+    projectId: kitchen,
+    companyId: 'ek-lind',
+    role: 'client',
+    uid: anna.uid,
+    name: anna.name,
+    phoneE164: anna.phoneE164!,
+    email: null,
+    createdBy: 'erik-ek',
+    expiresAt: null,
+  });
+  await queueMessage(db, {
+    channel: 'sms',
+    to: { uid: anna.uid, phone: anna.phoneE164 },
+    // Staff kind, so the seed's text goes out at once even during quiet hours.
+    recipientKind: 'staff',
+    template: 'clientInvite',
+    params: {
+      firstName: 'Anna',
+      firm: 'Ek & Lind Snickeri',
+      project: 'Köksrenovering Lindqvist',
+      link: inviteLink(token),
+      settingsPath: '/c/settings',
+    },
+    locale: 'sv',
+    companyId: 'ek-lind',
+    projectId: kitchen,
+    dedupeKey: `clientInvite:${hash}`,
+  });
 
   console.log('Seeded the emulators:');
-  for (const person of staff) {
+  for (const person of staff)
     console.log(`  ${person.role.padEnd(5)}  ${person.email}  (${person.companyId})`);
-  }
-  console.log(`  client ${anna.name} (signs in through an invite link from M1)`);
-  console.log(`Sign in at ${APP_URL}/login and open the link from ${APP_URL}/dev/outbox.`);
+  console.log(`  client ${anna.name}: open her link from ${process.env['APP_URL']}/dev/outbox`);
+  console.log(
+    `Staff sign in at ${process.env['APP_URL']}/login and open the link from /dev/outbox.`,
+  );
 }
 
 main().then(

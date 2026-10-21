@@ -1,0 +1,88 @@
+<section class="sl-stack" aria-labelledby="clients-title">
+  <div class="title-row">
+    <h2 id="clients-title">{{ 'people.clients' | translate }}</h2>
+    <button slButton type="button" (click)="openInvite()">
+      <svg lucideUserPlus [size]="20"></svg>
+      {{ 'people.invite' | translate }}
+    </button>
+  </div>
+  @if (context.clients().length) {
+    <ul class="people">
+      @for (member of context.clients(); track member.id) {
+        <li slCard>
+          <div class="person">
+            <sl-avatar [name]="member.name" variant="client" />
+            <div class="info">
+              <p class="name">{{ member.name }}</p>
+              <p class="sl-small">{{ member.phoneMasked }}</p>
+              <p class="sl-small">
+                @switch (linkState(member)) {
+                  @case ('revoked') {
+                    <span class="sl-badge">{{ 'people.linkRevoked' | translate }}</span>
+                  }
+                  @case ('joined') {
+                    @if (member.lastSeenAt) {
+                      {{
+                        'people.lastOpened'
+                          | translate: { when: (member.lastSeenAt | slDate: 'relative') }
+                      }}
+                    } @else {
+                      {{ 'people.joined' | translate }}
+                    }
+                  }
+                  @default {
+                    {{
+                      'people.invited'
+                        | translate: { when: (member.invite?.sentAt | slDate: 'relative') }
+                    }}
+                  }
+                }
+              </p>
+            </div>
+          </div>
+          <div class="actions">
+            <button slButton="secondary" type="button" (click)="resend(member)">
+              {{ 'people.resend' | translate }}
+            </button>
+            @if (linkState(member) !== 'revoked') {
+              <button slButton="ghost" type="button" (click)="revoke(member)">
+                {{ 'people.revoke' | translate }}
+              </button>
+            }
+            <button slButton="ghost" type="button" (click)="remove(member)">
+              {{ 'people.remove' | translate }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else if (context.members() !== undefined) {
+    <sl-empty-state
+      [title]="'people.noClientsTitle' | translate"
+      [body]="'people.noClientsBody' | translate"
+    />
+  }
+</section>
+
+<section class="sl-stack" aria-labelledby="crew-title">
+  <div class="title-row">
+    <h2 id="crew-title">{{ 'people.crew' | translate }}</h2>
+    @if (canManage()) {
+      <button slButton="secondary" type="button" (click)="editCrew()">
+        {{ 'people.editCrew' | translate }}
+      </button>
+    }
+  </div>
+  @if (context.crew().length) {
+    <ul class="people">
+      @for (member of context.crew(); track member.id) {
+        <li slCard class="person">
+          <sl-avatar [name]="member.name" />
+          <p class="name">{{ member.name }}</p>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="sl-small">{{ 'people.noCrew' | translate }}</p>
+  }
+</section>

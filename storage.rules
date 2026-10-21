@@ -1,9 +1,51 @@
 rules_version = '2';
 
-// Deny by default (PRD section 10). Project media, audio, attachments and logos are opened in
-// the milestones that add them, with rules tests in tests/rules.
+// Deny by default (PRD section 10). Project membership is checked against the project document
+// with firestore.get(), plus file type and size. Every change here comes with rules tests in
+// tests/rules.
 service firebase.storage {
   match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function project(projectId) {
+      return firestore.get(/databases/(default)/documents/projects/$(projectId)).data;
+    }
+
+    function isProjectStaff(projectId) {
+      let p = project(projectId);
+      return signedIn() && request.auth.token.get('cid', null) == p.companyId
+        && (request.auth.token.get('crole', null) in ['owner', 'admin'] || request.auth.uid in p.crewUids);
+    }
+
+    function isProjectMember(projectId) {
+      return isProjectStaff(projectId)
+        || (signedIn() && request.auth.uid in project(projectId).clientUids);
+    }
+
+    // The firm's logo: managers upload it; clients and emails use its download URL.
+    match /companies/{companyId}/{file} {
+      allow read: if signedIn() && request.auth.token.get('cid', null) == companyId;
+      allow write: if signedIn() && request.auth.token.get('cid', null) == companyId
+        && request.auth.token.get('crole', null) in ['owner', 'admin']
+        && file.matches('logo[.](png|jpg|svg)')
+        && request.resource.size <= 2 * 1024 * 1024
+        && request.resource.contentType in ['image/png', 'image/jpeg', 'image/svg+xml'];
+    }
+
+    // Photos, prepared in the browser as display.jpg and thumb.jpg. Staff post them on their
+    // projects; clients attach them to their own questions and comments.
+    match /projects/{projectId}/media/{mediaId}/{file} {
+      allow read: if isProjectMember(projectId);
+      allow create: if isProjectMember(projectId)
+        && file in ['display.jpg', 'thumb.jpg']
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType == 'image/jpeg';
+    }
+
+    // Audio, attachments and handover PDFs are opened in the milestones that add them.
     match /{allPaths=**} {
       allow read, write: if false;
     }

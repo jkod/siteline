@@ -1,0 +1,45 @@
+@if (project(); as p) {
+  <div class="view" [slBrand]="p.branding.accentColor">
+    <header class="brand">
+      <a class="back" routerLink="/c" [attr.aria-label]="'client.allProjects' | translate">
+        <svg lucideChevronLeft [size]="22"></svg>
+      </a>
+      @if (p.branding.logoUrl) {
+        <img [src]="p.branding.logoUrl" [alt]="p.branding.name" width="40" height="40" />
+      } @else {
+        <span class="mark" aria-hidden="true">{{ p.branding.name[0] }}</span>
+      }
+      <span class="firm">{{ p.branding.name }}</span>
+    </header>
+
+    <main class="sl-page sl-stack" id="main">
+      <h1>{{ p.title }}</h1>
+      <sl-install-hint />
+      <nav class="tabs" [attr.aria-label]="'project.tabs' | translate">
+        @for (tab of tabs; track tab.path) {
+          <a
+            [routerLink]="tab.path ? ['/c', projectId(), tab.path] : ['/c', projectId()]"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: tab.exact }"
+            ariaCurrentWhenActive="page"
+          >
+            {{ tab.label | translate }}
+          </a>
+        }
+      </nav>
+      <router-outlet />
+    </main>
+
+    @if (p.branding.showSitelineFooter) {
+      <footer class="footer">
+        <a href="/">{{ 'client.footer' | translate }}</a>
+      </footer>
+    }
+  </div>
+} @else if (project() === null) {
+  <main class="sl-page sl-stack" id="main">
+    <h1>{{ 'project.notFound' | translate }}</h1>
+    <p>{{ 'client.notFoundBody' | translate }}</p>
+    <a routerLink="/c">{{ 'client.allProjects' | translate }}</a>
+  </main>
+}

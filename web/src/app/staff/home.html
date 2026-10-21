@@ -1,0 +1,83 @@
+<main class="sl-page sl-stack" id="main">
+  <div class="title-row">
+    <h1>{{ 'staffHome.title' | translate }}</h1>
+    @if (canManage()) {
+      <a slButton routerLink="/app/projects/new">
+        <svg lucidePlus [size]="20"></svg>
+        {{ 'staffHome.newProject' | translate }}
+      </a>
+    }
+  </div>
+  @if (usage(); as u) {
+    <p class="sl-small">{{ 'staffHome.usage' | translate: { used: u.used, limit: u.limit } }}</p>
+  }
+
+  <div class="filters">
+    <div class="segments" role="group" [attr.aria-label]="'staffHome.statusFilter' | translate">
+      @for (s of statuses; track s) {
+        <button type="button" [attr.aria-pressed]="status() === s" (click)="status.set(s)">
+          {{ 'status.' + s | translate }}
+        </button>
+      }
+    </div>
+    <div class="search">
+      <svg lucideSearch [size]="18" aria-hidden="true"></svg>
+      <label class="sl-visually-hidden" for="project-search">{{
+        'staffHome.search' | translate
+      }}</label>
+      <input
+        id="project-search"
+        class="sl-input"
+        type="search"
+        [placeholder]="'staffHome.search' | translate"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  @if (!loading()) {
+    @if (visible().length) {
+      <ul class="projects">
+        @for (project of visible(); track project.id) {
+          <li>
+            <a class="project" [routerLink]="['/app/projects', project.id]">
+              <span class="name">{{ project.title }}</span>
+              @if (project.address; as address) {
+                <span class="sl-small">{{ address.street }}, {{ address.city }}</span>
+              }
+              <span class="meta">
+                @if (project.totals.unansweredQuestions > 0) {
+                  <span class="sl-badge">
+                    {{
+                      'staffHome.unanswered'
+                        | plural: project.totals.unansweredQuestions
+                        | translate: { count: project.totals.unansweredQuestions }
+                    }}
+                  </span>
+                }
+                <span class="sl-small">
+                  @if (project.lastPostAt) {
+                    {{
+                      'staffHome.lastPost'
+                        | translate: { when: (project.lastPostAt | slDate: 'relative') }
+                    }}
+                  } @else {
+                    {{ 'staffHome.noPosts' | translate }}
+                  }
+                </span>
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    } @else {
+      <sl-empty-state
+        [title]="'staffHome.empty.' + status() + 'Title' | translate"
+        [body]="
+          (canManage() && status() === 'active' ? 'staffHome.empty.activeBody' : '') | translate
+        "
+      />
+    }
+  }
+</main>

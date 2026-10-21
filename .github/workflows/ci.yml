@@ -23,7 +23,7 @@ defaults:
 
 jobs:
   checks:
-    name: Lint, types, unit and rules tests, build
+    name: Lint, types, unit, rules and integration tests, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +47,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:rules
+      - run: npm run test:integration
       - run: npm run build
       - name: Audit Siteline production dependencies
         # Gates on critical findings. The Firebase web SDK pins @grpc/grpc-js ~1.9 for its Node

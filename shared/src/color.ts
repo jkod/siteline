@@ -29,14 +29,20 @@ export function onAccentColor(accent: string): string {
   return contrastRatio(accent, WHITE) >= contrastRatio(accent, INK) ? WHITE : INK;
 }
 
+/** The accent mixed with white, for tinted backgrounds such as active tabs and badges. */
+export function tintColor(accent: string, amount = 0.16): string {
+  const rgb = channels(accent).map((c) => Math.round(c * amount + 255 * (1 - amount)));
+  return toHex(rgb as [number, number, number]);
+}
+
 /**
- * The accent as text on white: the accent itself when it reaches 4.5:1, otherwise darkened
- * step by step until it does (PRD F1).
+ * The accent as text: the accent itself when it reaches 4.5:1 on the background (white by
+ * default), otherwise darkened step by step until it does (PRD F1).
  */
-export function accentTextColor(accent: string, minRatio = 4.5): string {
+export function accentTextColor(accent: string, minRatio = 4.5, background = WHITE): string {
   let rgb = channels(accent);
   let hex = toHex(rgb);
-  while (contrastRatio(hex, WHITE) < minRatio) {
+  while (contrastRatio(hex, background) < minRatio) {
     rgb = rgb.map((c) => Math.floor(c * 0.95)) as [number, number, number];
     hex = toHex(rgb);
   }

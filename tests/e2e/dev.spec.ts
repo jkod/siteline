@@ -4,7 +4,9 @@ import { expectNoAxeViolations } from './a11y';
 
 test('the dev outbox shows the seeded invite text', async ({ page }) => {
   await page.goto('/dev/outbox');
-  await expect(page.getByText(/Hej Anna! Ek & Lind Snickeri delar uppdateringar/)).toBeVisible();
+  await expect(
+    page.getByText(/Hej Anna! Ek & Lind Snickeri delar uppdateringar/).first(),
+  ).toBeVisible();
 });
 
 test.describe('component gallery', () => {

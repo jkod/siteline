@@ -15,14 +15,18 @@ let nextId = 0;
 export class Dialogs {
   private readonly dialog = inject(Dialog);
 
-  open<R, D, C>(component: Type<C>, data?: D): DialogRef<R, C> {
+  open<R, D, C>(
+    component: Type<C>,
+    data?: D,
+    options: { fullScreen?: boolean } = {},
+  ): DialogRef<R, C> {
     const id = `sl-dialog-${nextId++}`;
     return this.dialog.open<R, D, C>(component, {
       data,
       id,
       ariaLabelledBy: `${id}-title`,
       ariaModal: true,
-      panelClass: 'sl-dialog-panel',
+      panelClass: options.fullScreen ? 'sl-dialog-fullscreen' : 'sl-dialog-panel',
       backdropClass: 'sl-dialog-backdrop',
       autoFocus: 'first-tabbable',
       restoreFocus: true,

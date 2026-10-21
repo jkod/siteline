@@ -66,10 +66,10 @@ apps/siteline/
 Run these from the workspace root with `--workspace apps/siteline`, or from `apps/siteline`:
 
 - `npm run dev`: starts the emulators, the app and the seed data
-- `npm test`, `npm run test:rules`, `npm run e2e`
+- `npm test`, `npm run test:rules`, `npm run test:integration` (callables and triggers), `npm run e2e`
 - `npm run deploy:staging`. Never deploy to production from a local machine.
 
-The emulators need Java 21+ and firebase-tools.
+The emulators need Java 21+ and firebase-tools. Test runs use `firebase.test.json` (other ports, project `demo-siteline-test`, app on port 4300), so they can run while `npm run dev` is up.
 
 ## Workflow
 

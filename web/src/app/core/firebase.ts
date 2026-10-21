@@ -15,7 +15,6 @@ import type { FirebaseStorage } from 'firebase/storage';
 import { REGION } from '@siteline/shared';
 
 import { environment } from '../../environments/environment';
-import { EMULATOR_HOSTS } from '../../environments/environment.model';
 
 /**
  * Owns the Firebase app. Auth starts eagerly because guards need it on the first navigation;
@@ -42,8 +41,8 @@ export class FirebaseService {
       if (environment.emulators) {
         m.connectFirestoreEmulator(
           db,
-          EMULATOR_HOSTS.firestore.host,
-          EMULATOR_HOSTS.firestore.port,
+          environment.emulatorHosts.firestore.host,
+          environment.emulatorHosts.firestore.port,
         );
       }
       return db;
@@ -56,8 +55,8 @@ export class FirebaseService {
       if (environment.emulators) {
         m.connectFunctionsEmulator(
           functions,
-          EMULATOR_HOSTS.functions.host,
-          EMULATOR_HOSTS.functions.port,
+          environment.emulatorHosts.functions.host,
+          environment.emulatorHosts.functions.port,
         );
       }
       return functions;
@@ -68,7 +67,11 @@ export class FirebaseService {
     return (this.storagePromise ??= import('firebase/storage').then((m) => {
       const storage = m.getStorage(this.app);
       if (environment.emulators) {
-        m.connectStorageEmulator(storage, EMULATOR_HOSTS.storage.host, EMULATOR_HOSTS.storage.port);
+        m.connectStorageEmulator(
+          storage,
+          environment.emulatorHosts.storage.host,
+          environment.emulatorHosts.storage.port,
+        );
       }
       return storage;
     }));
@@ -90,7 +93,7 @@ export class FirebaseService {
       popupRedirectResolver: browserPopupRedirectResolver,
     });
     if (environment.emulators) {
-      connectAuthEmulator(auth, EMULATOR_HOSTS.auth, { disableWarnings: true });
+      connectAuthEmulator(auth, environment.emulatorHosts.auth, { disableWarnings: true });
     }
     return auth;
   }

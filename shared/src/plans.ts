@@ -34,3 +34,25 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 export function showsSitelineFooter(plan: Plan): boolean {
   return plan === 'free' || plan === 'visits';
 }
+
+/**
+ * The limits that apply now: design partners with a future `compedUntil` get Team limits for
+ * free (PRD F10), otherwise the stored limits for the plan.
+ */
+export function effectiveLimits(
+  company: { limits: PlanLimits; compedUntil: { toMillis(): number } | null },
+  nowMs: number,
+): PlanLimits {
+  if (company.compedUntil && company.compedUntil.toMillis() > nowMs) {
+    const team = PLAN_LIMITS.team;
+    const pick = (a: number | null, b: number | null) =>
+      a === null || b === null ? null : Math.max(a, b);
+    return {
+      activeProjects: pick(company.limits.activeProjects, team.activeProjects),
+      serviceClients: pick(company.limits.serviceClients, team.serviceClients),
+      staff: pick(company.limits.staff, team.staff),
+      smsPerMonth: Math.max(company.limits.smsPerMonth, team.smsPerMonth),
+    };
+  }
+  return company.limits;
+}

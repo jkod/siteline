@@ -1,0 +1,78 @@
+<ul class="list" [attr.aria-label]="'feed.comments' | translate">
+  @for (comment of comments() ?? []; track comment.id) {
+    <li class="comment">
+      <sl-avatar
+        [name]="comment.authorName"
+        [size]="28"
+        [variant]="comment.authorRole === 'client' ? 'client' : 'staff'"
+      />
+      <div class="body">
+        <p class="meta">
+          <span class="author">{{ comment.authorName }}</span>
+          <time
+            [attr.datetime]="comment.createdAt.toDate().toISOString()"
+            [title]="comment.createdAt | slDate"
+          >
+            {{ comment.createdAt | slDate: 'relative' }}
+          </time>
+          @if (comment.editedAt && !comment.deletedAt) {
+            <span>· {{ 'feed.edited' | translate }}</span>
+          }
+        </p>
+        @if (comment.deletedAt) {
+          <p class="removed">{{ 'feed.removedByAuthor' | translate }}</p>
+        } @else if (editingId() === comment.id) {
+          <label class="sl-visually-hidden" [attr.for]="'edit-' + comment.id">{{
+            'feed.editComment' | translate
+          }}</label>
+          <textarea
+            [id]="'edit-' + comment.id"
+            class="sl-input"
+            rows="2"
+            [maxLength]="maxLength"
+            [value]="editText()"
+            (input)="editText.set($any($event.target).value)"
+          ></textarea>
+          <div class="row">
+            <button slButton="ghost" type="button" (click)="editingId.set(null)">
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button slButton type="button" (click)="saveEdit(comment.id)">
+              {{ 'common.save' | translate }}
+            </button>
+          </div>
+        } @else {
+          <p class="text">{{ comment.text }}</p>
+          @if (comment.authorUid === uid()) {
+            <div class="row">
+              <button type="button" class="link" (click)="startEdit(comment.id, comment.text)">
+                {{ 'common.edit' | translate }}
+              </button>
+              <button type="button" class="link" (click)="remove(comment.id)">
+                {{ 'common.delete' | translate }}
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </li>
+  }
+</ul>
+
+<form class="new" (submit)="send($event)">
+  <label class="sl-visually-hidden" [attr.for]="'comment-' + postId()">{{
+    'feed.writeComment' | translate
+  }}</label>
+  <textarea
+    [id]="'comment-' + postId()"
+    class="sl-input"
+    rows="1"
+    [maxLength]="maxLength"
+    [placeholder]="'feed.writeComment' | translate"
+    [value]="draft()"
+    (input)="draft.set($any($event.target).value)"
+  ></textarea>
+  <button slButton type="submit" [disabled]="!draft().trim() || sending()" [busy]="sending()">
+    {{ 'feed.send' | translate }}
+  </button>
+</form>

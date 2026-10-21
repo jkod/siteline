@@ -1,5 +1,4 @@
 import { environment } from '../../environments/environment';
-import { EMULATOR_HOSTS } from '../../environments/environment.model';
 
 // Reads the emulators' REST APIs directly. `Bearer owner` bypasses security rules, which only
 // the Firestore emulator accepts, so no rule ever has to open devOutbox.
@@ -28,7 +27,7 @@ interface FirestoreDocument {
 const projectId = environment.firebase.projectId;
 
 export async function listDevMessages(): Promise<DevMessage[]> {
-  const { host, port } = EMULATOR_HOSTS.firestore;
+  const { host, port } = environment.emulatorHosts.firestore;
   const url = `http://${host}:${port}/v1/projects/${projectId}/databases/(default)/documents/devOutbox?pageSize=100&orderBy=createdAt%20desc`;
   const response = await fetch(url, { headers: { Authorization: 'Bearer owner' } });
   if (!response.ok) throw new Error(`Firestore emulator responded ${response.status}`);
@@ -51,7 +50,9 @@ export async function listDevMessages(): Promise<DevMessage[]> {
 }
 
 export async function listSignInLinks(): Promise<SignInLink[]> {
-  const response = await fetch(`${EMULATOR_HOSTS.auth}/emulator/v1/projects/${projectId}/oobCodes`);
+  const response = await fetch(
+    `${environment.emulatorHosts.auth}/emulator/v1/projects/${projectId}/oobCodes`,
+  );
   if (!response.ok) throw new Error(`Auth emulator responded ${response.status}`);
   const body = (await response.json()) as {
     oobCodes?: { email: string; oobLink: string; requestType: string }[];

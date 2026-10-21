@@ -3,7 +3,14 @@
     "skipToContent": "Hoppa till innehållet",
     "signOut": "Logga ut",
     "dismiss": "Stäng",
-    "cancel": "Avbryt"
+    "cancel": "Avbryt",
+    "close": "Stäng",
+    "continue": "Fortsätt",
+    "delete": "Ta bort",
+    "edit": "Redigera",
+    "ok": "OK",
+    "optional": "Valfritt",
+    "save": "Spara"
   },
   "language": {
     "label": "Språk",
@@ -17,7 +24,7 @@
     "login": "Logga in",
     "loginFinish": "Loggar in",
     "onboarding": "Kom igång",
-    "staffHome": "Översikt",
+    "staffHome": "Projekt",
     "newProject": "Nytt projekt",
     "newClient": "Ny kund",
     "projectFeed": "Flöde",
@@ -41,7 +48,8 @@
     "devUi": "Komponenter"
   },
   "staff": {
-    "nav": "Huvudmeny"
+    "nav": "Huvudmeny",
+    "activeProjects": "Aktiva projekt"
   },
   "login": {
     "title": "Logga in",
@@ -65,7 +73,18 @@
   },
   "onboarding": {
     "comingSoon": "Här lägger du snart upp ditt företag: namn, logotyp och färg.",
-    "signedInAs": "Inloggad som {{email}}"
+    "signedInAs": "Inloggad som {{email}}",
+    "step": "Steg {{n}} av {{total}}",
+    "companyTitle": "Ditt företag",
+    "companyIntro": "Så här möter dina kunder dig. Du kan ändra allt senare.",
+    "yourName": "Ditt namn",
+    "changeLogo": "Byt logotyp",
+    "logoLater": "Logotypen kunde inte sparas. Lägg till den under Företag.",
+    "projectTitle": "Ditt första projekt",
+    "projectIntro": "Ett projekt är ett jobb med en början och ett slut.",
+    "clientTitle": "Bjud in din kund",
+    "clientIntro": "Kunden får en länk i ett sms och kan följa projektet direkt, utan konto.",
+    "skip": "Hoppa över så länge"
   },
   "errors": {
     "unknown": "Något gick fel. Försök igen.",
@@ -73,7 +92,13 @@
       "required": "Fyll i fältet.",
       "email": "Skriv en giltig e-postadress.",
       "minLength": "Texten är för kort.",
-      "maxLength": "Texten är för lång."
+      "maxLength": "Texten är för lång.",
+      "phone": "Skriv ett giltigt mobilnummer.",
+      "orgNumber": "Organisationsnumret stämmer inte.",
+      "color": "Skriv en färg som #127A69.",
+      "emailOrPhone": "Fyll i e-post eller mobilnummer.",
+      "min": "Värdet är för litet.",
+      "max": "Värdet är för stort."
     },
     "auth": {
       "invalid-email": "Skriv en giltig e-postadress.",
@@ -92,6 +117,19 @@
       "invalid-argument": "Något av fälten är inte rätt ifyllt.",
       "unauthenticated": "Logga in igen för att fortsätta.",
       "unavailable": "Tjänsten svarar inte just nu. Försök igen om en stund."
+    },
+    "reasons": {
+      "plan_limit": "Ditt abonnemang är fullt.",
+      "link_expired": "Länken har gått ut.",
+      "link_revoked": "Länken har återkallats.",
+      "link_used": "Den här inbjudan har redan använts.",
+      "invalid_link": "Länken är ogiltig.",
+      "last_owner": "Företaget måste ha minst en ägare.",
+      "owners_only": "Bara ägare kan göra det här.",
+      "already_in_company": "Du är redan med i ett företag.",
+      "clients_cannot_join": "Du är inloggad som kund. Logga ut och försök igen.",
+      "unknown_crew": "En av medarbetarna finns inte i företaget.",
+      "rate_limited": "För många försök. Vänta en stund och försök igen."
     }
   },
   "dev": {
@@ -137,5 +175,280 @@
       "dialogBody": "Kunden får veta att beslutet har dragits tillbaka.",
       "dialogConfirm": "Dra tillbaka"
     }
+  },
+  "address": {
+    "street": "Adress",
+    "postalCode": "Postnummer",
+    "city": "Ort"
+  },
+  "status": {
+    "active": "Aktiva",
+    "completed": "Klara",
+    "archived": "Arkiverade"
+  },
+  "roles": {
+    "owner": "Ägare",
+    "admin": "Admin",
+    "crew": "Medarbetare"
+  },
+  "plans": {
+    "free": "Gratis",
+    "visits": "Besök",
+    "solo": "Solo",
+    "team": "Team",
+    "pro": "Pro"
+  },
+  "staffHome": {
+    "title": "Projekt",
+    "newProject": "Nytt projekt",
+    "usage": "{{used}} av {{limit}} aktiva projekt",
+    "statusFilter": "Visa projekt",
+    "search": "Sök projekt",
+    "unanswered": {
+      "one": "{{count}} obesvarad fråga",
+      "other": "{{count}} obesvarade frågor"
+    },
+    "lastPost": "Senaste uppdatering {{when}}",
+    "noPosts": "Inga uppdateringar än",
+    "empty": {
+      "activeTitle": "Inga aktiva projekt",
+      "activeBody": "Skapa ett projekt och bjud in din kund. Det tar en minut.",
+      "completedTitle": "Inga klara projekt än",
+      "archivedTitle": "Inga arkiverade projekt"
+    }
+  },
+  "newProject": {
+    "title": "Nytt projekt",
+    "name": "Projektnamn",
+    "nameHint": "Till exempel Köksrenovering Lindqvist",
+    "startDate": "Startdatum",
+    "endDate": "Beräknat slutdatum",
+    "crew": "Medarbetare på projektet",
+    "create": "Skapa projekt"
+  },
+  "planLimit": {
+    "title": "Ditt abonnemang är fullt",
+    "bodyOwner": "Du har nått gränsen för aktiva projekt i ditt abonnemang. Uppgradera, eller markera ett projekt som klart för att frigöra plats.",
+    "bodyAdmin": "Ni har nått gränsen för aktiva projekt. Be en ägare att uppgradera, eller markera ett projekt som klart.",
+    "seePlans": "Se abonnemang"
+  },
+  "project": {
+    "clients": "Kund: {{names}}",
+    "noClients": "Ingen kund inbjuden än",
+    "tabs": "Projektets delar",
+    "notFound": "Projektet finns inte",
+    "notFoundBody": "Det kan ha tagits bort, eller så har du inte tillgång till det."
+  },
+  "projectStatus": {
+    "complete": "Markera som klart",
+    "archive": "Arkivera",
+    "reactivate": "Återaktivera",
+    "completedTitle": "Markera projektet som klart?",
+    "completedBody": "Kunden kan fortfarande läsa allt. Kundens länkar slutar fungera 90 dagar efter att projektet är klart.",
+    "completedConfirm": "Markera som klart",
+    "completedDone": "Projektet är markerat som klart.",
+    "archivedTitle": "Arkivera projektet?",
+    "archivedBody": "Projektet döljs i listorna men kunden kan fortfarande läsa det.",
+    "archivedConfirm": "Arkivera",
+    "archivedDone": "Projektet är arkiverat.",
+    "activeTitle": "",
+    "activeBody": "",
+    "activeConfirm": "",
+    "activeDone": "Projektet är aktivt igen."
+  },
+  "people": {
+    "clients": "Kunder",
+    "crew": "Medarbetare",
+    "invite": "Bjud in kund",
+    "inviteTitle": "Bjud in en kund",
+    "inviteIntro": "Kunden får en länk i ett sms. Inget konto, inget lösenord.",
+    "name": "Namn",
+    "mobile": "Mobilnummer",
+    "mobileHint": "Till exempel 070-123 45 67",
+    "email": "E-post",
+    "sendInvite": "Skicka inbjudan",
+    "inviteSent": "Inbjudan till {{name}} är skickad.",
+    "invited": "Inbjuden {{when}}, har inte öppnat än",
+    "joined": "Har öppnat projektet",
+    "lastOpened": "Öppnade senast {{when}}",
+    "linkRevoked": "Länken är återkallad",
+    "resend": "Skicka ny länk",
+    "resent": "En ny länk till {{name}} är skickad.",
+    "revoke": "Återkalla länk",
+    "revoked": "Länken till {{name}} fungerar inte längre.",
+    "revokeTitle": "Återkalla länken till {{name}}?",
+    "revokeBody": "Länken slutar fungera direkt. Enheter där {{name}} redan är inloggad fortsätter fungera.",
+    "revokeConfirm": "Återkalla",
+    "remove": "Ta bort",
+    "removed": "{{name}} är borttagen från projektet.",
+    "removeTitle": "Ta bort {{name}} från projektet?",
+    "removeBody": "{{name}} förlorar tillgången direkt och länkarna slutar fungera.",
+    "removeConfirm": "Ta bort",
+    "noClientsTitle": "Ingen kund än",
+    "noClientsBody": "Bjud in din kund så kan hen följa projektet från sin mobil.",
+    "editCrew": "Ändra medarbetare",
+    "crewTitle": "Medarbetare på projektet",
+    "noCrew": "Inga medarbetare tilldelade.",
+    "noCrewInCompany": "Det finns inga medarbetare i företaget än. Bjud in dem under Team."
+  },
+  "placeholders": {
+    "decisionsTitle": "Inga beslut än",
+    "decisionsBody": "ÄTA-kort, val och godkännanden kommer snart.",
+    "visitTitle": "Inget besök bokat",
+    "visitBody": "Nästa besök och checklista kommer snart.",
+    "handoverTitle": "Överlämningspaket",
+    "handoverBody": "Överlämningspaketet kommer snart.",
+    "serviceClients": "Återkommande kunder kommer snart.",
+    "clientDecisionsTitle": "Inget att besluta just nu.",
+    "clientDecisionsBody": "När något behöver ditt svar visas det här.",
+    "clientVisitTitle": "Inget besök bokat",
+    "clientVisitBody": "Nästa besök och din checklista visas här."
+  },
+  "composer": {
+    "updateLabel": "Skriv en uppdatering",
+    "questionLabel": "Ställ en fråga",
+    "updatePlaceholder": "Skriv en uppdatering…",
+    "questionPlaceholder": "Ställ en fråga till {{firm}}…",
+    "photo": "Foto",
+    "post": "Publicera",
+    "ask": "Skicka fråga",
+    "selectedPhotos": "Valda foton",
+    "removePhoto": "Ta bort foto {{n}}",
+    "tooManyPhotos": "Du kan lägga till högst {{max}} foton.",
+    "photoTooLarge": "Ett foto är större än 10 MB."
+  },
+  "feed": {
+    "label": "Flöde",
+    "sending": "Skickar…",
+    "sendFailed": "Det gick inte att skicka. Texten finns kvar i rutan ovan.",
+    "uploading": "Laddar upp foton",
+    "edited": "redigerad",
+    "removedByAuthor": "Borttaget av författaren",
+    "question": "Fråga",
+    "unanswered": "Obesvarad",
+    "markResolved": "Markera som besvarad",
+    "milestone": "Milstolpe",
+    "stageOf": "Etapp {{stage}} av {{count}}",
+    "roleClient": "Kund",
+    "comment": "Kommentera",
+    "commentCount": {
+      "one": "{{count}} kommentar",
+      "other": "{{count}} kommentarer"
+    },
+    "comments": "Kommentarer",
+    "writeComment": "Skriv en kommentar",
+    "send": "Skicka",
+    "editPost": "Redigera inlägget",
+    "editComment": "Redigera kommentaren",
+    "deletePostTitle": "Ta bort inlägget?",
+    "deletePostBody": "I flödet står det att inlägget har tagits bort av dig.",
+    "deleteCommentTitle": "Ta bort kommentaren?",
+    "deleteCommentBody": "I flödet står det att kommentaren har tagits bort av dig.",
+    "photos": "Foton",
+    "openPhoto": "Öppna foto {{n}} av {{total}}",
+    "previousPhoto": "Föregående foto",
+    "nextPhoto": "Nästa foto",
+    "photoAlt": "Foto från {{firm}}, {{date}}",
+    "emptyStaffTitle": "Publicera din första uppdatering",
+    "emptyStaffBody": "Din kund ser den direkt.",
+    "emptyClientTitle": "Inga uppdateringar än",
+    "emptyClientBody": "{{firm}} delar uppdateringar och foton här.",
+    "loadMore": "Visa äldre"
+  },
+  "milestone": {
+    "add": "Milstolpe",
+    "title": "Ny milstolpe",
+    "name": "Namn",
+    "nameHint": "Till exempel VVS klart",
+    "stage": "Etapp",
+    "of": "Av",
+    "post": "Publicera"
+  },
+  "companySettings": {
+    "name": "Företagsnamn",
+    "orgNumber": "Organisationsnummer",
+    "orgNumberHint": "Valfritt. 10 siffror, till exempel 556677-8899",
+    "accent": "Färg",
+    "pickColor": "Välj färg",
+    "lowContrast": "Färgen är ljus. Text och länkar visas i en mörkare nyans ({{shade}}) så att de går att läsa.",
+    "language": "Språk",
+    "crewPriced": "Medarbetare får skicka beslut med pris",
+    "logo": "Logotyp",
+    "uploadLogo": "Ladda upp logotyp",
+    "logoHint": "PNG, JPG eller SVG, högst 2 MB.",
+    "logoInvalid": "Logotypen måste vara PNG, JPG eller SVG och högst 2 MB.",
+    "logoSaved": "Logotypen är sparad.",
+    "saved": "Ändringarna är sparade."
+  },
+  "brandPreview": {
+    "caption": "Så ser din kund det",
+    "yourFirm": "Ditt företag",
+    "extraWork": "Tilläggsarbete",
+    "sampleTitle": "Byt rutten golvbjälke",
+    "approve": "Godkänn",
+    "ask": "Ställ en fråga",
+    "link": "Se alla foton"
+  },
+  "team": {
+    "staff": "Medarbetare",
+    "you": "du",
+    "roleFor": "Roll för {{name}}",
+    "role": "Roll",
+    "remove": "Ta bort",
+    "removeTitle": "Ta bort {{name}}?",
+    "removeBody": "{{name}} loggas ut och förlorar tillgången till alla projekt.",
+    "removeConfirm": "Ta bort",
+    "removed": "{{name}} är borttagen.",
+    "inviteTitle": "Bjud in en medarbetare",
+    "emailOrPhone": "Fyll i e-post eller mobilnummer.",
+    "inviteSent": "Inbjudan till {{name}} är skickad.",
+    "roleChanged": "Rollen är ändrad."
+  },
+  "me": {
+    "name": "Ditt namn",
+    "email": "Inloggad som {{email}}",
+    "saved": "Ändringarna är sparade."
+  },
+  "billing": {
+    "currentPlan": "Ditt abonnemang",
+    "activeProjects": "{{used}} av {{limit}} aktiva projekt",
+    "serviceClients": "{{used}} av {{limit}} återkommande kunder",
+    "staff": "{{used}} av {{limit}} medarbetare",
+    "upgradeSoon": "Uppgradering med kort kommer snart. Hör av dig så hjälper vi dig så länge."
+  },
+  "redeem": {
+    "working": "Öppnar ditt projekt…",
+    "joinTitle": "Gå med i {{company}}",
+    "joinBody": "Logga in med din e-post eller ditt Google-konto för att gå med.",
+    "signInToJoin": "Logga in och gå med",
+    "errorTitle": "Länken gick inte att öppna",
+    "home": "Till startsidan"
+  },
+  "linkExpired": {
+    "body": "Länken har gått ut eller återkallats. Be om en ny så skickar företaget den till dig.",
+    "noLink": "Öppna länken i sms:et du fick från företaget för att se ditt projekt.",
+    "request": "Be om en ny länk",
+    "requested": "Klart. Vi har bett företaget skicka en ny länk till dig."
+  },
+  "clientHome": {
+    "greeting": "Hej {{name}}!",
+    "emptyTitle": "Inga projekt än",
+    "emptyBody": "När ett företag bjuder in dig visas projektet här."
+  },
+  "client": {
+    "allProjects": "Alla projekt",
+    "footer": "Uppdateringar via Siteline",
+    "notFoundBody": "Du har inte längre tillgång till det här projektet."
+  },
+  "install": {
+    "label": "Lägg till på hemskärmen",
+    "title": "Lägg till på hemskärmen",
+    "body": "Öppna projektet med ett tryck, som en app.",
+    "add": "Lägg till",
+    "iosBefore": "Tryck på",
+    "iosAfter": "och sedan Lägg till på hemskärmen."
+  },
+  "offline": {
+    "banner": "Du är offline. Vi visar det senaste vi har."
   }
 }

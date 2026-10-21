@@ -3,7 +3,14 @@
     "skipToContent": "Skip to content",
     "signOut": "Sign out",
     "dismiss": "Dismiss",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "close": "Close",
+    "continue": "Continue",
+    "delete": "Delete",
+    "edit": "Edit",
+    "ok": "OK",
+    "optional": "Optional",
+    "save": "Save"
   },
   "language": {
     "label": "Language",
@@ -17,7 +24,7 @@
     "login": "Sign in",
     "loginFinish": "Signing in",
     "onboarding": "Get started",
-    "staffHome": "Overview",
+    "staffHome": "Projects",
     "newProject": "New project",
     "newClient": "New client",
     "projectFeed": "Feed",
@@ -41,7 +48,8 @@
     "devUi": "Components"
   },
   "staff": {
-    "nav": "Main menu"
+    "nav": "Main menu",
+    "activeProjects": "Active projects"
   },
   "login": {
     "title": "Sign in",
@@ -65,7 +73,18 @@
   },
   "onboarding": {
     "comingSoon": "This is where you'll set up your company soon: name, logo and colour.",
-    "signedInAs": "Signed in as {{email}}"
+    "signedInAs": "Signed in as {{email}}",
+    "step": "Step {{n}} of {{total}}",
+    "companyTitle": "Your company",
+    "companyIntro": "This is how your clients see you. You can change everything later.",
+    "yourName": "Your name",
+    "changeLogo": "Change logo",
+    "logoLater": "The logo couldn't be saved. Add it under Company.",
+    "projectTitle": "Your first project",
+    "projectIntro": "A project is a job with a start and an end.",
+    "clientTitle": "Invite your client",
+    "clientIntro": "Your client gets a link by text message and can follow the project straight away, with no account.",
+    "skip": "Skip for now"
   },
   "errors": {
     "unknown": "Something went wrong. Please try again.",
@@ -73,7 +92,13 @@
       "required": "Please fill in this field.",
       "email": "Enter a valid email address.",
       "minLength": "The text is too short.",
-      "maxLength": "The text is too long."
+      "maxLength": "The text is too long.",
+      "phone": "Enter a valid mobile number.",
+      "orgNumber": "The organisation number isn't valid.",
+      "color": "Enter a colour like #127A69.",
+      "emailOrPhone": "Fill in an email or mobile number.",
+      "min": "The value is too small.",
+      "max": "The value is too large."
     },
     "auth": {
       "invalid-email": "Enter a valid email address.",
@@ -92,6 +117,19 @@
       "invalid-argument": "One of the fields isn't filled in correctly.",
       "unauthenticated": "Sign in again to continue.",
       "unavailable": "The service isn't responding. Try again in a moment."
+    },
+    "reasons": {
+      "plan_limit": "Your plan is full.",
+      "link_expired": "This link has expired.",
+      "link_revoked": "This link has been revoked.",
+      "link_used": "This invite has already been used.",
+      "invalid_link": "This link isn't valid.",
+      "last_owner": "The company must have at least one owner.",
+      "owners_only": "Only owners can do this.",
+      "already_in_company": "You're already part of a company.",
+      "clients_cannot_join": "You're signed in as a client. Sign out and try again.",
+      "unknown_crew": "One of the crew members isn't in the company.",
+      "rate_limited": "Too many attempts. Wait a moment and try again."
     }
   },
   "dev": {
@@ -137,5 +175,280 @@
       "dialogBody": "The client is told that the decision has been withdrawn.",
       "dialogConfirm": "Withdraw"
     }
+  },
+  "address": {
+    "street": "Address",
+    "postalCode": "Postcode",
+    "city": "City"
+  },
+  "status": {
+    "active": "Active",
+    "completed": "Completed",
+    "archived": "Archived"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "crew": "Crew"
+  },
+  "plans": {
+    "free": "Free",
+    "visits": "Visits",
+    "solo": "Solo",
+    "team": "Team",
+    "pro": "Pro"
+  },
+  "staffHome": {
+    "title": "Projects",
+    "newProject": "New project",
+    "usage": "{{used}} of {{limit}} active projects",
+    "statusFilter": "Show projects",
+    "search": "Search projects",
+    "unanswered": {
+      "one": "{{count}} unanswered question",
+      "other": "{{count}} unanswered questions"
+    },
+    "lastPost": "Last update {{when}}",
+    "noPosts": "No updates yet",
+    "empty": {
+      "activeTitle": "No active projects",
+      "activeBody": "Create a project and invite your client. It takes a minute.",
+      "completedTitle": "No completed projects yet",
+      "archivedTitle": "No archived projects"
+    }
+  },
+  "newProject": {
+    "title": "New project",
+    "name": "Project name",
+    "nameHint": "For example Lindqvist kitchen renovation",
+    "startDate": "Start date",
+    "endDate": "Expected end date",
+    "crew": "Crew on the project",
+    "create": "Create project"
+  },
+  "planLimit": {
+    "title": "Your plan is full",
+    "bodyOwner": "You've reached the active project limit on your plan. Upgrade, or mark a project as completed to free up a slot.",
+    "bodyAdmin": "You've reached the active project limit. Ask an owner to upgrade, or mark a project as completed.",
+    "seePlans": "See plans"
+  },
+  "project": {
+    "clients": "Client: {{names}}",
+    "noClients": "No client invited yet",
+    "tabs": "Project sections",
+    "notFound": "Project not found",
+    "notFoundBody": "It may have been deleted, or you don't have access to it."
+  },
+  "projectStatus": {
+    "complete": "Mark as completed",
+    "archive": "Archive",
+    "reactivate": "Reactivate",
+    "completedTitle": "Mark the project as completed?",
+    "completedBody": "The client can still read everything. Their links stop working 90 days after completion.",
+    "completedConfirm": "Mark as completed",
+    "completedDone": "The project is marked as completed.",
+    "archivedTitle": "Archive the project?",
+    "archivedBody": "It's hidden from your lists, but the client can still read it.",
+    "archivedConfirm": "Archive",
+    "archivedDone": "The project is archived.",
+    "activeTitle": "",
+    "activeBody": "",
+    "activeConfirm": "",
+    "activeDone": "The project is active again."
+  },
+  "people": {
+    "clients": "Clients",
+    "crew": "Crew",
+    "invite": "Invite client",
+    "inviteTitle": "Invite a client",
+    "inviteIntro": "Your client gets a link by text message. No account, no password.",
+    "name": "Name",
+    "mobile": "Mobile number",
+    "mobileHint": "For example 070-123 45 67",
+    "email": "Email",
+    "sendInvite": "Send invite",
+    "inviteSent": "The invite to {{name}} is on its way.",
+    "invited": "Invited {{when}}, hasn't opened it yet",
+    "joined": "Has opened the project",
+    "lastOpened": "Last opened {{when}}",
+    "linkRevoked": "Link revoked",
+    "resend": "Send new link",
+    "resent": "A new link to {{name}} is on its way.",
+    "revoke": "Revoke link",
+    "revoked": "{{name}}'s link no longer works.",
+    "revokeTitle": "Revoke {{name}}'s link?",
+    "revokeBody": "The link stops working at once. Devices where {{name}} is already signed in keep working.",
+    "revokeConfirm": "Revoke",
+    "remove": "Remove",
+    "removed": "{{name}} has been removed from the project.",
+    "removeTitle": "Remove {{name}} from the project?",
+    "removeBody": "{{name}} loses access at once and their links stop working.",
+    "removeConfirm": "Remove",
+    "noClientsTitle": "No client yet",
+    "noClientsBody": "Invite your client so they can follow the project from their phone.",
+    "editCrew": "Change crew",
+    "crewTitle": "Crew on the project",
+    "noCrew": "No crew assigned.",
+    "noCrewInCompany": "There are no crew members in the company yet. Invite them under Team."
+  },
+  "placeholders": {
+    "decisionsTitle": "No decisions yet",
+    "decisionsBody": "Extra work cards, choices and approvals are coming soon.",
+    "visitTitle": "No visit booked",
+    "visitBody": "The next visit and checklist are coming soon.",
+    "handoverTitle": "Handover pack",
+    "handoverBody": "The handover pack is coming soon.",
+    "serviceClients": "Recurring clients are coming soon.",
+    "clientDecisionsTitle": "Nothing to decide right now.",
+    "clientDecisionsBody": "When something needs your answer, it shows here.",
+    "clientVisitTitle": "No visit booked",
+    "clientVisitBody": "The next visit and your checklist show here."
+  },
+  "composer": {
+    "updateLabel": "Write an update",
+    "questionLabel": "Ask a question",
+    "updatePlaceholder": "Write an update…",
+    "questionPlaceholder": "Ask {{firm}} a question…",
+    "photo": "Photo",
+    "post": "Post",
+    "ask": "Send question",
+    "selectedPhotos": "Selected photos",
+    "removePhoto": "Remove photo {{n}}",
+    "tooManyPhotos": "You can add at most {{max}} photos.",
+    "photoTooLarge": "A photo is larger than 10 MB."
+  },
+  "feed": {
+    "label": "Feed",
+    "sending": "Sending…",
+    "sendFailed": "Couldn't send. Your text is still in the box above.",
+    "uploading": "Uploading photos",
+    "edited": "edited",
+    "removedByAuthor": "Removed by the author",
+    "question": "Question",
+    "unanswered": "Unanswered",
+    "markResolved": "Mark as answered",
+    "milestone": "Milestone",
+    "stageOf": "Stage {{stage}} of {{count}}",
+    "roleClient": "Client",
+    "comment": "Comment",
+    "commentCount": {
+      "one": "{{count}} comment",
+      "other": "{{count}} comments"
+    },
+    "comments": "Comments",
+    "writeComment": "Write a comment",
+    "send": "Send",
+    "editPost": "Edit the post",
+    "editComment": "Edit the comment",
+    "deletePostTitle": "Delete the post?",
+    "deletePostBody": "The feed will show that you removed it.",
+    "deleteCommentTitle": "Delete the comment?",
+    "deleteCommentBody": "The feed will show that you removed it.",
+    "photos": "Photos",
+    "openPhoto": "Open photo {{n}} of {{total}}",
+    "previousPhoto": "Previous photo",
+    "nextPhoto": "Next photo",
+    "photoAlt": "Photo from {{firm}}, {{date}}",
+    "emptyStaffTitle": "Post your first update",
+    "emptyStaffBody": "Your client sees it straight away.",
+    "emptyClientTitle": "No updates yet",
+    "emptyClientBody": "{{firm}} shares updates and photos here.",
+    "loadMore": "Show older"
+  },
+  "milestone": {
+    "add": "Milestone",
+    "title": "New milestone",
+    "name": "Name",
+    "nameHint": "For example Plumbing done",
+    "stage": "Stage",
+    "of": "Of",
+    "post": "Post"
+  },
+  "companySettings": {
+    "name": "Company name",
+    "orgNumber": "Organisation number",
+    "orgNumberHint": "Optional. 10 digits, for example 556677-8899",
+    "accent": "Colour",
+    "pickColor": "Pick a colour",
+    "lowContrast": "This colour is light. Text and links use a darker shade ({{shade}}) so they stay readable.",
+    "language": "Language",
+    "crewPriced": "Crew can send decisions with a price",
+    "logo": "Logo",
+    "uploadLogo": "Upload logo",
+    "logoHint": "PNG, JPG or SVG, up to 2 MB.",
+    "logoInvalid": "The logo must be a PNG, JPG or SVG of up to 2 MB.",
+    "logoSaved": "The logo is saved.",
+    "saved": "Your changes are saved."
+  },
+  "brandPreview": {
+    "caption": "What your client sees",
+    "yourFirm": "Your company",
+    "extraWork": "Extra work",
+    "sampleTitle": "Replace rotten floor joist",
+    "approve": "Approve",
+    "ask": "Ask a question",
+    "link": "See all photos"
+  },
+  "team": {
+    "staff": "Staff",
+    "you": "you",
+    "roleFor": "Role for {{name}}",
+    "role": "Role",
+    "remove": "Remove",
+    "removeTitle": "Remove {{name}}?",
+    "removeBody": "{{name}} is signed out and loses access to every project.",
+    "removeConfirm": "Remove",
+    "removed": "{{name}} has been removed.",
+    "inviteTitle": "Invite a staff member",
+    "emailOrPhone": "Fill in an email or mobile number.",
+    "inviteSent": "The invite to {{name}} is on its way.",
+    "roleChanged": "The role is changed."
+  },
+  "me": {
+    "name": "Your name",
+    "email": "Signed in as {{email}}",
+    "saved": "Your changes are saved."
+  },
+  "billing": {
+    "currentPlan": "Your plan",
+    "activeProjects": "{{used}} of {{limit}} active projects",
+    "serviceClients": "{{used}} of {{limit}} recurring clients",
+    "staff": "{{used}} of {{limit}} staff",
+    "upgradeSoon": "Upgrading by card is coming soon. Get in touch and we'll help in the meantime."
+  },
+  "redeem": {
+    "working": "Opening your project…",
+    "joinTitle": "Join {{company}}",
+    "joinBody": "Sign in with your email or Google account to join.",
+    "signInToJoin": "Sign in and join",
+    "errorTitle": "The link couldn't be opened",
+    "home": "Go to the start page"
+  },
+  "linkExpired": {
+    "body": "This link has expired or been revoked. Ask for a new one and the company will send it to you.",
+    "noLink": "Open the link in the text message you got from the company to see your project.",
+    "request": "Request a new link",
+    "requested": "Done. We've asked the company to send you a new link."
+  },
+  "clientHome": {
+    "greeting": "Hi {{name}}!",
+    "emptyTitle": "No projects yet",
+    "emptyBody": "When a company invites you, the project shows here."
+  },
+  "client": {
+    "allProjects": "All projects",
+    "footer": "Updates by Siteline",
+    "notFoundBody": "You no longer have access to this project."
+  },
+  "install": {
+    "label": "Add to home screen",
+    "title": "Add to your home screen",
+    "body": "Open the project with one tap, like an app.",
+    "add": "Add",
+    "iosBefore": "Tap",
+    "iosAfter": "and then Add to Home Screen."
+  },
+  "offline": {
+    "banner": "You're offline. Showing the latest we have."
   }
 }

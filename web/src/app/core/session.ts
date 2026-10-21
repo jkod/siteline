@@ -1,18 +1,20 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
 import {
   GoogleAuthProvider,
   isSignInWithEmailLink,
   onIdTokenChanged,
   sendSignInLinkToEmail,
+  signInWithCustomToken,
   signInWithEmailLink,
   signInWithPopup,
   signOut,
   type User,
 } from 'firebase/auth';
-import { isStaffRole, type StaffRole } from '@siteline/shared';
+import { isStaffRole, type StaffRole, type TimestampLike, type UserDoc } from '@siteline/shared';
 
 import { FirebaseService } from './firebase';
+import { liveDoc } from './live';
 
 const EMAIL_FOR_SIGN_IN = 'sl.emailForSignIn';
 
@@ -43,6 +45,12 @@ export class Session {
   readonly isClient = computed(() => this.claimsState().isClient);
   readonly role = computed(() => this.claimsState().crole);
 
+  /** The person's own user document: name and language, kept in Firestore (PRD 8). */
+  readonly profile = liveDoc<UserDoc & { claimsUpdatedAt?: TimestampLike }>(() => {
+    const user = this.userState();
+    return user ? `users/${user.uid}` : null;
+  });
+
   readonly ready: Promise<void>;
 
   constructor() {
@@ -52,6 +60,23 @@ export class Session {
         resolve();
       });
     });
+
+    // Functions stamp claimsUpdatedAt after changing someone's role or company, so the new
+    // claims apply at once instead of within the hour (PRD F1).
+    let lastClaimsUpdate: number | null = null;
+    effect(() => {
+      const stamp = this.profile()?.claimsUpdatedAt?.toMillis() ?? null;
+      if (stamp !== null && lastClaimsUpdate !== null && stamp !== lastClaimsUpdate) {
+        void this.refreshClaims();
+      }
+      if (stamp !== null) lastClaimsUpdate = stamp;
+    });
+  }
+
+  /** Signs a client in with the custom token from `redeemInvite` (PRD 4.1). */
+  async signInWithClientToken(token: string): Promise<void> {
+    const { user } = await signInWithCustomToken(this.firebase.auth, token);
+    await this.sync(user);
   }
 
   async sendEmailLink(email: string, finishUrl: string): Promise<void> {

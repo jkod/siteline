@@ -1,4 +1,4 @@
-import type { AppEnvironment } from './environment.model';
+import { type AppEnvironment, DEV_EMULATOR_HOSTS } from './environment.model';
 
 // Local development against the Firebase Emulator Suite. The demo- project ID means the
 // emulators can never touch a real project.
@@ -14,4 +14,5 @@ export const environment: AppEnvironment = {
   },
   appCheckSiteKey: '',
   release: 'dev',
+  emulatorHosts: DEV_EMULATOR_HOSTS,
 };

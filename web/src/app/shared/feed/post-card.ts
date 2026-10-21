@@ -1,0 +1,82 @@
+import { Component, computed, inject, input, output, signal } from '@angular/core';
+
+import { LucideFlag, LucideMessageCircle } from '@lucide/angular';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { isStaffRole, POST_TEXT_MAX } from '@siteline/shared';
+
+import { Language } from '../../core/language';
+import { DatePipe, formatDate } from '../pipes/date';
+import { PluralPipe } from '../pipes/plural';
+import { Avatar } from '../ui/avatar';
+import { Button } from '../ui/button';
+import { Comments } from './comments';
+import type { FeedPost } from './feed-store';
+import { PhotoGrid } from './photo-grid';
+
+/** One feed item, with a variant per post type (PRD section 11). */
+@Component({
+  selector: 'sl-post-card',
+  imports: [
+    TranslatePipe,
+    DatePipe,
+    PluralPipe,
+    Avatar,
+    Button,
+    PhotoGrid,
+    Comments,
+    LucideFlag,
+    LucideMessageCircle,
+  ],
+  templateUrl: './post-card.html',
+  styleUrl: './post-card.css',
+  host: { '[attr.id]': '"post-" + post().id' },
+})
+export class PostCard {
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(Language);
+
+  readonly post = input.required<FeedPost>();
+  readonly projectId = input.required<string>();
+  readonly viewerUid = input.required<string>();
+  readonly viewerIsStaff = input(false);
+  readonly firmName = input('');
+  readonly expanded = input(false);
+
+  readonly edit = output<string>();
+  readonly remove = output<void>();
+  readonly resolve = output<void>();
+
+  protected readonly maxLength = POST_TEXT_MAX;
+  protected readonly showComments = signal(false);
+  protected readonly editing = signal(false);
+  protected readonly editText = signal('');
+
+  protected readonly isOwn = computed(() => this.post().authorUid === this.viewerUid());
+  protected readonly isDeleted = computed(() => this.post().deletedAt != null);
+  protected readonly commentsOpen = computed(() => this.showComments() || this.expanded());
+  protected readonly authorIsStaff = computed(() => isStaffRole(this.post().authorRole));
+  protected readonly roleLabel = computed(() =>
+    this.authorIsStaff() ? this.firmName() : this.translate.instant('feed.roleClient'),
+  );
+  /** Alt text: the caption, or "Photo from {firm}, {date}" (PRD section 13). */
+  protected readonly photoAlt = computed(() => {
+    const post = this.post();
+    if (post.text) return post.text.slice(0, 120);
+    return this.translate.instant('feed.photoAlt', {
+      firm: this.authorIsStaff() ? this.firmName() : post.authorName,
+      date: formatDate(post.createdAt, 'date', this.language.lang()),
+    });
+  });
+
+  protected startEdit(): void {
+    this.editText.set(this.post().text);
+    this.editing.set(true);
+  }
+
+  protected saveEdit(): void {
+    const text = this.editText().trim();
+    if (!text && this.post().media.length === 0) return;
+    this.edit.emit(text);
+    this.editing.set(false);
+  }
+}

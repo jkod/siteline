@@ -1,0 +1,93 @@
+@if (mode() === 'staff') {
+  <div class="tools">
+    <button slButton="secondary" type="button" (click)="addMilestone()">
+      <svg lucideFlag [size]="18"></svg>
+      {{ 'milestone.add' | translate }}
+    </button>
+  </div>
+}
+<sl-composer
+  [mode]="mode() === 'staff' ? 'update' : 'question'"
+  [projectId]="projectId()"
+  [firmName]="firmName()"
+/>
+
+<ul
+  class="list"
+  [attr.aria-label]="'feed.label' | translate"
+  aria-live="polite"
+  aria-relevant="additions"
+>
+  @for (pending of store.pending(); track pending.tempId) {
+    <li class="pending" slCard>
+      <div class="sl-stack">
+        <p class="sl-small">
+          {{ (pending.failed ? 'feed.sendFailed' : 'feed.sending') | translate }}
+        </p>
+        @if (pending.text) {
+          <p>{{ pending.text }}</p>
+        }
+        @if (pending.previews.length) {
+          <div class="thumbs">
+            @for (preview of pending.previews; track preview) {
+              <img [src]="preview" alt="" />
+            }
+          </div>
+          <div
+            class="progress"
+            role="progressbar"
+            [attr.aria-valuenow]="Math.round(pending.progress * 100)"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-label]="'feed.uploading' | translate"
+          >
+            <span [style.width.%]="pending.progress * 100"></span>
+          </div>
+        }
+        @if (pending.failed) {
+          <button slButton="secondary" type="button" (click)="store.dismissPending(pending.tempId)">
+            {{ 'common.dismiss' | translate }}
+          </button>
+        }
+      </div>
+    </li>
+  }
+  @for (post of store.posts() ?? []; track post.id) {
+    <li>
+      <sl-post-card
+        [post]="post"
+        [projectId]="projectId()"
+        [viewerUid]="uid()"
+        [viewerIsStaff]="mode() === 'staff'"
+        [firmName]="firmName()"
+        [expanded]="post.id === focusPostId()"
+        (edit)="edit(post.id, $event)"
+        (remove)="remove(post.id)"
+        (resolve)="resolve(post.id)"
+      />
+    </li>
+  }
+</ul>
+
+@if (store.posts()?.length === 0 && store.pending().length === 0) {
+  <sl-empty-state
+    [title]="(mode() === 'staff' ? 'feed.emptyStaffTitle' : 'feed.emptyClientTitle') | translate"
+    [body]="
+      (mode() === 'staff' ? 'feed.emptyStaffBody' : 'feed.emptyClientBody')
+        | translate: { firm: firmName() }
+    "
+  />
+}
+
+@if (store.hasMore()) {
+  <div #sentinel class="more">
+    <button
+      slButton="secondary"
+      type="button"
+      [busy]="store.loadingMore()"
+      (click)="store.loadMore()"
+    >
+      {{ 'feed.loadMore' | translate }}
+    </button>
+  </div>
+}

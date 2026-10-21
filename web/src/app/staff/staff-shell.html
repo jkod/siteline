@@ -1,0 +1,74 @@
+<div class="layout" [slBrand]="company.company()?.accentColor">
+  <aside class="sidebar">
+    <a class="company" routerLink="/app">{{ company.name() || 'Siteline' }}</a>
+    <nav [attr.aria-label]="'staff.nav' | translate">
+      @for (link of links(); track link.path) {
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: link.exact }"
+          ariaCurrentWhenActive="page"
+        >
+          {{ link.label | translate }}
+        </a>
+      }
+    </nav>
+    @if (company.activeProjects().length) {
+      <nav class="projects" [attr.aria-label]="'staff.activeProjects' | translate">
+        <p class="sl-label">{{ 'staff.activeProjects' | translate }}</p>
+        @for (project of company.activeProjects(); track project.id) {
+          <a
+            [routerLink]="['/app/projects', project.id]"
+            routerLinkActive="active"
+            ariaCurrentWhenActive="page"
+          >
+            <span class="title">{{ project.title }}</span>
+            @if (project.totals.unansweredQuestions > 0) {
+              <span
+                class="dot"
+                [attr.aria-label]="
+                  'staffHome.unanswered'
+                    | plural: project.totals.unansweredQuestions
+                    | translate: { count: project.totals.unansweredQuestions }
+                "
+              ></span>
+            }
+          </a>
+        }
+      </nav>
+    }
+    <button slButton="ghost" type="button" class="sign-out" (click)="signOut()">
+      <svg lucideLogOut [size]="20"></svg>
+      {{ 'common.signOut' | translate }}
+    </button>
+  </aside>
+
+  <header class="bar">
+    <a class="company" routerLink="/app">{{ company.name() || 'Siteline' }}</a>
+    <nav [attr.aria-label]="'staff.nav' | translate">
+      @for (link of links(); track link.path) {
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: link.exact }"
+          ariaCurrentWhenActive="page"
+        >
+          {{ link.label | translate }}
+        </a>
+      }
+    </nav>
+    <button
+      slButton="ghost"
+      icon
+      type="button"
+      [attr.aria-label]="'common.signOut' | translate"
+      (click)="signOut()"
+    >
+      <svg lucideLogOut [size]="20"></svg>
+    </button>
+  </header>
+
+  <div class="content">
+    <router-outlet />
+  </div>
+</div>

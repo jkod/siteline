@@ -94,9 +94,8 @@
   }
 }
 
-/* Card */
+/* Card. No display value, so it combines with .sl-stack and other layouts. */
 .sl-card {
-  display: block;
   padding: var(--sl-space-5);
   background: var(--sl-surface);
   border: 1px solid var(--sl-border);
@@ -203,4 +202,39 @@ textarea.sl-input {
   background: var(--sl-surface);
   border-radius: var(--sl-radius-card);
   box-shadow: var(--sl-shadow-raised);
+}
+
+.sl-dialog-fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+}
+
+/* Small uppercase label above a card's title, such as "FRÅGA" (PRD section 12). */
+.sl-label {
+  font: 700 12px/16px var(--sl-font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-text-3);
+}
+
+.sl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sl-space-1);
+  padding: 2px var(--sl-space-2);
+  border-radius: var(--sl-radius-pill);
+  background: var(--sl-alert-tint);
+  color: var(--sl-alert-text);
+  font: 700 12px/18px var(--sl-font-body);
+}
+
+.sl-badge--neutral {
+  background: var(--sl-panel-2);
+  color: var(--sl-text-2);
+}
+
+.sl-badge--accent {
+  background: var(--sl-accent-tint);
+  color: var(--sl-accent-text);
 }

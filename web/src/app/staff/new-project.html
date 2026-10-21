@@ -1,0 +1,59 @@
+<main class="sl-page sl-stack" id="main">
+  <h1>{{ 'newProject.title' | translate }}</h1>
+  <form slCard class="sl-stack" novalidate (submit)="save($event)">
+    <sl-field
+      [label]="'newProject.name' | translate"
+      [hint]="'newProject.nameHint' | translate"
+      [errors]="form.title().errors()"
+      [touched]="form.title().touched()"
+    >
+      <input slInput type="text" autocomplete="off" [formField]="form.title" />
+    </sl-field>
+    <sl-field [label]="'address.street' | translate">
+      <input slInput type="text" autocomplete="street-address" [formField]="form.street" />
+    </sl-field>
+    <div class="row">
+      <sl-field [label]="'address.postalCode' | translate">
+        <input
+          slInput
+          type="text"
+          inputmode="numeric"
+          autocomplete="postal-code"
+          [formField]="form.postalCode"
+        />
+      </sl-field>
+      <sl-field [label]="'address.city' | translate">
+        <input slInput type="text" autocomplete="address-level2" [formField]="form.city" />
+      </sl-field>
+    </div>
+    <div class="row">
+      <sl-field [label]="'newProject.startDate' | translate">
+        <input slInput type="date" [formField]="form.startDate" />
+      </sl-field>
+      <sl-field [label]="'newProject.endDate' | translate" [hint]="'common.optional' | translate">
+        <input slInput type="date" [formField]="form.endDate" />
+      </sl-field>
+    </div>
+    @if (crewOptions().length) {
+      <fieldset class="crew">
+        <legend>{{ 'newProject.crew' | translate }}</legend>
+        @for (member of crewOptions(); track member.id) {
+          <label>
+            <input
+              type="checkbox"
+              [checked]="crew().includes(member.id)"
+              (change)="toggleCrew(member.id, $any($event.target).checked)"
+            />
+            {{ member.name }}
+          </label>
+        }
+      </fieldset>
+    }
+    <div class="actions">
+      <a slButton="secondary" routerLink="/app">{{ 'common.cancel' | translate }}</a>
+      <button slButton size="large" type="submit" [busy]="saving()" [disabled]="saving()">
+        {{ 'newProject.create' | translate }}
+      </button>
+    </div>
+  </form>
+</main>

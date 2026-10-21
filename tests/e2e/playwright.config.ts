@@ -12,7 +12,7 @@ export default defineConfig({
     ? [['list'], ['html', { open: 'never', outputFolder: '../../playwright-report' }]]
     : 'list',
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: 'http://localhost:4300',
     locale: 'sv-SE',
     timezoneId: 'Europe/Stockholm',
     // Our CSS turns transitions off under reduced motion, so axe never sees text mid-fade.
@@ -24,8 +24,8 @@ export default defineConfig({
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
-    command: 'npx ng serve siteline --port 4200',
-    url: 'http://localhost:4200',
+    command: 'npx ng serve siteline --configuration e2e --port 4300',
+    url: 'http://localhost:4300',
     reuseExistingServer: true,
     timeout: 180_000,
   },

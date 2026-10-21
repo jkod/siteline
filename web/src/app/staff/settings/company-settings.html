@@ -1,0 +1,91 @@
+<main class="sl-page sl-stack" id="main">
+  <h1>{{ 'pages.settingsCompany' | translate }}</h1>
+  <div class="split">
+    <form slCard class="sl-stack" novalidate (submit)="save($event)">
+      <sl-field
+        [label]="'companySettings.name' | translate"
+        [errors]="form.name().errors()"
+        [touched]="form.name().touched()"
+      >
+        <input slInput type="text" autocomplete="organization" [formField]="form.name" />
+      </sl-field>
+      <sl-field
+        [label]="'companySettings.orgNumber' | translate"
+        [hint]="'companySettings.orgNumberHint' | translate"
+        [errors]="form.orgNumber().errors()"
+        [touched]="form.orgNumber().touched()"
+      >
+        <input
+          slInput
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          [formField]="form.orgNumber"
+        />
+      </sl-field>
+      <sl-field
+        [label]="'companySettings.accent' | translate"
+        [errors]="form.accentColor().errors()"
+        [touched]="form.accentColor().touched()"
+      >
+        <div class="color">
+          <input
+            type="color"
+            [value]="accent()"
+            (input)="model.update((m) => ({ ...m, accentColor: $any($event.target).value }))"
+            [attr.aria-label]="'companySettings.pickColor' | translate"
+          />
+          <input
+            slInput
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            [formField]="form.accentColor"
+          />
+        </div>
+      </sl-field>
+      @if (lowContrast()) {
+        <p class="sl-small">
+          {{ 'companySettings.lowContrast' | translate: { shade: textShade() } }}
+        </p>
+      }
+      <sl-field [label]="'companySettings.language' | translate">
+        <select slInput [formField]="form.locale">
+          <option value="sv">Svenska</option>
+          <option value="en">English</option>
+        </select>
+      </sl-field>
+      <label class="check">
+        <input type="checkbox" [formField]="form.crewCanSendPricedCards" />
+        {{ 'companySettings.crewPriced' | translate }}
+      </label>
+
+      <div class="logo">
+        <p class="label">{{ 'companySettings.logo' | translate }}</p>
+        @if (logoUrl(); as url) {
+          <img [src]="url" alt="" width="64" height="64" />
+        }
+        <input
+          #logo
+          type="file"
+          accept="image/png,image/jpeg,image/svg+xml"
+          class="sl-visually-hidden"
+          tabindex="-1"
+          aria-hidden="true"
+          (change)="uploadLogo($any($event.target).files)"
+        />
+        <button slButton="secondary" type="button" (click)="logo.click()">
+          {{ 'companySettings.uploadLogo' | translate }}
+        </button>
+        <p class="sl-small">{{ 'companySettings.logoHint' | translate }}</p>
+      </div>
+
+      <div class="end">
+        <button slButton size="large" type="submit" [busy]="saving()" [disabled]="saving()">
+          {{ 'common.save' | translate }}
+        </button>
+      </div>
+    </form>
+    <sl-brand-preview [name]="model().name" [accent]="accent()" [logoUrl]="logoUrl()" />
+  </div>
+</main>

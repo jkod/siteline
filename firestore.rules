@@ -1,7 +1,10 @@
 rules_version = '2';
 
-// Deny by default (PRD section 10). Each milestone opens only what its features need, and every
-// change comes with rules tests in tests/rules.
+// Deny by default (PRD section 10). Staff access comes from custom claims (cid, crole) and the
+// project's crewUids; client access from the project's clientUids. The arrays mirror the roles
+// map and are what queries filter on, so list queries can be checked against these rules.
+// Approvals, invites, the outbox, billing and counters are written only by functions.
+// Every change here comes with rules tests in tests/rules.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -9,26 +12,251 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function uid() {
+      return request.auth.uid;
+    }
+
     function isStaffOf(companyId) {
-      return signedIn() && request.auth.token.cid == companyId;
+      return signedIn() && request.auth.token.get('cid', null) == companyId;
     }
 
-    // One per person; readable only by that person. Written by functions.
-    match /users/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid;
+    function isManagerOf(companyId) {
+      return isStaffOf(companyId) && request.auth.token.get('crole', null) in ['owner', 'admin'];
     }
 
-    // The firm, readable by its staff. Written by functions.
+    function projectData(projectId) {
+      return get(/databases/$(database)/documents/projects/$(projectId)).data;
+    }
+
+    function isProjectStaff(project) {
+      return isManagerOf(project.companyId)
+        || (isStaffOf(project.companyId) && uid() in project.crewUids);
+    }
+
+    function isProjectClient(project) {
+      return signedIn() && uid() in project.clientUids;
+    }
+
+    function isProjectMember(project) {
+      return isProjectStaff(project) || isProjectClient(project);
+    }
+
+    // The role a post or comment author must claim: their staff role, or client.
+    function callerRole(project) {
+      return isProjectStaff(project) ? request.auth.token.get('crole', null) : 'client';
+    }
+
+    function callerName() {
+      return get(/databases/$(database)/documents/users/$(uid())).data.name;
+    }
+
+    function changedOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    function isText(value, max) {
+      return value is string && value.size() <= max;
+    }
+
+    function isName(value) {
+      return value is string && value.size() >= 1 && value.size() <= 100;
+    }
+
+    function isOptionalDate(value) {
+      return value == null || (value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
+    }
+
+    function isAddress(value) {
+      return value == null || (
+        value is map
+        && value.keys().hasOnly(['street', 'postalCode', 'city'])
+        && isText(value.street, 120)
+        && isText(value.postalCode, 10)
+        && isText(value.city, 60)
+      );
+    }
+
+    // Photo lists are checked for type and count. Each item's path isn't checked here (rules
+    // can't loop, and checking 20 items exceeds the evaluation limits); it doesn't need to be,
+    // because Storage rules check membership of the project in every file's own path, so a
+    // post pointing at another project's file shows nothing.
+    function isMediaList(media, max) {
+      return media is list && media.size() <= max;
+    }
+
+    // ---------------------------------------------------------------------------------------
+
+    match /users/{userId} {
+      allow read: if signedIn() && uid() == userId;
+      allow update: if signedIn() && uid() == userId
+        && changedOnly(['name', 'locale', 'updatedAt'])
+        && isName(request.resource.data.name)
+        && request.resource.data.locale in ['sv', 'en']
+        && request.resource.data.updatedAt == request.time;
+    }
+
     match /companies/{companyId} {
       allow read: if isStaffOf(companyId);
 
-      match /staff/{uid} {
+      // Profile and branding; plan, limits, usage and referrals are functions only.
+      allow update: if isManagerOf(companyId)
+        && changedOnly(['name', 'orgNumber', 'logoPath', 'accentColor', 'locale', 'settings', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 80
+        && (request.resource.data.orgNumber == null || request.resource.data.orgNumber.matches('^[0-9]{6}-?[0-9]{4}$'))
+        && (request.resource.data.logoPath == null
+          || request.resource.data.logoPath.matches('^companies/' + companyId + '/logo[.](png|jpg|svg)$'))
+        && request.resource.data.accentColor.matches('^#[0-9a-fA-F]{6}$')
+        && request.resource.data.locale in ['sv', 'en']
+        && request.resource.data.settings.keys().hasOnly(['digestTime', 'reminderTime', 'crewCanSendPricedCards', 'requirePhoneCheck'])
+        && request.resource.data.settings.digestTime.matches('^[0-2][0-9]:[03]0$')
+        && request.resource.data.settings.reminderTime.matches('^[0-2][0-9]:[03]0$')
+        && request.resource.data.settings.crewCanSendPricedCards is bool
+        && request.resource.data.settings.requirePhoneCheck is bool
+        && request.resource.data.updatedAt == request.time;
+
+      match /staff/{staffId} {
         allow read: if isStaffOf(companyId);
+        allow update: if isStaffOf(companyId) && uid() == staffId
+          && changedOnly(['name', 'notify', 'updatedAt'])
+          && isName(request.resource.data.name)
+          && request.resource.data.updatedAt == request.time;
       }
 
-      // Billing details are read through functions only.
+      // private/billing is read through functions only.
     }
 
-    // Everything else, including invites, the outbox, approvals and devOutbox, is denied.
+    match /projects/{projectId} {
+      allow read: if isProjectStaff(resource.data) || isProjectClient(resource.data);
+
+      // Details only; status, people, branding and counters go through functions.
+      allow update: if isManagerOf(resource.data.companyId)
+        && changedOnly(['title', 'address', 'startDate', 'endDate', 'updatedAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 1 && request.resource.data.title.size() <= 120
+        && isAddress(request.resource.data.address)
+        && isOptionalDate(request.resource.data.startDate)
+        && isOptionalDate(request.resource.data.endDate)
+        && request.resource.data.updatedAt == request.time;
+
+      match /members/{memberId} {
+        allow read: if isProjectMember(projectData(projectId));
+        // A person's own settings and last-seen time.
+        allow update: if signedIn() && uid() == memberId
+          && isProjectMember(projectData(projectId))
+          && changedOnly(['lastSeenAt', 'notify'])
+          && (!('lastSeenAt' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.lastSeenAt == request.time)
+          && request.resource.data.notify.keys().hasOnly(['instant', 'digest', 'channel'])
+          && request.resource.data.notify.instant is bool
+          && request.resource.data.notify.digest is bool
+          && request.resource.data.notify.channel in ['sms', 'email', 'push'];
+      }
+
+      match /posts/{postId} {
+        allow read: if isProjectMember(projectData(projectId));
+
+        // Staff post updates and milestones; clients ask questions.
+        allow create: if isProjectMember(projectData(projectId))
+          && request.resource.data.keys().hasOnly([
+            'type', 'authorUid', 'authorName', 'authorRole', 'text', 'media', 'visibility',
+            'milestone', 'commentCount', 'unanswered', 'createdAt', 'editedAt', 'deletedAt'])
+          && request.resource.data.authorUid == uid()
+          && request.resource.data.authorName == callerName()
+          && request.resource.data.authorRole == callerRole(projectData(projectId))
+          && isText(request.resource.data.text, 5000)
+          && request.resource.data.visibility == 'all'
+          && request.resource.data.commentCount == 0
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.editedAt == null
+          && request.resource.data.deletedAt == null
+          && (
+            (isProjectStaff(projectData(projectId))
+              && request.resource.data.type in ['update', 'milestone']
+              && request.resource.data.unanswered == false
+              && isMediaList(request.resource.data.media, 20)
+              && (request.resource.data.type == 'update'
+                ? request.resource.data.milestone == null
+                : isMilestone(request.resource.data)))
+            || (isProjectClient(projectData(projectId))
+              && request.resource.data.type == 'question'
+              && request.resource.data.unanswered == true
+              && request.resource.data.milestone == null
+              && request.resource.data.text.size() >= 1
+              && isMediaList(request.resource.data.media, 5))
+          );
+
+        allow update: if isProjectMember(projectData(projectId)) && (
+          // The author edits the text and photos.
+          (resource.data.authorUid == uid()
+            && resource.data.deletedAt == null
+            && resource.data.type in ['update', 'milestone', 'question']
+            && changedOnly(['text', 'media', 'editedAt'])
+            && isText(request.resource.data.text, 5000)
+            && isMediaList(request.resource.data.media, resource.data.type == 'question' ? 5 : 20)
+            && request.resource.data.editedAt == request.time)
+          // The author deletes the post, leaving a "removed by the author" marker.
+          || (resource.data.authorUid == uid()
+            && resource.data.deletedAt == null
+            && resource.data.type in ['update', 'milestone', 'question']
+            && changedOnly(['text', 'media', 'deletedAt', 'unanswered'])
+            && request.resource.data.text == ''
+            && request.resource.data.media.size() == 0
+            && request.resource.data.unanswered == false
+            && request.resource.data.deletedAt == request.time)
+          // Staff mark a client question resolved.
+          || (isProjectStaff(projectData(projectId))
+            && resource.data.type == 'question'
+            && changedOnly(['unanswered'])
+            && request.resource.data.unanswered == false)
+        );
+
+        function isMilestone(data) {
+          return data.milestone is map
+            && data.milestone.keys().hasOnly(['stage', 'stageCount'])
+            && (data.milestone.stage == null || (data.milestone.stage is int && data.milestone.stage >= 1))
+            && (data.milestone.stageCount == null
+              || (data.milestone.stageCount is int && data.milestone.stageCount >= 1 && data.milestone.stageCount <= 20))
+            && data.text.size() >= 1 && data.text.size() <= 120;
+        }
+
+        match /comments/{commentId} {
+          allow read: if isProjectMember(projectData(projectId));
+
+          allow create: if isProjectMember(projectData(projectId))
+            && exists(/databases/$(database)/documents/projects/$(projectId)/posts/$(postId))
+            && request.resource.data.keys().hasOnly([
+              'authorUid', 'authorName', 'authorRole', 'text', 'media', 'createdAt', 'editedAt', 'deletedAt'])
+            && request.resource.data.authorUid == uid()
+            && request.resource.data.authorName == callerName()
+            && request.resource.data.authorRole == callerRole(projectData(projectId))
+            && request.resource.data.text is string
+            && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 2000
+            && isMediaList(request.resource.data.media, 5)
+            && request.resource.data.createdAt == request.time
+            && request.resource.data.editedAt == null
+            && request.resource.data.deletedAt == null;
+
+          allow update: if isProjectMember(projectData(projectId))
+            && resource.data.authorUid == uid()
+            && resource.data.deletedAt == null
+            && (
+              (changedOnly(['text', 'editedAt'])
+                && request.resource.data.text is string
+                && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 2000
+                && request.resource.data.editedAt == request.time)
+              || (changedOnly(['text', 'media', 'deletedAt'])
+                && request.resource.data.text == ''
+                && request.resource.data.media.size() == 0
+                && request.resource.data.deletedAt == request.time)
+            );
+        }
+      }
+
+      // Decisions, approvals, visits, checklist and handover arrive in later milestones.
+    }
+
+    // Everything else, including invites, the outbox, approvals, rate limits and devOutbox, is
+    // denied to the client SDK.
   }
 }

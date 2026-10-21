@@ -1,0 +1,59 @@
+<form class="composer" (submit)="send($event)">
+  <label class="sl-visually-hidden" [attr.for]="'composer-' + mode()">
+    {{ (mode() === 'question' ? 'composer.questionLabel' : 'composer.updateLabel') | translate }}
+  </label>
+  <textarea
+    [id]="'composer-' + mode()"
+    rows="2"
+    [maxLength]="maxLength"
+    [value]="text()"
+    (input)="onInput($any($event.target).value)"
+    [placeholder]="
+      (mode() === 'question' ? 'composer.questionPlaceholder' : 'composer.updatePlaceholder')
+        | translate: { firm: firmName() }
+    "
+  ></textarea>
+
+  @if (photos().length) {
+    <ul class="previews" [attr.aria-label]="'composer.selectedPhotos' | translate">
+      @for (photo of photos(); track photo.preview; let i = $index) {
+        <li>
+          <img [src]="photo.preview" alt="" />
+          <button
+            type="button"
+            class="remove"
+            [attr.aria-label]="'composer.removePhoto' | translate: { n: i + 1 }"
+            (click)="removePhoto(i)"
+          >
+            <svg lucideX [size]="16"></svg>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  <div class="actions">
+    <input
+      #files
+      type="file"
+      accept="image/*"
+      multiple
+      class="sl-visually-hidden"
+      tabindex="-1"
+      aria-hidden="true"
+      (change)="onFiles($any($event.target).files)"
+    />
+    <button
+      slButton="secondary"
+      type="button"
+      (click)="choosePhotos()"
+      [disabled]="photos().length >= maxPhotos()"
+    >
+      <svg lucideCamera [size]="20"></svg>
+      {{ 'composer.photo' | translate }}
+    </button>
+    <button slButton type="submit" [disabled]="!canSend()" [busy]="sending()">
+      {{ (mode() === 'question' ? 'composer.ask' : 'composer.post') | translate }}
+    </button>
+  </div>
+</form>

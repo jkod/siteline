@@ -1,0 +1,81 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sl-space-3);
+  padding: var(--sl-space-4);
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-border);
+  border-radius: var(--sl-radius-card);
+  box-shadow: var(--sl-shadow-card);
+}
+.card.milestone {
+  background: var(--sl-dark);
+  border-color: var(--sl-dark);
+  color: #fff;
+  --sl-text-3: #c4c8d0;
+  --sl-text-2: #dfe2e7;
+  --sl-text: #fff;
+  --sl-border: var(--sl-dark-2);
+  --sl-panel: var(--sl-dark-2);
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--sl-space-3);
+}
+.who {
+  flex: 1;
+  min-width: 0;
+}
+.author {
+  font-weight: 700;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sl-space-1);
+  font: var(--sl-text-small);
+  color: var(--sl-text-3);
+}
+.text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.removed {
+  font-style: italic;
+  color: var(--sl-text-3);
+}
+.stage {
+  display: flex;
+  align-items: center;
+  gap: var(--sl-space-2);
+  color: var(--sl-highlight);
+}
+.milestone-name {
+  font: 700 22px/28px var(--sl-font-display);
+}
+.foot,
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sl-space-2);
+}
+.spacer {
+  flex: 1;
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sl-space-1);
+  min-height: var(--sl-target);
+  padding: 0 var(--sl-space-2);
+  border: 0;
+  border-radius: var(--sl-radius-pill);
+  background: none;
+  color: var(--sl-text-2);
+  font: 600 14px/18px var(--sl-font-body);
+  cursor: pointer;
+}
+.link:hover {
+  background: var(--sl-panel);
+}

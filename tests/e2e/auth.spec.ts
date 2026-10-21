@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { expectNoAxeViolations } from './a11y';
-import { requestSignInLink } from './emulators';
+import { requestSignInLink, signIn } from './emulators';
 
 test.describe('sign-in', () => {
   test('the login page is in Swedish by default, accessible, and switches to English', async ({
@@ -27,46 +27,33 @@ test.describe('sign-in', () => {
     await expect(page.getByLabel('E-postadress')).toHaveAttribute('aria-invalid', 'true');
   });
 
-  test('a seeded owner signs in with an email link and lands in the staff app', async ({
-    page,
-  }) => {
-    await page.goto('/login');
-    await page.goto(await requestSignInLink(page, 'erik@eklind.example'));
+  test('a seeded owner signs in with an email link and sees their projects', async ({ page }) => {
+    await signIn(page, 'erik@eklind.example');
     await expect(page).toHaveURL(/\/app$/);
-    // The company name comes from Firestore, under the staff rules.
     await expect(page.getByRole('link', { name: 'Ek & Lind Snickeri' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Företag' })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: /Köksrenovering Lindqvist/ }).first(),
+    ).toBeVisible();
+    await expect(page.getByText('1 obesvarad fråga').first()).toBeVisible();
     await expectNoAxeViolations(page);
 
-    await page.getByRole('button', { name: 'Logga ut' }).click();
+    await page.getByRole('button', { name: 'Logga ut' }).first().click();
     await expect(page).toHaveURL(/\/login$/);
   });
 
-  test('crew do not see the company settings link and are sent back from manager pages', async ({
-    page,
-  }) => {
-    await page.goto('/login');
-    await page.goto(await requestSignInLink(page, 'omar@eklind.example'));
+  test('crew see only assigned projects and are sent back from manager pages', async ({ page }) => {
+    await signIn(page, 'omar@eklind.example');
     await expect(page).toHaveURL(/\/app$/);
     await expect(page.getByRole('link', { name: 'Företag' })).toHaveCount(0);
-
+    await expect(page.getByRole('link', { name: 'Nytt projekt' })).toHaveCount(0);
     await page.goto('/app/settings/company');
     await expect(page).toHaveURL(/\/app$/);
-  });
-
-  test('a new person lands in onboarding', async ({ page }) => {
-    const email = `ny-${Date.now()}@example.com`;
-    await page.goto('/login');
-    await page.goto(await requestSignInLink(page, email));
-    await expect(page).toHaveURL(/\/onboarding$/);
-    await expect(page.getByText(`Inloggad som ${email}`)).toBeVisible();
   });
 
   test('a link opened in another browser asks for the email first', async ({ page, browser }) => {
     const email = `annan-${Date.now()}@example.com`;
     await page.goto('/login');
     const link = await requestSignInLink(page, email);
-
     const other = await browser.newPage();
     await other.goto(link);
     await expect(other.getByRole('heading', { name: 'Bekräfta din e-postadress' })).toBeVisible();
@@ -77,10 +64,9 @@ test.describe('sign-in', () => {
   });
 
   test('the return URL survives the email link', async ({ page }) => {
-    const email = 'karin@bergmatte.example';
     await page.goto('/app/settings/me');
     await expect(page).toHaveURL(/\/login\?returnUrl=%2Fapp%2Fsettings%2Fme$/);
-    await page.goto(await requestSignInLink(page, email));
+    await page.goto(await requestSignInLink(page, 'karin@bergmatte.example'));
     await expect(page).toHaveURL(/\/app\/settings\/me$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Mitt konto' })).toBeVisible();
   });

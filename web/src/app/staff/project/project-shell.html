@@ -1,0 +1,89 @@
+@if (context.project(); as project) {
+  <main class="sl-page sl-stack" id="main">
+    <header class="head">
+      <div class="titles">
+        <h1>{{ project.title }}</h1>
+        @if (project.address; as address) {
+          <p class="sl-small">{{ address.street }}, {{ address.postalCode }} {{ address.city }}</p>
+        }
+      </div>
+      <div class="facts">
+        <span class="sl-badge sl-badge--neutral">
+          {{
+            (clientNames() ? 'project.clients' : 'project.noClients')
+              | translate: { names: clientNames() }
+          }}
+        </span>
+        @if (project.totals.unansweredQuestions > 0) {
+          <span class="sl-badge">{{
+            'staffHome.unanswered'
+              | plural: project.totals.unansweredQuestions
+              | translate: { count: project.totals.unansweredQuestions }
+          }}</span>
+        }
+        @if (project.status !== 'active') {
+          <span class="sl-badge sl-badge--accent">{{
+            'status.' + project.status | translate
+          }}</span>
+        }
+      </div>
+      @if (canManage()) {
+        <div class="status-actions">
+          @if (project.status === 'active') {
+            <button
+              slButton="ghost"
+              type="button"
+              [disabled]="changingStatus()"
+              (click)="setStatus('completed')"
+            >
+              {{ 'projectStatus.complete' | translate }}
+            </button>
+          } @else {
+            <button
+              slButton="ghost"
+              type="button"
+              [disabled]="changingStatus()"
+              (click)="setStatus('active')"
+            >
+              {{ 'projectStatus.reactivate' | translate }}
+            </button>
+          }
+          @if (project.status !== 'archived') {
+            <button
+              slButton="ghost"
+              type="button"
+              [disabled]="changingStatus()"
+              (click)="setStatus('archived')"
+            >
+              {{ 'projectStatus.archive' | translate }}
+            </button>
+          }
+        </div>
+      }
+    </header>
+
+    <nav class="tabs" [attr.aria-label]="'project.tabs' | translate">
+      @for (tab of tabs(); track tab.path) {
+        <a
+          [routerLink]="
+            tab.path === '.'
+              ? ['/app/projects', projectId()]
+              : ['/app/projects', projectId(), tab.path]
+          "
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: tab.exact }"
+          ariaCurrentWhenActive="page"
+        >
+          {{ tab.label | translate }}
+        </a>
+      }
+    </nav>
+
+    <router-outlet />
+  </main>
+} @else if (context.project() === null) {
+  <main class="sl-page sl-stack" id="main">
+    <h1>{{ 'project.notFound' | translate }}</h1>
+    <p>{{ 'project.notFoundBody' | translate }}</p>
+  </main>
+}

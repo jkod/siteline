@@ -1,34 +1,57 @@
-import { computed, inject, Injectable, resource } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 
-import { FirebaseService } from '../core/firebase';
+import { type Company, effectiveLimits, type Project, type StaffMember } from '@siteline/shared';
+
+import { liveDoc, liveQuery } from '../core/live';
 import { Session } from '../core/session';
 
-export interface CompanySummary {
-  name: string;
-  plan: string;
-}
-
-/** The signed-in staff member's company, read under the rules (staff of the company only). */
+/**
+ * The signed-in staff member's company, its staff and the projects they can see, live. Owners
+ * and admins see every project; crew only those they're assigned to (PRD F2).
+ */
 @Injectable({ providedIn: 'root' })
 export class CurrentCompany {
-  private readonly firebase = inject(FirebaseService);
   private readonly session = inject(Session);
+  private readonly companyId = computed(() => this.session.claims().cid);
 
-  private readonly company = resource({
-    params: () => this.session.claims().cid ?? undefined,
-    loader: async ({ params: companyId }): Promise<CompanySummary | null> => {
-      const [db, { doc, getDoc }] = await Promise.all([
-        this.firebase.firestore(),
-        import('firebase/firestore'),
-      ]);
-      const snapshot = await getDoc(doc(db, 'companies', companyId));
-      const data = snapshot.data();
-      return data
-        ? { name: String(data['name'] ?? ''), plan: String(data['plan'] ?? 'free') }
-        : null;
-    },
+  readonly company = liveDoc<Company>(() =>
+    this.companyId() ? `companies/${this.companyId()}` : null,
+  );
+  readonly name = computed(() => this.company()?.name ?? '');
+  readonly limits = computed(() => {
+    const company = this.company();
+    return company ? effectiveLimits(company, Date.now()) : null;
   });
 
-  readonly value = computed(() => (this.company.hasValue() ? this.company.value() : null));
-  readonly name = computed(() => this.value()?.name ?? '');
+  readonly staff = liveQuery<StaffMember>(
+    (db, fs) => {
+      const cid = this.companyId();
+      return cid
+        ? fs.query(fs.collection(db, 'companies', cid, 'staff'), fs.orderBy('name'))
+        : null;
+    },
+    () => this.companyId(),
+  );
+
+  readonly projects = liveQuery<Project>(
+    (db, fs) => {
+      const cid = this.companyId();
+      const uid = this.session.user()?.uid;
+      if (!cid || !uid) return null;
+      const base = fs.collection(db, 'projects');
+      return this.session.role() === 'crew'
+        ? fs.query(
+            base,
+            fs.where('companyId', '==', cid),
+            fs.where('crewUids', 'array-contains', uid),
+            fs.orderBy('lastPostAt', 'desc'),
+          )
+        : fs.query(base, fs.where('companyId', '==', cid), fs.orderBy('lastPostAt', 'desc'));
+    },
+    () => [this.companyId(), this.session.user()?.uid, this.session.role()],
+  );
+
+  readonly activeProjects = computed(() =>
+    (this.projects() ?? []).filter((p) => p.status === 'active'),
+  );
 }

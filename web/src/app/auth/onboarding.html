@@ -1,0 +1,151 @@
+<main class="sl-page" id="main">
+  <p class="sl-label">{{ 'onboarding.step' | translate: { n: stepNumber(), total: 3 } }}</p>
+  @switch (step()) {
+    @case ('company') {
+      <h1>{{ 'onboarding.companyTitle' | translate }}</h1>
+      <p class="intro">{{ 'onboarding.companyIntro' | translate }}</p>
+      <div class="split">
+        <form slCard class="sl-stack" novalidate (submit)="createCompany($event)">
+          <sl-field
+            [label]="'companySettings.name' | translate"
+            [errors]="companyForm.name().errors()"
+            [touched]="companyForm.name().touched()"
+          >
+            <input slInput type="text" autocomplete="organization" [formField]="companyForm.name" />
+          </sl-field>
+          <sl-field
+            [label]="'onboarding.yourName' | translate"
+            [errors]="companyForm.ownerName().errors()"
+            [touched]="companyForm.ownerName().touched()"
+          >
+            <input slInput type="text" autocomplete="name" [formField]="companyForm.ownerName" />
+          </sl-field>
+          <sl-field
+            [label]="'companySettings.orgNumber' | translate"
+            [hint]="'companySettings.orgNumberHint' | translate"
+            [errors]="companyForm.orgNumber().errors()"
+            [touched]="companyForm.orgNumber().touched()"
+          >
+            <input
+              slInput
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              [formField]="companyForm.orgNumber"
+            />
+          </sl-field>
+          <sl-field
+            [label]="'companySettings.accent' | translate"
+            [errors]="companyForm.accentColor().errors()"
+            [touched]="companyForm.accentColor().touched()"
+          >
+            <div class="color">
+              <input
+                type="color"
+                [value]="accent()"
+                [attr.aria-label]="'companySettings.pickColor' | translate"
+                (input)="company.update((c) => ({ ...c, accentColor: $any($event.target).value }))"
+              />
+              <input
+                slInput
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                [formField]="companyForm.accentColor"
+              />
+            </div>
+          </sl-field>
+          <sl-field [label]="'companySettings.language' | translate">
+            <select slInput [formField]="companyForm.locale">
+              <option value="sv">Svenska</option>
+              <option value="en">English</option>
+            </select>
+          </sl-field>
+          <div class="logo">
+            <input
+              #logoInput
+              type="file"
+              accept="image/png,image/jpeg,image/svg+xml"
+              class="sl-visually-hidden"
+              tabindex="-1"
+              aria-hidden="true"
+              (change)="pickLogo($any($event.target).files)"
+            />
+            <button slButton="secondary" type="button" (click)="logoInput.click()">
+              {{ (logo() ? 'onboarding.changeLogo' : 'companySettings.uploadLogo') | translate }}
+            </button>
+            <span class="sl-small">{{ 'companySettings.logoHint' | translate }}</span>
+          </div>
+          <button slButton size="large" block type="submit" [busy]="busy()" [disabled]="busy()">
+            {{ 'common.continue' | translate }}
+          </button>
+        </form>
+        <sl-brand-preview [name]="company().name" [accent]="accent()" [logoUrl]="logoPreview()" />
+      </div>
+    }
+    @case ('project') {
+      <h1>{{ 'onboarding.projectTitle' | translate }}</h1>
+      <p class="intro">{{ 'onboarding.projectIntro' | translate }}</p>
+      <form slCard class="sl-stack narrow" novalidate (submit)="createProject($event)">
+        <sl-field
+          [label]="'newProject.name' | translate"
+          [hint]="'newProject.nameHint' | translate"
+          [errors]="projectForm.title().errors()"
+          [touched]="projectForm.title().touched()"
+        >
+          <input slInput type="text" autocomplete="off" [formField]="projectForm.title" />
+        </sl-field>
+        <sl-field [label]="'address.street' | translate">
+          <input
+            slInput
+            type="text"
+            autocomplete="street-address"
+            [formField]="projectForm.street"
+          />
+        </sl-field>
+        <sl-field [label]="'address.city' | translate">
+          <input slInput type="text" autocomplete="address-level2" [formField]="projectForm.city" />
+        </sl-field>
+        <sl-field [label]="'newProject.startDate' | translate">
+          <input slInput type="date" [formField]="projectForm.startDate" />
+        </sl-field>
+        <button slButton size="large" block type="submit" [busy]="busy()" [disabled]="busy()">
+          {{ 'common.continue' | translate }}
+        </button>
+      </form>
+    }
+    @case ('client') {
+      <h1>{{ 'onboarding.clientTitle' | translate }}</h1>
+      <p class="intro">{{ 'onboarding.clientIntro' | translate }}</p>
+      <form slCard class="sl-stack narrow" novalidate (submit)="inviteClient($event)">
+        <sl-field
+          [label]="'people.name' | translate"
+          [errors]="clientForm.name().errors()"
+          [touched]="clientForm.name().touched()"
+        >
+          <input slInput type="text" autocomplete="off" [formField]="clientForm.name" />
+        </sl-field>
+        <sl-field
+          [label]="'people.mobile' | translate"
+          [hint]="'people.mobileHint' | translate"
+          [errors]="clientForm.phone().errors()"
+          [touched]="clientForm.phone().touched()"
+        >
+          <input
+            slInput
+            type="tel"
+            inputmode="tel"
+            autocomplete="off"
+            [formField]="clientForm.phone"
+          />
+        </sl-field>
+        <button slButton size="large" block type="submit" [busy]="busy()" [disabled]="busy()">
+          {{ 'people.sendInvite' | translate }}
+        </button>
+        <button slButton="ghost" block type="button" (click)="finish()">
+          {{ 'onboarding.skip' | translate }}
+        </button>
+      </form>
+    }
+  }
+</main>

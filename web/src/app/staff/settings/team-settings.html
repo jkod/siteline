@@ -1,0 +1,77 @@
+<main class="sl-page sl-stack" id="main">
+  <h1>{{ 'pages.settingsTeam' | translate }}</h1>
+  <section slCard class="sl-stack" aria-labelledby="staff-title">
+    <h2 id="staff-title">{{ 'team.staff' | translate }}</h2>
+    <ul class="rows">
+      @for (member of company.staff() ?? []; track member.id) {
+        <li class="row">
+          <sl-avatar [name]="member.name" />
+          <span class="grow">
+            {{ member.name }}
+            @if (member.id === uid()) {
+              <span class="sl-small">({{ 'team.you' | translate }})</span>
+            }
+            <br />
+            <span class="sl-small">{{ member.email }}</span>
+          </span>
+          <label class="sl-visually-hidden" [attr.for]="'role-' + member.id">{{
+            'team.roleFor' | translate: { name: member.name }
+          }}</label>
+          <select
+            slInput
+            [id]="'role-' + member.id"
+            [value]="member.role"
+            [disabled]="member.role === 'owner' && !isOwner()"
+            (change)="changeRole(member.id, $any($event.target).value)"
+          >
+            @for (role of roleOptions(member.role); track role) {
+              <option [value]="role">{{ 'roles.' + role | translate }}</option>
+            }
+          </select>
+          @if (member.id !== uid() && (member.role !== 'owner' || isOwner())) {
+            <button slButton="ghost" type="button" (click)="remove(member.id, member.name)">
+              {{ 'team.remove' | translate }}
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  </section>
+
+  <form slCard class="sl-stack" novalidate (submit)="invite($event)" aria-labelledby="invite-title">
+    <h2 id="invite-title">{{ 'team.inviteTitle' | translate }}</h2>
+    <sl-field
+      [label]="'people.name' | translate"
+      [errors]="form.name().errors()"
+      [touched]="form.name().touched()"
+    >
+      <input slInput type="text" autocomplete="off" [formField]="form.name" />
+    </sl-field>
+    <sl-field
+      [label]="'people.email' | translate"
+      [errors]="form.email().errors()"
+      [touched]="form.email().touched()"
+    >
+      <input slInput type="email" autocomplete="off" [formField]="form.email" />
+    </sl-field>
+    <sl-field
+      [label]="'people.mobile' | translate"
+      [hint]="'team.emailOrPhone' | translate"
+      [errors]="form.phone().errors()"
+      [touched]="form.phone().touched()"
+    >
+      <input slInput type="tel" autocomplete="off" [formField]="form.phone" />
+    </sl-field>
+    <sl-field [label]="'team.role' | translate">
+      <select slInput [formField]="form.role">
+        <option value="crew">{{ 'roles.crew' | translate }}</option>
+        <option value="admin">{{ 'roles.admin' | translate }}</option>
+      </select>
+    </sl-field>
+    <div class="end">
+      <button slButton type="submit" [busy]="sending()" [disabled]="sending()">
+        {{ 'people.sendInvite' | translate }}
+      </button>
+    </div>
+  </form>
+</main>

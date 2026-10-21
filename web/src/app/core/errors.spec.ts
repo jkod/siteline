@@ -17,3 +17,23 @@ describe('errorMessageKey', () => {
     expect(errorMessageKey({ code: 'auth/something-new' })).toBe('errors.unknown');
   });
 });
+
+describe('errorMessageKey with callable reasons', () => {
+  it('uses the specific reason when the callable gives a known one', () => {
+    expect(errorMessageKey({ code: 'functions/failed-precondition', message: 'plan_limit' })).toBe(
+      'errors.reasons.plan_limit',
+    );
+  });
+
+  it('ignores the HTTP status the Functions SDK appends to the message', () => {
+    expect(errorMessageKey({ code: 'functions/not-found', message: 'invalid_link [404]' })).toBe(
+      'errors.reasons.invalid_link',
+    );
+  });
+
+  it('falls back to the code for unknown messages', () => {
+    expect(errorMessageKey({ code: 'functions/failed-precondition', message: 'something' })).toBe(
+      'errors.functions.failed-precondition',
+    );
+  });
+});

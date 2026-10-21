@@ -25,8 +25,16 @@ export const routes: Routes = [
     canMatch: [clientGuard],
     loadChildren: () => import('./client/client.routes').then((m) => m.CLIENT_ROUTES),
   },
-  placeholder('p/:token', 'pages.redeem'),
-  placeholder('link-expired', 'pages.linkExpired'),
+  {
+    path: 'p/:token',
+    title: 'pages.redeem',
+    loadComponent: () => import('./client/redeem').then((m) => m.Redeem),
+  },
+  {
+    path: 'link-expired',
+    title: 'pages.linkExpired',
+    loadComponent: () => import('./client/link-expired').then((m) => m.LinkExpired),
+  },
   placeholder('r/:code', 'pages.referral'),
   placeholder('legal/privacy', 'pages.privacy'),
   placeholder('legal/terms', 'pages.terms'),

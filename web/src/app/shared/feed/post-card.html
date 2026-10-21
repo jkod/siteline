@@ -1,0 +1,117 @@
+@let p = post();
+<article
+  class="card"
+  [class.milestone]="p.type === 'milestone' && !isDeleted()"
+  [attr.aria-labelledby]="'post-author-' + p.id"
+>
+  <header class="head">
+    <sl-avatar [name]="p.authorName" [variant]="authorIsStaff() ? 'staff' : 'client'" />
+    <div class="who">
+      <p class="author" [id]="'post-author-' + p.id">{{ p.authorName }}</p>
+      <p class="meta">
+        <span>{{ roleLabel() }}</span>
+        <span aria-hidden="true">·</span>
+        <time [attr.datetime]="p.createdAt.toDate().toISOString()" [title]="p.createdAt | slDate">
+          {{ p.createdAt | slDate: 'relative' }}
+        </time>
+        @if (p.editedAt && !isDeleted()) {
+          <span>· {{ 'feed.edited' | translate }}</span>
+        }
+      </p>
+    </div>
+    @if (p.type === 'question' && p.unanswered && viewerIsStaff()) {
+      <span class="sl-badge">{{ 'feed.unanswered' | translate }}</span>
+    }
+  </header>
+
+  @if (isDeleted()) {
+    <p class="removed">{{ 'feed.removedByAuthor' | translate }}</p>
+  } @else {
+    @switch (p.type) {
+      @case ('milestone') {
+        <div class="milestone-body">
+          <p class="sl-label stage">
+            <svg lucideFlag [size]="16"></svg>
+            @let m = p.milestone;
+            @if (m && m.stage && m.stageCount) {
+              {{ 'feed.stageOf' | translate: { stage: m.stage, count: m.stageCount } }}
+            } @else {
+              {{ 'feed.milestone' | translate }}
+            }
+          </p>
+          <p class="milestone-name">{{ p.text }}</p>
+        </div>
+      }
+      @case ('question') {
+        <p class="sl-label">{{ 'feed.question' | translate }}</p>
+      }
+    }
+    @if (p.type !== 'milestone') {
+      @if (editing()) {
+        <label class="sl-visually-hidden" [attr.for]="'edit-post-' + p.id">{{
+          'feed.editPost' | translate
+        }}</label>
+        <textarea
+          [id]="'edit-post-' + p.id"
+          class="sl-input"
+          rows="3"
+          [maxLength]="maxLength"
+          [value]="editText()"
+          (input)="editText.set($any($event.target).value)"
+        ></textarea>
+        <div class="row">
+          <button slButton="ghost" type="button" (click)="editing.set(false)">
+            {{ 'common.cancel' | translate }}
+          </button>
+          <button slButton type="button" (click)="saveEdit()">
+            {{ 'common.save' | translate }}
+          </button>
+        </div>
+      } @else if (p.text) {
+        <p class="text">{{ p.text }}</p>
+      }
+    }
+    @if (p.media.length) {
+      <sl-photo-grid [media]="p.media" [alt]="photoAlt()" />
+    }
+  }
+
+  <footer class="foot">
+    @if (!isDeleted() || p.commentCount > 0) {
+      <button
+        type="button"
+        class="link"
+        [attr.aria-expanded]="commentsOpen()"
+        [attr.aria-controls]="'comments-' + p.id"
+        (click)="showComments.set(!commentsOpen())"
+      >
+        <svg lucideMessageCircle [size]="18"></svg>
+        @if (p.commentCount === 0) {
+          {{ 'feed.comment' | translate }}
+        } @else {
+          {{ 'feed.commentCount' | plural: p.commentCount | translate: { count: p.commentCount } }}
+        }
+      </button>
+    }
+    <span class="spacer"></span>
+    @if (p.type === 'question' && p.unanswered && viewerIsStaff()) {
+      <button type="button" class="link" (click)="resolve.emit()">
+        {{ 'feed.markResolved' | translate }}
+      </button>
+    }
+    @if (isOwn() && !isDeleted() && !editing()) {
+      @if (p.type !== 'milestone') {
+        <button type="button" class="link" (click)="startEdit()">
+          {{ 'common.edit' | translate }}
+        </button>
+      }
+      <button type="button" class="link" (click)="remove.emit()">
+        {{ 'common.delete' | translate }}
+      </button>
+    }
+  </footer>
+
+  @if (commentsOpen()) {
+    <sl-comments [id]="'comments-' + p.id" [projectId]="projectId()" [postId]="p.id" />
+  }
+</article>

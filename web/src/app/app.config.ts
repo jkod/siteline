@@ -3,6 +3,7 @@ import {
   type ApplicationConfig,
   ErrorHandler,
   inject,
+  isDevMode,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
@@ -12,6 +13,7 @@ import {
   withComponentInputBinding,
   withInMemoryScrolling,
 } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 
 import { provideLucideConfig } from '@lucide/angular';
 import { provideTranslateService } from '@ngx-translate/core';
@@ -40,5 +42,10 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAppInitializer(() => inject(Language).init()),
     provideLucideConfig({ strokeWidth: 1.75 }),
+    // Caches the app shell for the PWA (PRD section 13); off in development.
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };
