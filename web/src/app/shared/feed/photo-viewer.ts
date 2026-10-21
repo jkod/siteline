@@ -1,11 +1,11 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { afterNextRender, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 
-import { LucideChevronLeft, LucideChevronRight, LucideX } from '@lucide/angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import type { Media } from '@siteline/shared';
 
 import { dialogTitleId } from '../ui/dialog';
+import { Icon } from '../ui/icon';
 import { StorageImage } from '../ui/storage-image';
 
 export interface PhotoViewerData {
@@ -20,7 +20,7 @@ export interface PhotoViewerData {
  */
 @Component({
   selector: 'sl-photo-viewer',
-  imports: [StorageImage, TranslatePipe, LucideX, LucideChevronLeft, LucideChevronRight],
+  imports: [Icon, StorageImage, TranslatePipe],
   host: { '(keydown.arrowleft)': 'go(-1)', '(keydown.arrowright)': 'go(1)' },
   template: `
     <h2 class="sl-visually-hidden" [id]="titleId">{{ 'feed.photos' | translate }}</h2>
@@ -32,7 +32,7 @@ export interface PhotoViewerData {
         [attr.aria-label]="'common.close' | translate"
         (click)="ref.close()"
       >
-        <svg lucideX [size]="24"></svg>
+        <sl-icon name="close" [size]="24" />
       </button>
     </div>
     <div #track class="track" (scroll)="onScroll()">
@@ -54,7 +54,7 @@ export interface PhotoViewerData {
         [attr.aria-label]="'feed.previousPhoto' | translate"
         (click)="go(-1)"
       >
-        <svg lucideChevronLeft [size]="28"></svg>
+        <sl-icon name="chevron_left" [size]="28" />
       </button>
       <button
         type="button"
@@ -62,7 +62,7 @@ export interface PhotoViewerData {
         [attr.aria-label]="'feed.nextPhoto' | translate"
         (click)="go(1)"
       >
-        <svg lucideChevronRight [size]="28"></svg>
+        <sl-icon name="chevron_right" [size]="28" />
       </button>
     }
   `,

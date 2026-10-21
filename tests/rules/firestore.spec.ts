@@ -78,6 +78,27 @@ describe('users', () => {
     );
   });
 
+  it('lets a person choose their feed order, and only feed or chat', async () => {
+    await assertSucceeds(
+      updateDoc(doc(as(client), 'users/client1'), {
+        feedStyle: 'chat',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as(client), 'users/client1'), {
+        feedStyle: 'timeline',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as(owner), 'users/client1'), {
+        feedStyle: 'chat',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
   it('denies changing kind or company, bad values, and other people', async () => {
     await assertFails(
       updateDoc(doc(as(client), 'users/client1'), { kind: 'staff', updatedAt: serverTimestamp() }),
@@ -479,7 +500,6 @@ describe('collections only functions use', () => {
     'referrals/code1',
     'rateLimits/r1',
     'clientPhones/x1',
-    'projects/p1/approvals/a1',
   ];
 
   it.each(paths)('denies reading and writing %s for every role', async (path) => {

@@ -10,7 +10,7 @@ Siteline is built inside the `ngxns-workspace` monorepo, in `apps/siteline/`. Th
 - **Don't use `npm run app:create`.** It generates NativeScript apps, and Siteline is web only for now.
 - **Dependencies.** The root `package.json` uses npm workspaces.
   - Shared Angular packages are declared as `*` in member manifests and pinned through root `overrides` (`$package`).
-  - App-only packages keep their own version ranges in the member's `package.json`: firebase, @ngx-translate, zod, rrule, @angular/aria, @fontsource, Lucide, firebase-tools and similar.
+  - App-only packages keep their own version ranges in the member's `package.json`: firebase, @ngx-translate, zod, rrule, @angular/aria, @fontsource, @material-symbols, firebase-tools and similar.
   - Always run `npm install` from the workspace root, so overrides and the `patch-package` postinstall apply.
 - **Functions.** `functions/` must stay deployable on its own: the Firebase CLI uploads that folder and installs from its `package.json`. Bundle it with esbuild so the code in `shared/` is included, and keep its runtime dependencies in its own manifest.
 - **Already in the workspace:** Angular 22.2, TypeScript 6, Vitest 4, ESLint with angular-eslint and Prettier (`printWidth` 100, single quotes). Angular Material is installed at the root, but Siteline doesn't use it (PRD section 7).
@@ -46,7 +46,8 @@ apps/siteline/
 
 - **Angular 22:** standalone components, signals, zoneless, OnPush, built-in control flow and Signal Forms.
 - **Firebase:** Auth, Firestore, Storage, Functions (2nd gen, TypeScript), Hosting, App Check and Cloud Messaging, all in region europe-north1. Use the modular JS SDK through small injectable services that expose signals.
-- **UI:** Angular CDK and Angular Aria with custom components, Lucide icons, and tokens in `web/src/styles/tokens.css`. Fonts are self-hosted with @fontsource.
+- **UI:** Angular CDK and Angular Aria with custom components, and tokens in `web/src/styles/tokens.css`. Fonts are self-hosted with @fontsource.
+- **Icons:** Material Symbols, the same set as the future Android app, as inline SVG through `<sl-icon name="…">`. Style (outlined, rounded or sharp), weight and fill are set in `web/icons.config.json`; add new icon names there and run `npm run icons`, which writes only the used icons to `icons.generated.ts`.
 - **Languages:** @ngx-translate/core with Swedish (`sv`) as the default and English (`en`) second. Never hard-code a user-facing string.
 - **Validation:** zod schemas in `shared/`, used by both web and functions. Recurring schedules use rrule.
 
@@ -69,7 +70,7 @@ Run these from the workspace root with `--workspace apps/siteline`, or from `app
 - `npm test`, `npm run test:rules`, `npm run test:integration` (callables and triggers), `npm run e2e`
 - `npm run deploy:staging`. Never deploy to production from a local machine.
 
-The emulators need Java 21+ and firebase-tools. Test runs use `firebase.test.json` (other ports, project `demo-siteline-test`, app on port 4300), so they can run while `npm run dev` is up.
+The emulators need Java 21+ and firebase-tools. Before `npm run dev` and the test commands, `scripts/free-ports.mjs` stops Siteline processes left over from an earlier run (a closed terminal tab can orphan the emulators) and names anything else that holds a needed port. Test runs use `firebase.test.json` (other ports, project `demo-siteline-test`, app on port 4300), so they can run while `npm run dev` is up.
 
 ## Workflow
 

@@ -1,8 +1,9 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, Injectable, signal } from '@angular/core';
 
-import { LucideCircleAlert, LucideCircleCheck, LucideX } from '@lucide/angular';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { Icon } from './icon';
 
 export type ToastKind = 'info' | 'success' | 'error';
 
@@ -60,7 +61,7 @@ export class Toasts {
 /** Renders toasts in live regions: polite for info and success, assertive for errors. */
 @Component({
   selector: 'sl-toaster',
-  imports: [NgTemplateOutlet, TranslatePipe, LucideCircleAlert, LucideCircleCheck, LucideX],
+  imports: [Icon, NgTemplateOutlet, TranslatePipe],
   template: `
     <div class="region" role="status" aria-live="polite">
       @for (toast of polite(); track toast.id) {
@@ -82,9 +83,9 @@ export class Toasts {
         (focusout)="toasts.resume(toast.id)"
       >
         @if (toast.kind === 'error') {
-          <svg lucideCircleAlert [size]="20"></svg>
+          <sl-icon name="error" [size]="20" />
         } @else if (toast.kind === 'success') {
-          <svg lucideCircleCheck [size]="20"></svg>
+          <sl-icon name="check_circle" [size]="20" />
         }
         <span class="message">{{ toast.message }}</span>
         <button
@@ -93,7 +94,7 @@ export class Toasts {
           [attr.aria-label]="'common.dismiss' | translate"
           (click)="toasts.dismiss(toast.id)"
         >
-          <svg lucideX [size]="18"></svg>
+          <sl-icon name="close" [size]="18" />
         </button>
       </div>
     </ng-template>
@@ -127,11 +128,11 @@ export class Toasts {
       box-shadow: var(--sl-shadow-raised);
       animation: enter var(--sl-duration) var(--sl-ease);
     }
-    .toast svg {
+    .toast sl-icon {
       flex: none;
       color: var(--sl-highlight);
     }
-    .toast.error svg {
+    .toast.error sl-icon {
       color: #ffb4a6;
     }
     .message {
@@ -149,7 +150,7 @@ export class Toasts {
       color: inherit;
       cursor: pointer;
     }
-    .close svg {
+    .close sl-icon {
       color: inherit;
     }
     .close:hover {

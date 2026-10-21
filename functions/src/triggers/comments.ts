@@ -4,7 +4,7 @@ import { type Comment, isStaffRole, type Post, type Project, type UserDoc } from
 
 import { db } from '../lib/admin';
 import { appUrl } from '../lib/env';
-import { queueMessage } from '../lib/outbox';
+import { queueBatched, queueMessage } from '../lib/outbox';
 import { projectStaff } from '../lib/recipients';
 import { recountUnanswered } from './posts';
 
@@ -28,7 +28,7 @@ async function notifyStaff(
 ): Promise<void> {
   for (const staff of await projectStaff(firestore, project)) {
     if (!staff.email || !staff.wantsEmail) continue;
-    await queueMessage(firestore, {
+    await queueBatched(firestore, {
       channel: 'email',
       to: { uid: staff.uid, email: staff.email },
       recipientKind: 'staff',

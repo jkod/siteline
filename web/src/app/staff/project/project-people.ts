@@ -1,7 +1,6 @@
 import { afterNextRender, Component, computed, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { LucideUserPlus } from '@lucide/angular';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { ProjectMember } from '@siteline/shared';
 import { canManageCompany } from '@siteline/shared';
@@ -17,6 +16,7 @@ import { Button } from '../../shared/ui/button';
 import { Card } from '../../shared/ui/card';
 import { Dialogs } from '../../shared/ui/dialog';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { Icon } from '../../shared/ui/icon';
 import { Toasts } from '../../shared/ui/toast';
 import { CurrentCompany } from '../current-company';
 import { CrewDialog, type CrewDialogData } from './crew-dialog';
@@ -25,7 +25,7 @@ import { InviteClientDialog } from './invite-client-dialog';
 /** Clients and crew: invite, resend, revoke, remove and last opened (PRD F2). */
 @Component({
   selector: 'sl-project-people',
-  imports: [TranslatePipe, DatePipe, Avatar, Button, Card, EmptyState, LucideUserPlus],
+  imports: [Icon, TranslatePipe, DatePipe, Avatar, Button, Card, EmptyState],
   templateUrl: './project-people.html',
   styleUrl: './project-people.css',
 })

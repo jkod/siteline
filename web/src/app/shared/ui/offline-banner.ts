@@ -1,17 +1,18 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 
-import { LucideWifiOff } from '@lucide/angular';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { Icon } from './icon';
 
 /** Shows when the connection drops (PRD section 13). */
 @Component({
   selector: 'sl-offline-banner',
-  imports: [TranslatePipe, LucideWifiOff],
+  imports: [Icon, TranslatePipe],
   template: `
     <div role="status" aria-live="polite">
       @if (offline()) {
         <p class="banner">
-          <svg lucideWifiOff [size]="18" aria-hidden="true"></svg>
+          <sl-icon name="wifi_off" [size]="18" />
           {{ 'offline.banner' | translate }}
         </p>
       }

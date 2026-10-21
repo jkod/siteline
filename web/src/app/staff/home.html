@@ -1,15 +1,38 @@
 <main class="sl-page sl-stack" id="main">
   <div class="title-row">
-    <h1>{{ 'staffHome.title' | translate }}</h1>
+    <h1>{{ (view() === 'project' ? 'staffHome.title' : 'staffHome.clientsTitle') | translate }}</h1>
     @if (canManage()) {
-      <a slButton routerLink="/app/projects/new">
-        <svg lucidePlus [size]="20"></svg>
-        {{ 'staffHome.newProject' | translate }}
-      </a>
+      @if (view() === 'project') {
+        <a slButton routerLink="/app/projects/new">
+          <sl-icon name="add" [size]="20" />
+          {{ 'staffHome.newProject' | translate }}
+        </a>
+      } @else {
+        <a slButton routerLink="/app/clients/new">
+          <sl-icon name="add" [size]="20" />
+          {{ 'staffHome.newClient' | translate }}
+        </a>
+      }
     }
   </div>
+
+  <sl-today-strip />
+
+  <div class="segments" role="group" [attr.aria-label]="'staffHome.viewFilter' | translate">
+    <button type="button" [attr.aria-pressed]="view() === 'project'" (click)="view.set('project')">
+      {{ 'staffHome.projects' | translate }}
+    </button>
+    <button type="button" [attr.aria-pressed]="view() === 'service'" (click)="view.set('service')">
+      {{ 'staffHome.clients' | translate }}
+    </button>
+  </div>
   @if (usage(); as u) {
-    <p class="sl-small">{{ 'staffHome.usage' | translate: { used: u.used, limit: u.limit } }}</p>
+    <p class="sl-small">
+      {{
+        (u.key === 'activeProjects' ? 'staffHome.usage' : 'staffHome.usageClients')
+          | translate: { used: u.used, limit: u.limit }
+      }}
+    </p>
   }
 
   <div class="filters">
@@ -21,7 +44,7 @@
       }
     </div>
     <div class="search">
-      <svg lucideSearch [size]="18" aria-hidden="true"></svg>
+      <sl-icon name="search" [size]="18" />
       <label class="sl-visually-hidden" for="project-search">{{
         'staffHome.search' | translate
       }}</label>
@@ -73,9 +96,9 @@
       </ul>
     } @else {
       <sl-empty-state
-        [title]="'staffHome.empty.' + status() + 'Title' | translate"
+        [title]="emptyPrefix() + status() + 'Title' | translate"
         [body]="
-          (canManage() && status() === 'active' ? 'staffHome.empty.activeBody' : '') | translate
+          (canManage() && status() === 'active' ? emptyPrefix() + 'activeBody' : '') | translate
         "
       />
     }

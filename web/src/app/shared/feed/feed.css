@@ -1,0 +1,70 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sl-space-4);
+  /* Room so the last post can scroll fully above the pinned composer. */
+  min-height: 60vh;
+}
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--sl-space-2);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sl-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Posts fade as they scroll under the top edge (below any sticky bar, see --sl-top-inset). */
+.fade-top {
+  position: sticky;
+  top: var(--sl-top-inset, 0px);
+  z-index: 4;
+  height: var(--sl-space-6);
+  margin-bottom: calc(-1 * var(--sl-space-6) - var(--sl-space-4));
+  background: linear-gradient(var(--sl-bg), transparent);
+  pointer-events: none;
+}
+/* The composer stays pinned at the bottom, above any bottom tab bar (--sl-bottom-inset), and
+   posts fade as they scroll behind it. */
+.dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: auto;
+  padding: var(--sl-space-8) 0 calc(var(--sl-bottom-inset, 0px) + var(--sl-space-3));
+  background: linear-gradient(to bottom, transparent, var(--sl-bg) var(--sl-space-8));
+}
+.pending {
+  opacity: 0.75;
+}
+.progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sl-panel-2);
+  overflow: hidden;
+}
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--sl-accent);
+  transition: width var(--sl-duration) linear;
+}
+.thumbs {
+  display: flex;
+  gap: var(--sl-space-2);
+}
+.thumbs img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.more {
+  display: flex;
+  justify-content: center;
+}

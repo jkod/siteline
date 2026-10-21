@@ -9,5 +9,5 @@
       "@siteline/shared": ["../shared/src/index.ts"]
     }
   },
-  "include": ["**/*.ts", "../scripts/**/*.ts", "../web/i18n.spec.ts"]
+  "include": ["**/*.ts", "../scripts/**/*.ts", "../web/i18n.spec.ts", "../web/icons.spec.ts"]
 }

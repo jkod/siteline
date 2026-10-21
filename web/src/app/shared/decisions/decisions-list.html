@@ -1,0 +1,64 @@
+<div class="head">
+  <h2>{{ 'decisions.open' | translate }}</h2>
+  @if (mode() === 'staff') {
+    <div class="tools">
+      <button slButton type="button" (click)="create()">
+        <sl-icon name="add" [size]="18" />
+        {{ 'decisions.new' | translate }}
+      </button>
+      <button slButton="secondary" type="button" (click)="exportCsv()">
+        <sl-icon name="download" [size]="18" />
+        {{ 'decisions.exportCsv' | translate }}
+      </button>
+    </div>
+  }
+</div>
+
+@if (decisions() !== undefined) {
+  @if (open().length) {
+    <ul>
+      @for (post of open(); track post.id) {
+        <li slCard>
+          <sl-decision-card
+            [post]="post"
+            [projectId]="projectId()"
+            [viewerIsStaff]="mode() === 'staff'"
+            (ask)="ask(post)"
+          />
+        </li>
+      }
+    </ul>
+  } @else {
+    <sl-empty-state
+      [title]="
+        (mode() === 'staff' ? 'decisions.emptyStaffTitle' : 'placeholders.clientDecisionsTitle')
+          | translate
+      "
+      [body]="
+        (mode() === 'staff' ? 'decisions.emptyStaffBody' : 'placeholders.clientDecisionsBody')
+          | translate
+      "
+    />
+  }
+
+  <section slCard="panel" class="total" aria-live="polite">
+    <span>{{ 'decisions.total' | translate }}</span>
+    <strong>{{ total() | money }}</strong>
+  </section>
+
+  @if (history().length) {
+    <h2>{{ 'decisions.history' | translate }}</h2>
+    <ul>
+      @for (post of history(); track post.id) {
+        <li slCard>
+          <sl-decision-card
+            [post]="post"
+            [projectId]="projectId()"
+            [viewerIsStaff]="mode() === 'staff'"
+            (ask)="ask(post)"
+          />
+        </li>
+      }
+    </ul>
+  }
+}

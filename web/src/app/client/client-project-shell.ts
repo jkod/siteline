@@ -1,13 +1,14 @@
 import { Component, computed, effect, inject, input } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { LucideChevronLeft } from '@lucide/angular';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { useFirestore } from '../core/live';
 import { ProjectContext } from '../core/project-context';
 import { Session } from '../core/session';
 import { Brand } from '../shared/ui/brand';
+import { HideOnScroll } from '../shared/ui/hide-on-scroll';
+import { Icon } from '../shared/ui/icon';
 import { InstallHint } from '../shared/ui/install-hint';
 
 /**
@@ -17,13 +18,14 @@ import { InstallHint } from '../shared/ui/install-hint';
 @Component({
   selector: 'sl-client-project-shell',
   imports: [
+    Icon,
     TranslatePipe,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
     Brand,
-    LucideChevronLeft,
     InstallHint,
+    HideOnScroll,
   ],
   providers: [ProjectContext],
   templateUrl: './client-project-shell.html',
@@ -36,11 +38,20 @@ export class ClientProjectShell {
 
   readonly projectId = input.required<string>();
   protected readonly project = computed(() => this.context.project());
-  protected readonly tabs = [
-    { path: '', label: 'pages.projectFeed', exact: true },
-    { path: 'decisions', label: 'pages.decisions', exact: false },
-    { path: 'visit', label: 'pages.visit', exact: false },
-  ];
+  /** Service clients get Feed, Visits and Decisions; projects Feed, Decisions and Next visit (PRD F3, F19). */
+  protected readonly tabs = computed(() =>
+    this.project()?.kind === 'service'
+      ? [
+          { path: '', label: 'pages.projectFeed', exact: true },
+          { path: 'visit', label: 'pages.visits', exact: false },
+          { path: 'decisions', label: 'pages.decisions', exact: false },
+        ]
+      : [
+          { path: '', label: 'pages.projectFeed', exact: true },
+          { path: 'decisions', label: 'pages.decisions', exact: false },
+          { path: 'visit', label: 'pages.visit', exact: false },
+        ],
+  );
 
   constructor() {
     effect(() => this.context.projectId.set(this.projectId()));

@@ -14,6 +14,9 @@ export async function enforceRateLimit(
   windowMs: number,
   nowMs = Date.now(),
 ): Promise<void> {
+  // RATE_LIMITS=relaxed is set only for the end-to-end test project, where every test opens
+  // links from the same IP; integration tests cover the real limits.
+  if (process.env['RATE_LIMITS'] === 'relaxed') limit *= 100;
   const ref = db.collection('rateLimits').doc(sha256Hex(key));
   const allowed = await db.runTransaction(async (tx) => {
     const snapshot = await tx.get(ref);

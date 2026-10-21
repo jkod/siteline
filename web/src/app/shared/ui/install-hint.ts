@@ -1,9 +1,9 @@
 import { Component, computed, signal } from '@angular/core';
 
-import { LucideShare, LucideX } from '@lucide/angular';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { Button } from './button';
+import { Icon } from './icon';
 
 const VISITS_KEY = 'sl.visits';
 const DISMISSED_KEY = 'sl.installHintDismissed';
@@ -42,7 +42,7 @@ function write(key: string, value: string): void {
  */
 @Component({
   selector: 'sl-install-hint',
-  imports: [TranslatePipe, LucideShare, LucideX, Button],
+  imports: [Icon, TranslatePipe, Button],
   template: `
     @if (visible()) {
       <aside class="hint" [attr.aria-label]="'install.label' | translate">
@@ -51,7 +51,7 @@ function write(key: string, value: string): void {
           @if (isIos) {
             <p>
               {{ 'install.iosBefore' | translate }}
-              <svg lucideShare [size]="16" aria-hidden="true"></svg>
+              <sl-icon name="ios_share" [size]="16" />
               {{ 'install.iosAfter' | translate }}
             </p>
           } @else {
@@ -70,7 +70,7 @@ function write(key: string, value: string): void {
           [attr.aria-label]="'common.dismiss' | translate"
           (click)="dismiss()"
         >
-          <svg lucideX [size]="18"></svg>
+          <sl-icon name="close" [size]="18" />
         </button>
       </aside>
     }
@@ -90,9 +90,8 @@ function write(key: string, value: string): void {
     .title {
       font-weight: 700;
     }
-    svg {
-      display: inline;
-      vertical-align: -2px;
+    sl-icon {
+      vertical-align: -3px;
     }
   `,
 })

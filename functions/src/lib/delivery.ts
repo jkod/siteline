@@ -1,6 +1,6 @@
 import { FieldValue, type Firestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions/logger';
-import type { OutboxMessage } from '@siteline/shared';
+import { type Company, effectiveLimits, type OutboxMessage, stockholmDate } from '@siteline/shared';
 
 import type { EmailSender, SmsSender } from '../adapters/types';
 import { appUrl } from './env';
@@ -11,6 +11,59 @@ export const MAX_ATTEMPTS = 3;
 export interface Senders {
   sms: () => SmsSender;
   email: () => EmailSender;
+}
+
+/**
+ * Counts one text message against the company's monthly budget (PRD section 6), resetting at the
+ * start of each month. When it runs out, the owners are told once that month.
+ */
+export async function useSmsBudget(
+  db: Firestore,
+  companyId: string,
+  now: Date,
+): Promise<{ allowed: boolean }> {
+  const ref = db.doc(`companies/${companyId}`);
+  const month = stockholmDate(now).slice(0, 7);
+  const result = await db.runTransaction(async (tx) => {
+    const company = (await tx.get(ref)).data() as Company | undefined;
+    if (!company) return { allowed: true, company };
+    const used = company.usage.smsMonth === month ? company.usage.smsThisMonth : 0;
+    const limit = effectiveLimits(company, now.getTime()).smsPerMonth;
+    if (used >= limit) return { allowed: false, company };
+    tx.update(ref, { 'usage.smsThisMonth': used + 1, 'usage.smsMonth': month });
+    return { allowed: true, company };
+  });
+  if (!result.allowed && result.company) {
+    const owners = await db
+      .collection(`companies/${companyId}/staff`)
+      .where('role', '==', 'owner')
+      .get();
+    const { queueMessage } = await import('./outbox');
+    for (const owner of owners.docs) {
+      const email = owner.get('email') as string | null;
+      if (!email) continue;
+      await queueMessage(
+        db,
+        {
+          channel: 'email',
+          to: { uid: owner.id, email },
+          recipientKind: 'staff',
+          template: 'smsBudgetReached',
+          params: {
+            firm: result.company.name,
+            limit: String(effectiveLimits(result.company, now.getTime()).smsPerMonth),
+            link: `${appUrl.value()}/app/settings/billing`,
+          },
+          locale: result.company.locale,
+          companyId,
+          projectId: null,
+          dedupeKey: `smsBudget:${companyId}:${month}:${owner.id}`,
+        },
+        now,
+      );
+    }
+  }
+  return { allowed: result.allowed };
 }
 
 /** Minutes to wait before attempt n + 1: 5, 20, 45. */
@@ -50,6 +103,22 @@ export async function deliver(
   if (!message) return;
 
   try {
+    if (message.channel === 'sms' && message.companyId) {
+      const budget = await useSmsBudget(db, message.companyId, now);
+      if (!budget.allowed) {
+        if (message.to.email) {
+          message.channel = 'email';
+          await ref.update({ channel: 'email', error: 'sms_budget_fallback' });
+        } else {
+          await ref.update({
+            status: 'suppressed',
+            error: 'sms_budget',
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+          return;
+        }
+      }
+    }
     const content = render(message.template as TemplateName, message.locale, {
       ...message.params,
       settingsLink: `${appUrl.value()}${message.params['settingsPath'] ?? '/app/settings/me'}`,

@@ -45,7 +45,8 @@
     "terms": "Villkor",
     "notFound": "Sidan finns inte",
     "devOutbox": "Dev-utkorg",
-    "devUi": "Komponenter"
+    "devUi": "Komponenter",
+    "visits": "Besök"
   },
   "staff": {
     "nav": "Huvudmeny",
@@ -98,7 +99,9 @@
       "color": "Skriv en färg som #127A69.",
       "emailOrPhone": "Fyll i e-post eller mobilnummer.",
       "min": "Värdet är för litet.",
-      "max": "Värdet är för stort."
+      "max": "Värdet är för stort.",
+      "price": "Skriv ett belopp, till exempel 6 500.",
+      "endBeforeStart": "Sluttiden måste vara efter starttiden."
     },
     "auth": {
       "invalid-email": "Skriv en giltig e-postadress.",
@@ -129,7 +132,15 @@
       "already_in_company": "Du är redan med i ett företag.",
       "clients_cannot_join": "Du är inloggad som kund. Logga ut och försök igen.",
       "unknown_crew": "En av medarbetarna finns inte i företaget.",
-      "rate_limited": "För många försök. Vänta en stund och försök igen."
+      "rate_limited": "För många försök. Vänta en stund och försök igen.",
+      "decision_not_open": "Beslutet går inte längre att svara på.",
+      "decision_changed": "Beslutet har ändrats. Läs den nya versionen.",
+      "decision_not_draft": "Bara utkast kan ändras så.",
+      "crew_cannot_send_priced": "Beslut med pris skickas av en ägare eller admin. Spara som utkast.",
+      "photos_need_consent": "Spela in förälderns samtycke innan du lägger till foton.",
+      "already_reported": "Besöket har redan en rapport.",
+      "visit_not_open": "Besöket går inte att ändra längre.",
+      "request_not_open": "Önskemålet är redan besvarat."
     }
   },
   "dev": {
@@ -174,7 +185,9 @@
       "dialogTitle": "Dra tillbaka beslutet?",
       "dialogBody": "Kunden får veta att beslutet har dragits tillbaka.",
       "dialogConfirm": "Dra tillbaka"
-    }
+    },
+    "held": "Väntar på att skickas",
+    "heldUntil": "Skickas {{when}} (tysta timmar)"
   },
   "address": {
     "street": "Adress",
@@ -215,6 +228,18 @@
       "activeBody": "Skapa ett projekt och bjud in din kund. Det tar en minut.",
       "completedTitle": "Inga klara projekt än",
       "archivedTitle": "Inga arkiverade projekt"
+    },
+    "projects": "Projekt",
+    "clients": "Kunder",
+    "viewFilter": "Visa",
+    "clientsTitle": "Kunder",
+    "newClient": "Ny kund",
+    "usageClients": "{{used}} av {{limit}} återkommande kunder",
+    "emptyClients": {
+      "activeTitle": "Inga återkommande kunder",
+      "activeBody": "Lägg till en kund med ett schema, så skapas besöken automatiskt.",
+      "completedTitle": "Inga avslutade kunder",
+      "archivedTitle": "Inga arkiverade kunder"
     }
   },
   "newProject": {
@@ -237,7 +262,12 @@
     "noClients": "Ingen kund inbjuden än",
     "tabs": "Projektets delar",
     "notFound": "Projektet finns inte",
-    "notFoundBody": "Det kan ha tagits bort, eller så har du inte tillgång till det."
+    "notFoundBody": "Det kan ha tagits bort, eller så har du inte tillgång till det.",
+    "openDecisions": {
+      "one": "{{count}} öppet beslut",
+      "other": "{{count}} öppna beslut"
+    },
+    "nextVisit": "Nästa besök {{when}}"
   },
   "projectStatus": {
     "complete": "Markera som klart",
@@ -353,7 +383,11 @@
     "emptyStaffBody": "Din kund ser den direkt.",
     "emptyClientTitle": "Inga uppdateringar än",
     "emptyClientBody": "{{firm}} delar uppdateringar och foton här.",
-    "loadMore": "Visa äldre"
+    "loadMore": "Visa äldre",
+    "styleFeed": "Nyast överst",
+    "styleChat": "Nyast nederst",
+    "showNewestFirst": "Nyast nederst, byt till nyast överst",
+    "showNewestLast": "Nyast överst, byt till nyast nederst som i en chatt"
   },
   "milestone": {
     "add": "Milstolpe",
@@ -407,7 +441,8 @@
   "me": {
     "name": "Ditt namn",
     "email": "Inloggad som {{email}}",
-    "saved": "Ändringarna är sparade."
+    "saved": "Ändringarna är sparade.",
+    "emailNotifications": "E-post när kunder svarar, frågar eller kommenterar"
   },
   "billing": {
     "currentPlan": "Ditt abonnemang",
@@ -450,5 +485,238 @@
   },
   "offline": {
     "banner": "Du är offline. Vi visar det senaste vi har."
+  },
+  "today": {
+    "title": "Idag",
+    "open": "Öppna",
+    "notReported": "Ingen rapport"
+  },
+  "decisions": {
+    "kind": {
+      "extra_work": "Tilläggsarbete",
+      "choice": "Val",
+      "approval": "Godkännande"
+    },
+    "status": {
+      "draft": "Utkast"
+    },
+    "version": "Version {{n}}",
+    "split": "Varav arbete {{labour}} och material {{material}}",
+    "respondBy": "Svara senast {{date}}",
+    "approve": "Godkänn",
+    "choose": "Välj",
+    "ask": "Ställ en fråga",
+    "decline": "Avböj",
+    "declineTitle": "Avböj beslutet",
+    "declineReason": "Varför? Företaget ser ditt svar.",
+    "send": "Skicka till kunden",
+    "revise": "Ändra",
+    "withdraw": "Dra tillbaka",
+    "outcome": {
+      "approved": "Godkänt av {{name}}, {{date}}",
+      "chosen": "Valt av {{name}}, {{date}}",
+      "declined": "Avböjt av {{name}}, {{date}}",
+      "withdrawn": "Tillbakadraget {{date}}",
+      "superseded": "Ersatt av en ny version"
+    },
+    "answered": "Tack! Ditt svar är sparat.",
+    "sent": "Beslutet är skickat till kunden.",
+    "draftSaved": "Utkastet är sparat.",
+    "deleted": "Utkastet är borttaget.",
+    "withdrawn": "Beslutet är tillbakadraget.",
+    "deleteTitle": "Ta bort utkastet?",
+    "deleteBody": "Utkastet har inte skickats och försvinner helt.",
+    "deleteConfirm": "Ta bort",
+    "withdrawTitle": "Dra tillbaka beslutet?",
+    "withdrawBody": "Kunden får veta att beslutet har dragits tillbaka. Det går inte att ångra.",
+    "withdrawConfirm": "Dra tillbaka",
+    "open": "Öppna beslut",
+    "history": "Historik",
+    "total": "Godkänt tilläggsarbete",
+    "new": "Nytt beslut",
+    "exportCsv": "Exportera CSV",
+    "emptyStaffTitle": "Inga öppna beslut",
+    "emptyStaffBody": "Skapa ett beslut när kunden behöver godkänna tilläggsarbete, välja eller säga ja.",
+    "editor": {
+      "newTitle": "Nytt beslut",
+      "editTitle": "Ändra utkast",
+      "reviseTitle": "Ändra beslut",
+      "reviseHint": "Den skickade versionen ersätts och kunden får svara på den nya.",
+      "kind": "Typ av beslut",
+      "title": "Rubrik",
+      "titleHint": {
+        "extra_work": "Till exempel Byt rutten golvbjälke",
+        "choice": "Till exempel Välj kakel till badrummet",
+        "approval": "Till exempel Är kakelmönster B okej?"
+      },
+      "description": "Beskrivning",
+      "price": "Pris inklusive moms (kr)",
+      "priceHint": "Till exempel 6 500",
+      "labour": "Varav arbete (kr)",
+      "material": "Varav material (kr)",
+      "options": "Alternativ",
+      "optionLabel": "Alternativ {{n}}",
+      "optionDelta": "Prisskillnad för alternativ {{n}}",
+      "deltaPlaceholder": "± kr",
+      "addOption": "Lägg till alternativ",
+      "removeOption": "Ta bort alternativ {{n}}",
+      "optionsError": "Fyll i minst två alternativ och giltiga belopp.",
+      "respondBy": "Svara senast",
+      "saveDraft": "Spara utkast",
+      "sendNewVersion": "Skicka ny version"
+    }
+  },
+  "visits": {
+    "status": {
+      "planned": "Planerat",
+      "done": "Klart",
+      "cancelled": "Inställt"
+    },
+    "peopleCount": "Antal personer: {{count}}",
+    "book": "Boka besök",
+    "change": "Ändra",
+    "cancel": "Ställ in",
+    "markDone": "Markera som klart",
+    "report": "Rapport",
+    "newTitle": "Boka besök",
+    "editTitle": "Ändra besök",
+    "date": "Datum",
+    "start": "Starttid",
+    "end": "Sluttid",
+    "people": "Antal personer",
+    "notes": "Anteckningar",
+    "notesHint": "Till exempel Vattnet avstängt 09:00-11:00",
+    "noneBody": "Boka nästa besök så får kunden veta direkt.",
+    "cancelTitle": "Ställ in besöket?",
+    "cancelBody": "Kunden får veta att besöket är inställt.",
+    "cancelConfirm": "Ställ in",
+    "cancelled": "Besöket är inställt.",
+    "markedDone": "Besöket är markerat som klart. Det som inte blev gjort flyttas till nästa besök.",
+    "requests": "Önskemål från kunden",
+    "wantsToMove": "vill flytta besöket {{when}}",
+    "wantsToCancel": "vill ställa in besöket {{when}}",
+    "proposed": "till {{when}}",
+    "accept": "Godkänn",
+    "decline": "Avböj",
+    "suggestOther": "Föreslå annan tid",
+    "requestAccepted": "Klart. Kunden får veta.",
+    "requestDeclined": "Kunden får veta att besöket blir som planerat.",
+    "scheduleWeekly": "Varje vecka på {{days}} kl. {{time}} ({{minutes}} min)",
+    "scheduleBiweekly": "Varannan vecka på {{days}} kl. {{time}} ({{minutes}} min)",
+    "photoConsent": "Förälderns samtycke till foton är inspelat",
+    "photoConsentHint": "Utan samtycke går det inte att lägga till foton i rapporterna.",
+    "consentRecorded": "Samtycket är sparat.",
+    "consentWithdrawn": "Foton är avstängda igen.",
+    "unreported": "Besök utan rapport",
+    "upcoming": "Kommande besök",
+    "history": "Tidigare besök",
+    "askToChange": "Be om att flytta eller ställa in",
+    "requestPending": "Ditt önskemål väntar på svar.",
+    "requestTitle": "Ändra besöket {{when}}",
+    "requestKind": "Vad vill du göra?",
+    "move": "Flytta",
+    "requestNote": "Meddelande",
+    "sendRequest": "Skicka önskemål",
+    "requestSent": "Ditt önskemål är skickat.",
+    "suggestTitle": "Föreslå en annan tid än {{when}}",
+    "suggest": "Flytta till den här tiden"
+  },
+  "checklist": {
+    "title": "Checklista till nästa besök",
+    "yourList": "Din lista",
+    "side": {
+      "client": "Kundens",
+      "firm": "Företagets"
+    },
+    "clientSide": {
+      "client": "Du",
+      "firm": "Företaget"
+    },
+    "doneBy": "Klart av {{name}} {{when}}",
+    "empty": "Inget här än.",
+    "newItem": "Ny punkt",
+    "forWhom": "Vem ska göra det?",
+    "add": "Lägg till",
+    "remove": "Ta bort {{text}}"
+  },
+  "report": {
+    "label": "Besöksrapport",
+    "title": "Rapport från besöket {{when}}",
+    "done": "Gjort idag",
+    "howItWent": "Hur gick det?",
+    "rating": {
+      "good": "Bra",
+      "ok": "Okej",
+      "hard": "Kämpigt"
+    },
+    "note": "Anteckning",
+    "noteParent": "Till föräldern",
+    "flags": "Bra att veta",
+    "flagPlaceholder": "Till exempel Hängrännan är igentäppt",
+    "addFlag": "Lägg till",
+    "nextTime": "Till nästa gång",
+    "practice": "Öva till nästa gång",
+    "addNextTime": "Lägg till",
+    "removeItem": "Ta bort {{text}}",
+    "photoReminder": "Fotografera arbetet, inte barnet.",
+    "send": "Skicka rapport",
+    "sent": "Rapporten är skickad."
+  },
+  "serviceClient": {
+    "trade": "Typ av tjänst",
+    "subject": "Vad tjänsten gäller",
+    "subjectHint": {
+      "tutoring": "Till exempel Matte med Elsa",
+      "gardening": "Till exempel Trädgård, Tallvägen 4",
+      "other": "Till exempel Städning varannan vecka"
+    },
+    "tutoringPrivacy": "Kunden är föräldern. Skriv bara elevens förnamn eller smeknamn.",
+    "parentName": "Förälderns namn",
+    "schedule": "Hur ofta?",
+    "weekly": "Varje vecka",
+    "biweekly": "Varannan vecka",
+    "days": "Vilka dagar?",
+    "pickDay": "Välj minst en dag.",
+    "firstDate": "Första datum",
+    "duration": "Längd i minuter",
+    "create": "Lägg till kund",
+    "created": "{{name}} är tillagd och har fått en länk."
+  },
+  "trades": {
+    "tutoring": "Läxhjälp",
+    "gardening": "Trädgård",
+    "other": "Annat"
+  },
+  "weekdays": {
+    "MO": "måndagar",
+    "TU": "tisdagar",
+    "WE": "onsdagar",
+    "TH": "torsdagar",
+    "FR": "fredagar",
+    "SA": "lördagar",
+    "SU": "söndagar"
+  },
+  "weekdaysShort": {
+    "MO": "Mån",
+    "TU": "Tis",
+    "WE": "Ons",
+    "TH": "Tor",
+    "FR": "Fre",
+    "SA": "Lör",
+    "SU": "Sön"
+  },
+  "clientSettings": {
+    "intro": "Välj hur du vill få höra om varje projekt. Beslut som behöver ditt svar skickas alltid direkt.",
+    "digest": "Daglig sammanfattning kl. 18",
+    "instant": "Varje uppdatering direkt",
+    "channel": "Skicka som",
+    "sms": "Sms",
+    "email": "E-post"
+  },
+  "feedStyle": {
+    "label": "Flödets ordning",
+    "feed": "Nyast överst, som ett flöde",
+    "chat": "Nyast nederst, som en chatt",
+    "saved": "Ordningen är sparad."
   }
 }

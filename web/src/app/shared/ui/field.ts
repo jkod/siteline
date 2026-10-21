@@ -65,16 +65,22 @@ export class Field {
   );
 }
 
-/** Styles a native input or textarea and wires it to its `sl-field`. */
+/**
+ * Styles a native input or textarea and wires it to its `sl-field`. Outside a field it keeps
+ * the element's own id, so a separate `<label for>` still works.
+ */
 @Directive({
   selector: 'input[slInput], textarea[slInput], select[slInput]',
   host: {
     class: 'sl-input',
-    '[id]': 'field?.controlId',
+    '[id]': 'controlId()',
     '[attr.aria-describedby]': 'field?.describedBy()',
     '[attr.aria-invalid]': 'field?.showErrors() || null',
   },
 })
 export class Input {
   protected readonly field = inject(Field, { optional: true });
+  /** The element's own id, used when it isn't inside an `sl-field`. */
+  readonly id = input<string | undefined>(undefined);
+  protected readonly controlId = computed(() => this.field?.controlId ?? this.id());
 }

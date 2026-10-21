@@ -77,27 +77,24 @@ async function sendClientLink(
 }
 
 /** Adds a client to a project and texts them their link. Their access starts at once. */
-export async function inviteClientHandler(request: CallableRequest<unknown>) {
-  const caller = requireStaff(request);
-  const input = parseInput(inviteClientInput, request.data);
-  const project = await loadProject(caller, input.projectId);
+export async function addClientToProject(
+  caller: StaffCaller,
+  projectId: string,
+  client: { name: string; phone: string; email: string | null },
+): Promise<string> {
+  const project = await loadProject(caller, projectId);
   const company = (await db.doc(`companies/${project.companyId}`).get()).data() as Company;
-  const uid = await findOrCreateClient(db, {
-    phone: input.phone,
-    name: input.name,
-    email: input.email,
-    locale: company.locale,
-  });
+  const uid = await findOrCreateClient(db, { ...client, locale: company.locale });
 
-  const projectRef = db.doc(`projects/${input.projectId}`);
+  const projectRef = db.doc(`projects/${projectId}`);
   await db.runTransaction(async (tx) => {
     const memberRef = projectRef.collection('members').doc(uid);
     const member = await tx.get(memberRef);
     if (!member.exists) {
       tx.create(memberRef, {
         role: 'client',
-        name: input.name,
-        phoneMasked: maskPhone(input.phone),
+        name: client.name,
+        phoneMasked: maskPhone(client.phone),
         joinedAt: null,
         lastSeenAt: null,
         notify: { instant: false, digest: true, channel: 'sms' },
@@ -113,8 +110,14 @@ export async function inviteClientHandler(request: CallableRequest<unknown>) {
     });
   });
 
-  await sendClientLink(caller, input.projectId, project, {
-    uid,
+  await sendClientLink(caller, projectId, project, { uid, ...client });
+  return uid;
+}
+
+export async function inviteClientHandler(request: CallableRequest<unknown>) {
+  const caller = requireStaff(request);
+  const input = parseInput(inviteClientInput, request.data);
+  const uid = await addClientToProject(caller, input.projectId, {
     name: input.name,
     phone: input.phone,
     email: input.email,

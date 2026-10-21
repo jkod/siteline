@@ -1,8 +1,8 @@
 @if (project(); as p) {
   <div class="view" [slBrand]="p.branding.accentColor">
-    <header class="brand">
+    <header class="brand" slHideOnScroll>
       <a class="back" routerLink="/c" [attr.aria-label]="'client.allProjects' | translate">
-        <svg lucideChevronLeft [size]="22"></svg>
+        <sl-icon name="chevron_left" [size]="22" />
       </a>
       @if (p.branding.logoUrl) {
         <img [src]="p.branding.logoUrl" [alt]="p.branding.name" width="40" height="40" />
@@ -16,7 +16,7 @@
       <h1>{{ p.title }}</h1>
       <sl-install-hint />
       <nav class="tabs" [attr.aria-label]="'project.tabs' | translate">
-        @for (tab of tabs; track tab.path) {
+        @for (tab of tabs(); track tab.path) {
           <a
             [routerLink]="tab.path ? ['/c', projectId(), tab.path] : ['/c', projectId()]"
             routerLinkActive="active"

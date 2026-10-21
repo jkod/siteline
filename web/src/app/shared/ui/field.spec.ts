@@ -61,3 +61,18 @@ describe('Field', () => {
     expect(input.hasAttribute('aria-describedby')).toBe(false);
   });
 });
+
+@Component({
+  imports: [Input],
+  template: `<label for="own">Eget</label><input slInput id="own" type="text" />`,
+})
+class Standalone {}
+
+describe('Input outside a field', () => {
+  it('keeps its own id so a separate label still works', async () => {
+    TestBed.configureTestingModule({ providers: provideTestTranslations() });
+    const fixture = TestBed.createComponent(Standalone);
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('input')!.id).toBe('own');
+  });
+});

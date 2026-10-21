@@ -28,6 +28,8 @@ export interface CompanyUsage {
   serviceClients: number;
   staff: number;
   smsThisMonth: number;
+  /** The month smsThisMonth counts, as YYYY-MM. */
+  smsMonth?: string;
 }
 
 export interface Company<T = TimestampLike> {
@@ -58,9 +60,14 @@ export interface StaffMember<T = TimestampLike> {
   updatedAt: T;
 }
 
+/** Newest first like a social feed, or newest at the bottom like a chat. */
+export type FeedStyle = 'feed' | 'chat';
+
 export interface UserDoc<T = TimestampLike> {
   kind: 'staff' | 'client';
   name: string;
+  /** The person's choice of feed order; 'feed' when unset. */
+  feedStyle?: FeedStyle;
   phoneE164: string | null;
   email: string | null;
   locale: Locale;
@@ -70,6 +77,17 @@ export interface UserDoc<T = TimestampLike> {
 }
 
 export type ProjectKind = 'project' | 'service';
+
+/**
+ * A service client's recurring visits (PRD F19). The rule's DTSTART is the first visit's
+ * Stockholm wall-clock time written as UTC ("floating"); see schedule.ts.
+ */
+export interface Schedule {
+  rrule: string;
+  durationMinutes: number;
+  /** YYYY-MM-DD dates with no visit, such as holidays. */
+  skipDates: string[];
+}
 export type ProjectStatus = 'active' | 'completed' | 'archived';
 
 /** The firm's branding, copied onto each project so clients never read company documents. */
@@ -92,7 +110,11 @@ export interface Project<T = TimestampLike> {
   /** The subject for service clients, such as "Maths with Elsa". */
   title: string;
   address: Address | null;
-  schedule: { rrule: string; durationMinutes: number; skipDates: string[] } | null;
+  schedule: Schedule | null;
+  /** The report template for service clients. */
+  templateId?: string | null;
+  /** Tutoring: photos in reports only after a parent's recorded consent (PRD section 10). */
+  photoConsentAt?: T | null;
   status: ProjectStatus;
   /** Calendar dates as YYYY-MM-DD. */
   startDate: string | null;
@@ -140,6 +162,60 @@ export interface Media {
   tags: MediaTag[];
 }
 
+export type DecisionKind = 'extra_work' | 'choice' | 'approval';
+export type DecisionStatus =
+  'draft' | 'sent' | 'approved' | 'declined' | 'withdrawn' | 'superseded';
+
+export interface DecisionOption {
+  id: string;
+  label: string;
+  mediaIndex?: number;
+  priceDeltaOre?: number;
+}
+
+/** A decision card on a post (PRD section 8). Only functions write decision posts. */
+export interface Decision<T = TimestampLike> {
+  kind: DecisionKind;
+  title: string;
+  description?: string;
+  /** Including VAT. */
+  priceOre?: number;
+  /** The labour and material split, for the ROT helper in phase 2. */
+  labourOre?: number;
+  materialOre?: number;
+  vatRate: number;
+  options?: DecisionOption[];
+  respondBy?: T | null;
+  status: DecisionStatus;
+  version: number;
+  supersedesPostId?: string | null;
+  createdByUid: string;
+  sentAt?: T | null;
+  sentByUid?: string | null;
+  decidedAt?: T | null;
+  selectedOptionId?: string | null;
+  approvalId?: string | null;
+  /** The client who answered, for "Approved by Anna Lindqvist, 3 Oct 2026, 18:42". */
+  decidedByName?: string | null;
+  declineReason?: string | null;
+}
+
+export interface VisitReport {
+  visitId: string;
+  templateId: string;
+  done: { itemId: string; label: string; checked: boolean }[];
+  rating?: 'good' | 'ok' | 'hard' | null;
+  note?: string;
+  /** Things the client should know. */
+  flags?: string[];
+  /** Checklist items added for the next visit, and their text for showing the report. */
+  nextTimeItemIds?: string[];
+  nextTime?: string[];
+}
+
+/** Staff-only posts (decision drafts) are hidden from clients; partners come in phase 2. */
+export type PostVisibility = 'all' | 'staff';
+
 export interface Post<T = TimestampLike> {
   type: PostType;
   authorUid: string;
@@ -147,13 +223,89 @@ export interface Post<T = TimestampLike> {
   authorRole: AuthorRole;
   text: string;
   media: Media[];
-  visibility: 'all';
+  visibility: PostVisibility;
   milestone: { stage: number | null; stageCount: number | null } | null;
+  decision?: Decision<T> | null;
+  report?: VisitReport | null;
   commentCount: number;
   unanswered: boolean;
   createdAt: T;
   editedAt: T | null;
   deletedAt: T | null;
+}
+
+export type ApprovalOutcome = 'approved' | 'declined' | 'chosen' | 'acknowledged';
+
+/** Write-once evidence of a client's decision (PRD section 10). */
+export interface Approval<T = TimestampLike> {
+  postId: string;
+  version: number;
+  kind: 'decision' | 'condition';
+  outcome: ApprovalOutcome;
+  optionId: string | null;
+  priceOre: number | null;
+  reason: string | null;
+  /** Exactly what the client saw and answered. */
+  snapshot: Record<string, unknown>;
+  snapshotSha256: string;
+  actorUid: string;
+  actorName: string;
+  actorPhoneMasked: string | null;
+  phoneVerified: boolean;
+  createdAt: T;
+}
+
+export type VisitStatus = 'planned' | 'done' | 'cancelled';
+
+export interface Visit<T = TimestampLike> {
+  /** Copied from the project, so a company's visits can be listed together. */
+  companyId: string;
+  startAt: T;
+  endAt: T | null;
+  people: number | null;
+  notes: string;
+  status: VisitStatus;
+  fromSchedule: boolean;
+  reportPostId: string | null;
+  createdAt: T;
+  updatedAt: T;
+}
+
+export type ChecklistSide = 'client' | 'firm';
+
+export interface ChecklistItem<T = TimestampLike> {
+  text: string;
+  side: ChecklistSide;
+  /** The visit it belongs to; null means "next visit, not booked yet". */
+  visitId: string | null;
+  createdBy: string;
+  createdByName: string;
+  createdAt: T;
+  doneBy: string | null;
+  doneByName: string | null;
+  doneAt: T | null;
+}
+
+export interface VisitRequest<T = TimestampLike> {
+  visitId: string;
+  kind: 'move' | 'cancel';
+  proposedStartAt: T | null;
+  note: string;
+  status: 'open' | 'accepted' | 'declined';
+  createdBy: string;
+  createdByName: string;
+  resolvedBy: string | null;
+  createdAt: T;
+  resolvedAt: T | null;
+}
+
+export type Trade = 'tutoring' | 'gardening' | 'other';
+
+export interface ReportTemplate {
+  name: string;
+  trade: Trade;
+  items: { id: string; label: string }[];
+  fields: { rating: boolean; note: boolean; flags: boolean; nextTime: boolean };
 }
 
 export interface Comment<T = TimestampLike> {

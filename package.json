@@ -4,11 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/free-ports.mjs",
     "dev": "npm run build:functions && firebase emulators:exec --project demo-siteline --ui \"npm run dev:apps\"",
     "dev:apps": "concurrently -n fn,seed,web -c blue,yellow,green \"npm:watch:functions\" \"npm:seed\" \"npm:web\"",
     "web": "ng serve siteline",
     "emulators": "firebase emulators:start --project demo-siteline",
     "seed": "tsx scripts/seed.ts",
+    "icons": "tsx scripts/icons.ts",
     "build": "npm run build:functions && ng build siteline",
     "build:functions": "npm run build --workspace @siteline/functions",
     "watch:functions": "npm run watch --workspace @siteline/functions",
@@ -17,9 +19,12 @@
     "test": "vitest run && ng test siteline --watch=false",
     "test:unit": "vitest run",
     "test:web": "ng test siteline --watch=false",
+    "pretest:rules": "node scripts/free-ports.mjs --test",
     "test:rules": "firebase emulators:exec --config firebase.test.json --project demo-siteline-rules --only firestore,storage \"vitest run --config tests/rules/vitest.config.ts\"",
+    "pree2e": "node scripts/free-ports.mjs --test",
     "e2e": "npm run build:functions && firebase emulators:exec --config firebase.test.json --project demo-siteline-test --only auth,firestore,storage,functions \"npm run seed && playwright test --config tests/e2e/playwright.config.ts\"",
     "deploy:staging": "firebase deploy --project staging",
+    "pretest:integration": "node scripts/free-ports.mjs --test",
     "test:integration": "firebase emulators:exec --config firebase.test.json --project demo-siteline-test --only firestore,auth,storage \"vitest run --config tests/integration/vitest.config.ts\""
   },
   "dependencies": {
@@ -33,7 +38,6 @@
     "@angular/service-worker": "22.2.1",
     "@fontsource/bricolage-grotesque": "^5.3.0",
     "@fontsource/manrope": "^5.3.0",
-    "@lucide/angular": "^1.61.0",
     "@ngx-translate/core": "^18.0.0",
     "@ngx-translate/http-loader": "^18.0.0",
     "@siteline/shared": "*",
@@ -44,6 +48,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@firebase/rules-unit-testing": "^6.0.0",
+    "@material-symbols/svg-400": "^0.48.1",
     "@playwright/test": "^1.64.1",
     "concurrently": "^10.0.6",
     "firebase-admin": "^14.5.0",

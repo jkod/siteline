@@ -43,7 +43,7 @@ describe('translations', () => {
     const groups = new Set(sv.map((k) => k.replace(/\.(one|other)$/, '')));
     const known = new Set([...sv, ...groups]);
     const prefixes =
-      /^(common|pages|login|loginFinish|onboarding|errors|dev|feed|composer|people|staffHome|newProject|project|projectStatus|planLimit|placeholders|milestone|companySettings|brandPreview|team|me|billing|redeem|linkExpired|clientHome|client|install|offline|address|status|roles|plans|staff|language|placeholder)\./;
+      /^(common|pages|login|loginFinish|onboarding|errors|dev|feed|composer|people|staffHome|newProject|project|projectStatus|planLimit|placeholders|milestone|companySettings|brandPreview|team|me|billing|redeem|linkExpired|clientHome|client|install|offline|address|status|roles|plans|staff|language|placeholder|decisions|visits|checklist|report|serviceClient|trades|weekdays|weekdaysShort|today|clientSettings|feedStyle)\./;
     const used = new Set<string>();
     for (const file of sources(join(dir, 'src/app'))) {
       for (const match of readFileSync(file, 'utf8').matchAll(

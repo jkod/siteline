@@ -21,6 +21,20 @@
               | translate: { count: project.totals.unansweredQuestions }
           }}</span>
         }
+        @if (project.totals.openDecisions > 0) {
+          <span class="sl-badge sl-badge--accent">
+            {{
+              'project.openDecisions'
+                | plural: project.totals.openDecisions
+                | translate: { count: project.totals.openDecisions }
+            }}
+          </span>
+        }
+        @if (nextVisit(); as v) {
+          <span class="sl-badge sl-badge--neutral">{{
+            'project.nextVisit' | translate: { when: (v.startAt | slDate: 'visit') }
+          }}</span>
+        }
         @if (project.status !== 'active') {
           <span class="sl-badge sl-badge--accent">{{
             'status.' + project.status | translate
@@ -62,22 +76,25 @@
       }
     </header>
 
-    <nav class="tabs" [attr.aria-label]="'project.tabs' | translate">
-      @for (tab of tabs(); track tab.path) {
-        <a
-          [routerLink]="
-            tab.path === '.'
-              ? ['/app/projects', projectId()]
-              : ['/app/projects', projectId(), tab.path]
-          "
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: tab.exact }"
-          ariaCurrentWhenActive="page"
-        >
-          {{ tab.label | translate }}
-        </a>
-      }
-    </nav>
+    <div class="toolbar" [slHideOnScroll]="wide()">
+      <span class="toolbar-title" aria-hidden="true">{{ project.title }}</span>
+      <nav class="tabs" [attr.aria-label]="'project.tabs' | translate">
+        @for (tab of tabs(); track tab.path) {
+          <a
+            [routerLink]="
+              tab.path === '.'
+                ? ['/app/projects', projectId()]
+                : ['/app/projects', projectId(), tab.path]
+            "
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: tab.exact }"
+            ariaCurrentWhenActive="page"
+          >
+            {{ tab.label | translate }}
+          </a>
+        }
+      </nav>
+    </div>
 
     <router-outlet />
   </main>

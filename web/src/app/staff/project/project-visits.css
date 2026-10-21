@@ -1,0 +1,66 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sl-space-6);
+}
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sl-space-3);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sl-space-2);
+}
+.request {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sl-space-2);
+}
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sl-space-3);
+}
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sl-space-3);
+}
+.check input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  accent-color: var(--sl-accent);
+}
+.check .sl-small {
+  display: block;
+}
+.visits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sl-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.visit-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sl-space-2);
+}
+.visit-row.plain {
+  padding: var(--sl-space-1) 0;
+  border-bottom: 1px solid var(--sl-border);
+}
+.visit-row .when {
+  flex: 1;
+  min-width: 160px;
+  font-weight: 600;
+  text-transform: capitalize;
+}

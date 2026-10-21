@@ -1,26 +1,39 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { canManageCompany, type ProjectStatus } from '@siteline/shared';
+import { canManageCompany, type ProjectStatus, type Visit } from '@siteline/shared';
 
 import { Api } from '../../core/api';
 import { errorMessageKey, errorReason } from '../../core/errors';
+import { liveDoc } from '../../core/live';
 import { ProjectContext } from '../../core/project-context';
 import { Session } from '../../core/session';
+import { DatePipe } from '../../shared/pipes/date';
 import { PluralPipe } from '../../shared/pipes/plural';
 import { Button } from '../../shared/ui/button';
 import { Dialogs } from '../../shared/ui/dialog';
+import { HideOnScroll } from '../../shared/ui/hide-on-scroll';
 import { Toasts } from '../../shared/ui/toast';
 import { usePlanLimitDialog } from '../plan-limit';
 
 /**
  * A project for staff: header with the clients and open questions, and tabs for the feed,
- * decisions, visits, people and handover (PRD section 11). Tabs sit at the bottom on phones.
+ * decisions, visits, people and handover (PRD section 11). Tabs sit at the bottom on phones; on
+ * wide screens they float at the top with the project name and slide away while scrolling.
  */
 @Component({
   selector: 'sl-project-shell',
-  imports: [TranslatePipe, PluralPipe, RouterOutlet, RouterLink, RouterLinkActive, Button],
+  imports: [
+    TranslatePipe,
+    PluralPipe,
+    DatePipe,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    Button,
+    HideOnScroll,
+  ],
   providers: [ProjectContext],
   templateUrl: './project-shell.html',
   styleUrl: './project-shell.css',
@@ -44,6 +57,12 @@ export class ProjectShell {
       .join(', '),
   );
   protected readonly changingStatus = signal(false);
+  /** The sidebar layout, where the phone top bar is gone and the tabs become the floating bar. */
+  protected readonly wide = signal(false);
+  protected readonly nextVisit = liveDoc<Visit>(() => {
+    const p = this.context.project();
+    return p?.nextVisitId ? `projects/${p.id}/visits/${p.nextVisitId}` : null;
+  });
   protected readonly tabs = computed(() => [
     { path: '.', label: 'pages.projectFeed', exact: true },
     { path: 'decisions', label: 'pages.decisions', exact: false },
@@ -54,6 +73,12 @@ export class ProjectShell {
 
   constructor() {
     effect(() => this.context.projectId.set(this.projectId()));
+
+    const media = window.matchMedia('(min-width: 1024px)');
+    const onMedia = () => this.wide.set(media.matches);
+    onMedia();
+    media.addEventListener('change', onMedia);
+    inject(DestroyRef).onDestroy(() => media.removeEventListener('change', onMedia));
   }
 
   protected async setStatus(status: ProjectStatus): Promise<void> {

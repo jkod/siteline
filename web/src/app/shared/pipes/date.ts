@@ -4,7 +4,7 @@ import { INTL_LOCALE, TIME_ZONE, type TimestampLike } from '@siteline/shared';
 
 import { Language } from '../../core/language';
 
-export type DateStyle = 'dateTime' | 'date' | 'time' | 'relative';
+export type DateStyle = 'dateTime' | 'date' | 'time' | 'relative' | 'visit' | 'visitDay';
 
 /**
  * Formats a timestamp in the app language and Stockholm time (PRD section 12): 24-hour times,
@@ -28,6 +28,23 @@ export function formatDate(
     if (abs < 86_400) return rtf.format(Math.round(seconds / 3600), 'hour');
     if (abs < 7 * 86_400) return rtf.format(Math.round(seconds / 86_400), 'day');
     style = 'dateTime';
+  }
+  if (style === 'visit' || style === 'visitDay') {
+    // "tis 4 nov. 15:00": weekday first, for visits.
+    const day = new Intl.DateTimeFormat(locale, {
+      timeZone: TIME_ZONE,
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    }).format(date);
+    if (style === 'visitDay') return day;
+    const time = new Intl.DateTimeFormat(locale, {
+      timeZone: TIME_ZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).format(date);
+    return `${day} ${time}`;
   }
   const options: Intl.DateTimeFormatOptions = { timeZone: TIME_ZONE, hourCycle: 'h23' };
   if (style !== 'time') Object.assign(options, { day: 'numeric', month: 'short', year: 'numeric' });

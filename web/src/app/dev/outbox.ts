@@ -5,7 +5,14 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { Button } from '../shared/ui/button';
 import { Card } from '../shared/ui/card';
-import { type DevMessage, listDevMessages, listSignInLinks, type SignInLink } from './emulator-api';
+import {
+  type DevMessage,
+  type HeldMessage,
+  listDevMessages,
+  listHeldMessages,
+  listSignInLinks,
+  type SignInLink,
+} from './emulator-api';
 
 const REFRESH_MS = 3000;
 
@@ -29,6 +36,20 @@ const REFRESH_MS = 3000;
         </article>
       } @empty {
         <p class="sl-small">{{ 'dev.noLinks' | translate }}</p>
+      }
+
+      @if (held().length) {
+        <h2>{{ 'dev.held' | translate }}</h2>
+        @for (message of held(); track message.id) {
+          <article slCard="panel" class="row">
+            <span
+              ><span class="channel">{{ message.channel }}</span> {{ message.template }}</span
+            >
+            <time [attr.datetime]="message.sendAfter">{{
+              'dev.heldUntil' | translate: { when: (message.sendAfter | date: 'short') }
+            }}</time>
+          </article>
+        }
       }
 
       <h2>{{ 'dev.messages' | translate }}</h2>
@@ -89,6 +110,7 @@ const REFRESH_MS = 3000;
 export class Outbox {
   protected readonly messages = signal<DevMessage[]>([]);
   protected readonly links = signal<SignInLink[]>([]);
+  protected readonly held = signal<HeldMessage[]>([]);
   protected readonly error = signal(false);
 
   constructor() {
@@ -99,9 +121,14 @@ export class Outbox {
 
   private async refresh(): Promise<void> {
     try {
-      const [messages, links] = await Promise.all([listDevMessages(), listSignInLinks()]);
+      const [messages, links, held] = await Promise.all([
+        listDevMessages(),
+        listSignInLinks(),
+        listHeldMessages(),
+      ]);
       this.messages.set(messages);
       this.links.set(links);
+      this.held.set(held);
       this.error.set(false);
     } catch {
       this.error.set(true);

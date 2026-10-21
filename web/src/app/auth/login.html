@@ -6,7 +6,7 @@
 
   @if (sentTo(); as address) {
     <section slCard class="sent" aria-labelledby="sent-title">
-      <svg lucideMail [size]="28" aria-hidden="true"></svg>
+      <sl-icon name="mail" [size]="28" />
       <h1 id="sent-title">{{ 'login.sentTitle' | translate }}</h1>
       <p>{{ 'login.sentBody' | translate: { email: address } }}</p>
       @if (emulators) {

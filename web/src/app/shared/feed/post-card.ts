@@ -1,14 +1,15 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 
-import { LucideFlag, LucideMessageCircle } from '@lucide/angular';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { isStaffRole, POST_TEXT_MAX } from '@siteline/shared';
 
 import { Language } from '../../core/language';
+import { DecisionCard } from '../decisions/decision-card';
 import { DatePipe, formatDate } from '../pipes/date';
 import { PluralPipe } from '../pipes/plural';
 import { Avatar } from '../ui/avatar';
 import { Button } from '../ui/button';
+import { Icon } from '../ui/icon';
 import { Comments } from './comments';
 import type { FeedPost } from './feed-store';
 import { PhotoGrid } from './photo-grid';
@@ -17,6 +18,7 @@ import { PhotoGrid } from './photo-grid';
 @Component({
   selector: 'sl-post-card',
   imports: [
+    Icon,
     TranslatePipe,
     DatePipe,
     PluralPipe,
@@ -24,8 +26,7 @@ import { PhotoGrid } from './photo-grid';
     Button,
     PhotoGrid,
     Comments,
-    LucideFlag,
-    LucideMessageCircle,
+    DecisionCard,
   ],
   templateUrl: './post-card.html',
   styleUrl: './post-card.css',
@@ -52,6 +53,10 @@ export class PostCard {
   protected readonly editText = signal('');
 
   protected readonly isOwn = computed(() => this.post().authorUid === this.viewerUid());
+  /** Decisions and reports are written by functions only; their authors can't edit them here. */
+  protected readonly editable = computed(() =>
+    ['update', 'milestone', 'question'].includes(this.post().type),
+  );
   protected readonly isDeleted = computed(() => this.post().deletedAt != null);
   protected readonly commentsOpen = computed(() => this.showComments() || this.expanded());
   protected readonly authorIsStaff = computed(() => isStaffRole(this.post().authorRole));

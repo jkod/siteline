@@ -1,16 +1,28 @@
-@if (mode() === 'staff') {
-  <div class="tools">
+<div class="tools">
+  <button
+    slButton="ghost"
+    type="button"
+    [attr.aria-label]="
+      (style() === 'chat' ? 'feed.showNewestFirst' : 'feed.showNewestLast') | translate
+    "
+    (click)="toggleStyle()"
+  >
+    <sl-icon name="swap_vert" [size]="20" />
+    {{ (style() === 'chat' ? 'feed.styleChat' : 'feed.styleFeed') | translate }}
+  </button>
+  @if (mode() === 'staff') {
     <button slButton="secondary" type="button" (click)="addMilestone()">
-      <svg lucideFlag [size]="18"></svg>
+      <sl-icon name="flag" [size]="18" />
       {{ 'milestone.add' | translate }}
     </button>
-  </div>
+  }
+</div>
+
+<div class="fade-top" aria-hidden="true"></div>
+
+@if (style() === 'chat') {
+  <ng-container *ngTemplateOutlet="older" />
 }
-<sl-composer
-  [mode]="mode() === 'staff' ? 'update' : 'question'"
-  [projectId]="projectId()"
-  [firmName]="firmName()"
-/>
 
 <ul
   class="list"
@@ -18,6 +30,62 @@
   aria-live="polite"
   aria-relevant="additions"
 >
+  @if (style() === 'feed') {
+    <ng-container *ngTemplateOutlet="pending" />
+  }
+  @for (post of ordered(); track post.id) {
+    <li>
+      <sl-post-card
+        [post]="post"
+        [projectId]="projectId()"
+        [viewerUid]="uid()"
+        [viewerIsStaff]="mode() === 'staff'"
+        [firmName]="firmName()"
+        [expanded]="post.id === focusPostId()"
+        (edit)="edit(post.id, $event)"
+        (remove)="remove(post.id)"
+        (resolve)="resolve(post.id)"
+      />
+    </li>
+  }
+  @if (style() === 'chat') {
+    <ng-container *ngTemplateOutlet="pending" />
+  }
+</ul>
+
+@if (store.posts()?.length === 0 && store.pending().length === 0) {
+  <sl-empty-state
+    [title]="(mode() === 'staff' ? 'feed.emptyStaffTitle' : 'feed.emptyClientTitle') | translate"
+    [body]="
+      (mode() === 'staff' ? 'feed.emptyStaffBody' : 'feed.emptyClientBody')
+        | translate: { firm: firmName() }
+    "
+  />
+}
+
+@if (style() === 'feed') {
+  <ng-container *ngTemplateOutlet="older" />
+}
+
+<div class="dock">
+  <sl-composer
+    [mode]="mode() === 'staff' ? 'update' : 'question'"
+    [projectId]="projectId()"
+    [firmName]="firmName()"
+  />
+</div>
+
+<ng-template #older>
+  @if (store.hasMore()) {
+    <div #sentinel class="more">
+      <button slButton="secondary" type="button" [busy]="store.loadingMore()" (click)="loadOlder()">
+        {{ 'feed.loadMore' | translate }}
+      </button>
+    </div>
+  }
+</ng-template>
+
+<ng-template #pending>
   @for (pending of store.pending(); track pending.tempId) {
     <li class="pending" slCard>
       <div class="sl-stack">
@@ -52,42 +120,4 @@
       </div>
     </li>
   }
-  @for (post of store.posts() ?? []; track post.id) {
-    <li>
-      <sl-post-card
-        [post]="post"
-        [projectId]="projectId()"
-        [viewerUid]="uid()"
-        [viewerIsStaff]="mode() === 'staff'"
-        [firmName]="firmName()"
-        [expanded]="post.id === focusPostId()"
-        (edit)="edit(post.id, $event)"
-        (remove)="remove(post.id)"
-        (resolve)="resolve(post.id)"
-      />
-    </li>
-  }
-</ul>
-
-@if (store.posts()?.length === 0 && store.pending().length === 0) {
-  <sl-empty-state
-    [title]="(mode() === 'staff' ? 'feed.emptyStaffTitle' : 'feed.emptyClientTitle') | translate"
-    [body]="
-      (mode() === 'staff' ? 'feed.emptyStaffBody' : 'feed.emptyClientBody')
-        | translate: { firm: firmName() }
-    "
-  />
-}
-
-@if (store.hasMore()) {
-  <div #sentinel class="more">
-    <button
-      slButton="secondary"
-      type="button"
-      [busy]="store.loadingMore()"
-      (click)="store.loadMore()"
-    >
-      {{ 'feed.loadMore' | translate }}
-    </button>
-  </div>
-}
+</ng-template>

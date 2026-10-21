@@ -42,9 +42,11 @@ export async function requestSignInLink(page: Page, email: string): Promise<stri
   return latestSignInLink(email);
 }
 
+/** Signs in with an email link and waits until the app has left the login pages. */
 export async function signIn(page: Page, email: string): Promise<void> {
   await page.goto('/login');
   await page.goto(await requestSignInLink(page, email));
+  await page.waitForURL((url) => !url.pathname.startsWith('/login'));
 }
 
 interface FirestoreDoc {

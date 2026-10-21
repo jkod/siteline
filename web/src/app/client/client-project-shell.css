@@ -6,7 +6,8 @@
   align-items: center;
   gap: var(--sl-space-3);
   padding: var(--sl-space-3) var(--sl-space-4);
-  background: var(--sl-surface);
+  background: color-mix(in srgb, var(--sl-surface) 92%, transparent);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--sl-border);
 }
 .back {
@@ -71,6 +72,8 @@
 @media (max-width: 719px) {
   main {
     padding-bottom: 96px;
+    /* The fixed tab bar's height, so the feed's composer sits above it. */
+    --sl-bottom-inset: calc(68px + max(var(--sl-space-3), env(safe-area-inset-bottom)));
   }
   .tabs {
     position: fixed;

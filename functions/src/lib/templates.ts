@@ -9,7 +9,22 @@ export type TemplateName =
   | 'clientQuestion'
   | 'clientComment'
   | 'staffReply'
-  | 'newLinkRequested';
+  | 'newLinkRequested'
+  | 'decisionSent'
+  | 'decisionChanged'
+  | 'decisionWithdrawn'
+  | 'decisionAnswered'
+  | 'visitChanged'
+  | 'visitCancelled'
+  | 'visitReminderClient'
+  | 'visitReminderStaff'
+  | 'visitReport'
+  | 'visitChangeRequested'
+  | 'visitChangeDeclined'
+  | 'digest'
+  | 'newUpdate'
+  | 'activity'
+  | 'smsBudgetReached';
 
 type Params = Record<string, string>;
 
@@ -99,10 +114,190 @@ const TEMPLATES: Record<TemplateName, Record<Locale, Copy>> = {
       text: `${p['client']} tried to open ${p['project']} with a link that no longer works and asks for a new one.\n\nSend a new link under People: ${p['link']}${footer.en(p)}`,
     }),
   },
+  decisionSent: {
+    sv: (p) => ({
+      sms: `${p['firm']} behöver ditt svar: ${p['title']}${p['price'] ? `, ${p['price']}` : ''}. Svara här: ${p['link']}`,
+      subject: `${p['firm']} behöver ditt svar: ${p['title']}`,
+      text: `${p['firm']} behöver ditt svar på ${p['project']}:\n\n${p['title']}${p['price'] ? `, ${p['price']}` : ''}\n\nSvara här: ${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['firm']} needs your answer: ${p['title']}${p['price'] ? `, ${p['price']}` : ''}. Answer here: ${p['link']}`,
+      subject: `${p['firm']} needs your answer: ${p['title']}`,
+      text: `${p['firm']} needs your answer on ${p['project']}:\n\n${p['title']}${p['price'] ? `, ${p['price']}` : ''}\n\nAnswer here: ${p['link']}${footer.en(p)}`,
+    }),
+  },
+  decisionChanged: {
+    sv: (p) => ({
+      sms: `${p['firm']} har ändrat ett beslut: ${p['title']}${p['price'] ? `, ${p['price']}` : ''}. Svara här: ${p['link']}`,
+      subject: `${p['firm']} har ändrat ett beslut: ${p['title']}`,
+      text: `${p['firm']} har ändrat ett beslut på ${p['project']}. Den tidigare versionen gäller inte längre.\n\nSvara här: ${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['firm']} changed a decision: ${p['title']}${p['price'] ? `, ${p['price']}` : ''}. Answer here: ${p['link']}`,
+      subject: `${p['firm']} changed a decision: ${p['title']}`,
+      text: `${p['firm']} changed a decision on ${p['project']}. The earlier version no longer applies.\n\nAnswer here: ${p['link']}${footer.en(p)}`,
+    }),
+  },
+  decisionWithdrawn: {
+    sv: (p) => ({
+      sms: `${p['firm']} har dragit tillbaka ett beslut: ${p['title']}. ${p['link']}`,
+      subject: `${p['firm']} har dragit tillbaka ett beslut`,
+      text: `${p['firm']} har dragit tillbaka beslutet ${p['title']} på ${p['project']}. Du behöver inte svara.\n\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['firm']} withdrew a decision: ${p['title']}. ${p['link']}`,
+      subject: `${p['firm']} withdrew a decision`,
+      text: `${p['firm']} withdrew the decision ${p['title']} on ${p['project']}. You don't need to answer.\n\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  decisionAnswered: {
+    sv: (p) => ({
+      sms: `${p['client']} har ${p['outcome']}: ${p['title']}. ${p['link']}`,
+      subject: `${p['client']} har ${p['outcome']}: ${p['title']}`,
+      text: `${p['client']} har ${p['outcome']} ${p['title']} på ${p['project']}.\n\nSe beslutet: ${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['client']} ${p['outcome']}: ${p['title']}. ${p['link']}`,
+      subject: `${p['client']} ${p['outcome']}: ${p['title']}`,
+      text: `${p['client']} ${p['outcome']} ${p['title']} on ${p['project']}.\n\nSee the decision: ${p['link']}${footer.en(p)}`,
+    }),
+  },
+  visitChanged: {
+    sv: (p) => ({
+      sms: `${p['firm']}: nästa besök är ${p['when']}. ${p['link']}`,
+      subject: `${p['firm']}: nästa besök är ${p['when']}`,
+      text: `${p['firm']} har bokat eller flyttat besöket på ${p['project']} till ${p['when']}.\n\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['firm']}: the next visit is ${p['when']}. ${p['link']}`,
+      subject: `${p['firm']}: the next visit is ${p['when']}`,
+      text: `${p['firm']} booked or moved the visit for ${p['project']} to ${p['when']}.\n\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  visitCancelled: {
+    sv: (p) => ({
+      sms: `${p['firm']} har ställt in besöket ${p['when']}. ${p['link']}`,
+      subject: `${p['firm']} har ställt in besöket ${p['when']}`,
+      text: `${p['firm']} har ställt in besöket ${p['when']} för ${p['project']}.\n\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['firm']} cancelled the visit on ${p['when']}. ${p['link']}`,
+      subject: `${p['firm']} cancelled the visit on ${p['when']}`,
+      text: `${p['firm']} cancelled the visit on ${p['when']} for ${p['project']}.\n\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  visitReminderClient: {
+    sv: (p) => ({
+      sms: `Påminnelse: ${p['firm']} kommer imorgon kl. ${p['time']}.${p['items'] ? ` Kvar på din lista: ${p['items']}.` : ''} ${p['link']}`,
+      subject: `Påminnelse: ${p['firm']} kommer imorgon kl. ${p['time']}`,
+      text: `${p['firm']} kommer imorgon kl. ${p['time']}.${p['items'] ? `\n\nKvar på din lista: ${p['items']}` : ''}\n\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `Reminder: ${p['firm']} is coming tomorrow at ${p['time']}.${p['items'] ? ` Left on your list: ${p['items']}.` : ''} ${p['link']}`,
+      subject: `Reminder: ${p['firm']} is coming tomorrow at ${p['time']}`,
+      text: `${p['firm']} is coming tomorrow at ${p['time']}.${p['items'] ? `\n\nLeft on your list: ${p['items']}` : ''}\n\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  visitReminderStaff: {
+    sv: (p) => ({
+      sms: `Imorgon kl. ${p['time']}: ${p['project']}.${p['items'] ? ` Kvar: ${p['items']}.` : ''} ${p['link']}`,
+      subject: `Imorgon kl. ${p['time']}: ${p['project']}`,
+      text: `Besök imorgon kl. ${p['time']}: ${p['project']}.${p['items'] ? `\n\nKvar på företagets lista: ${p['items']}` : ''}\n\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `Tomorrow at ${p['time']}: ${p['project']}.${p['items'] ? ` Left: ${p['items']}.` : ''} ${p['link']}`,
+      subject: `Tomorrow at ${p['time']}: ${p['project']}`,
+      text: `Visit tomorrow at ${p['time']}: ${p['project']}.${p['items'] ? `\n\nLeft on the company's list: ${p['items']}` : ''}\n\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  visitReport: {
+    sv: (p) => ({
+      sms: `${p['firm']} har skickat en rapport från besöket ${p['date']}: ${p['link']}`,
+      subject: `Rapport från besöket ${p['date']}`,
+      text: `${p['firm']} har skickat en rapport från besöket ${p['date']} (${p['project']}).\n\nLäs den här: ${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['firm']} sent a report from the visit on ${p['date']}: ${p['link']}`,
+      subject: `Report from the visit on ${p['date']}`,
+      text: `${p['firm']} sent a report from the visit on ${p['date']} (${p['project']}).\n\nRead it here: ${p['link']}${footer.en(p)}`,
+    }),
+  },
+  visitChangeRequested: {
+    sv: (p) => ({
+      sms: `${p['client']} vill ${p['action']} besöket ${p['when']}: ${p['link']}`,
+      subject: `${p['client']} vill ${p['action']} besöket ${p['when']}`,
+      text: `${p['client']} vill ${p['action']} besöket ${p['when']} (${p['project']}).${p['note'] ? `\n\n"${p['note']}"` : ''}\n\nSvara här: ${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['client']} wants to ${p['action']} the visit on ${p['when']}: ${p['link']}`,
+      subject: `${p['client']} wants to ${p['action']} the visit on ${p['when']}`,
+      text: `${p['client']} wants to ${p['action']} the visit on ${p['when']} (${p['project']}).${p['note'] ? `\n\n"${p['note']}"` : ''}\n\nAnswer here: ${p['link']}${footer.en(p)}`,
+    }),
+  },
+  visitChangeDeclined: {
+    sv: (p) => ({
+      sms: `${p['firm']} kunde inte ändra besöket ${p['when']}. Det blir som planerat. ${p['link']}`,
+      subject: `Besöket ${p['when']} blir som planerat`,
+      text: `${p['firm']} kunde inte ändra besöket ${p['when']}. Det blir som planerat.\n\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['firm']} couldn't change the visit on ${p['when']}. It goes ahead as planned. ${p['link']}`,
+      subject: `The visit on ${p['when']} goes ahead as planned`,
+      text: `${p['firm']} couldn't change the visit on ${p['when']}. It goes ahead as planned.\n\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  digest: {
+    sv: (p) => ({
+      sms: `Idag på ${p['project']}: ${p['summary']}. Se dem här: ${p['link']}`,
+      subject: `Idag på ${p['project']}: ${p['summary']}`,
+      text: `Idag på ${p['project']}: ${p['summary']}.\n\nSe dem här: ${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `Today on ${p['project']}: ${p['summary']}. See them here: ${p['link']}`,
+      subject: `Today on ${p['project']}: ${p['summary']}`,
+      text: `Today on ${p['project']}: ${p['summary']}.\n\nSee them here: ${p['link']}${footer.en(p)}`,
+    }),
+  },
+  newUpdate: {
+    sv: (p) => ({
+      sms: `Ny uppdatering från ${p['firm']} om ${p['project']}: ${p['link']}`,
+      subject: `Ny uppdatering om ${p['project']}`,
+      text: `${p['firm']} har publicerat en uppdatering om ${p['project']}.\n\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `New update from ${p['firm']} on ${p['project']}: ${p['link']}`,
+      subject: `New update on ${p['project']}`,
+      text: `${p['firm']} posted an update on ${p['project']}.\n\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  activity: {
+    sv: (p) => ({
+      sms: `${p['count']} fler händelser i ${p['project']}: ${p['link']}`,
+      subject: `${p['count']} fler händelser i ${p['project']}`,
+      text: `Det har hänt ${p['count']} saker till i ${p['project']} de senaste minuterna.\n\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['count']} more updates on ${p['project']}: ${p['link']}`,
+      subject: `${p['count']} more updates on ${p['project']}`,
+      text: `${p['count']} more things happened on ${p['project']} in the last few minutes.\n\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  smsBudgetReached: {
+    sv: (p) => ({
+      sms: `Månadens sms är slut för ${p['firm']}. Meddelanden skickas nu som e-post. ${p['link']}`,
+      subject: `Månadens sms är slut för ${p['firm']}`,
+      text: `${p['firm']} har använt alla ${p['limit']} sms som ingår i abonnemanget den här månaden. Meddelanden skickas nu som e-post när det går, tills månaden är slut.\n\nSe ditt abonnemang: ${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `${p['firm']} has used this month's text messages. Messages now go by email. ${p['link']}`,
+      subject: `${p['firm']} has used this month's text messages`,
+      text: `${p['firm']} has used all ${p['limit']} text messages in its plan this month. Messages now go by email where possible, until the month ends.\n\nSee your plan: ${p['link']}${footer.en(p)}`,
+    }),
+  },
 };
 
 /** Params that may be shortened, longest first, to fit a text message. */
-const SHORTENABLE = ['project', 'firm', 'client', 'firstName'];
+const SHORTENABLE = ['items', 'title', 'project', 'firm', 'client', 'firstName'];
 
 export function render(template: TemplateName, locale: Locale, params: Params): Rendered {
   const copy = TEMPLATES[template][locale];

@@ -1,6 +1,6 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 
-import type { DocumentSnapshot, Firestore } from 'firebase/firestore';
+import type { DocumentSnapshot, Firestore, QueryConstraint } from 'firebase/firestore';
 import { FEED_PAGE_SIZE, type Media, type Post } from '@siteline/shared';
 
 import { FirebaseService } from '../../core/firebase';
@@ -66,11 +66,7 @@ export class FeedStore {
     this.older.set([]);
     this.lastOlder = null;
     const [db, fs] = await this.load();
-    const q = fs.query(
-      this.posts$(db, fs),
-      fs.orderBy('createdAt', 'desc'),
-      fs.limit(FEED_PAGE_SIZE),
-    );
+    const q = this.feedQuery(db, fs, fs.orderBy('createdAt', 'desc'), fs.limit(FEED_PAGE_SIZE));
     this.unsubscribe = fs.onSnapshot(
       q,
       { includeMetadataChanges: false },
@@ -84,7 +80,10 @@ export class FeedStore {
         this.lastLive = snap.docs.at(-1) ?? null;
         if (this.older().length === 0) this.hasMore.set(snap.size === FEED_PAGE_SIZE);
       },
-      () => this.live.set([]),
+      (error) => {
+        console.error(error);
+        this.live.set([]);
+      },
     );
   }
 
@@ -95,8 +94,9 @@ export class FeedStore {
     try {
       const [db, fs] = await this.load();
       const snap = await fs.getDocs(
-        fs.query(
-          this.posts$(db, fs),
+        this.feedQuery(
+          db,
+          fs,
           fs.orderBy('createdAt', 'desc'),
           fs.startAfter(after),
           fs.limit(FEED_PAGE_SIZE),
@@ -195,6 +195,18 @@ export class FeedStore {
 
   private posts$(db: Firestore, fs: typeof import('firebase/firestore')) {
     return fs.collection(db, 'projects', this.projectId, 'posts');
+  }
+
+  /** Clients may only read posts for everyone, so their queries say so (decision drafts stay hidden). */
+  private feedQuery(
+    db: Firestore,
+    fs: typeof import('firebase/firestore'),
+    ...constraints: QueryConstraint[]
+  ) {
+    const base = this.posts$(db, fs);
+    return this.session.isClient()
+      ? fs.query(base, fs.where('visibility', '==', 'all'), ...constraints)
+      : fs.query(base, ...constraints);
   }
 
   private load() {

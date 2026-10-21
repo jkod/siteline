@@ -12,6 +12,12 @@
 .status-actions {
   margin-left: calc(-1 * var(--sl-space-3));
 }
+.toolbar {
+  display: contents;
+}
+.toolbar-title {
+  display: none;
+}
 .tabs {
   display: flex;
   gap: var(--sl-space-1);
@@ -41,6 +47,8 @@
 @media (max-width: 719px) {
   main {
     padding-bottom: 96px;
+    /* The fixed tab bar's height, so the feed's composer sits above it. */
+    --sl-bottom-inset: calc(68px + max(var(--sl-space-3), env(safe-area-inset-bottom)));
   }
   .tabs {
     position: fixed;
@@ -54,5 +62,29 @@
   .tabs a {
     padding: 0 var(--sl-space-3);
     font-size: 14px;
+  }
+}
+@media (min-width: 1024px) {
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--sl-space-4);
+    padding: var(--sl-space-2) 0;
+    background: color-mix(in srgb, var(--sl-bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .toolbar .tabs {
+    flex: 1;
+    min-width: 0;
+  }
+  .toolbar.sl-hide-on-scroll--stuck .toolbar-title {
+    display: block;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 30%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 800 16px/22px var(--sl-font-display);
   }
 }

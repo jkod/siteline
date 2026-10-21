@@ -10,13 +10,17 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { readFileSync } from 'node:fs';
 
 import {
+  buildSchedule,
   DEFAULT_ACCENT,
+  DEFAULT_TEMPLATES,
   maskPhone,
   type Plan,
   PLAN_LIMITS,
   type Post,
   type StaffRole,
+  stockholmDate,
   TIME_ZONE,
+  zonedTimeToUtc,
 } from '../shared/src/index';
 
 process.env['GCLOUD_PROJECT'] ??= 'demo-siteline';
@@ -105,6 +109,17 @@ async function main(): Promise<void> {
   const { sha256Hex } = await import('../functions/src/lib/crypto');
   const { createInvite, inviteLink } = await import('../functions/src/lib/invites');
   const { queueMessage } = await import('../functions/src/lib/outbox');
+  const { decisionSnapshot } = await import('../functions/src/lib/decisions');
+  const { generateVisitsForProject, scheduledVisitId } =
+    await import('../functions/src/lib/visits');
+
+  /** A Stockholm wall-clock time some days from today. */
+  const stockholmAt = (daysFromToday: number, hour: number, minute = 0) => {
+    const [y, m, d] = stockholmDate(new Date(Date.now() + daysFromToday * DAY))
+      .split('-')
+      .map(Number) as [number, number, number];
+    return zonedTimeToUtc({ year: y, month: m, day: d, hour, minute });
+  };
 
   async function upsertAuthUser(person: Person): Promise<void> {
     // Client accounts hold no contact details in Firebase Authentication (PRD 4.1).
@@ -162,6 +177,12 @@ async function main(): Promise<void> {
       createdAt: now,
       updatedAt: now,
     });
+  }
+
+  for (const company of companies) {
+    for (const [trade, template] of Object.entries(DEFAULT_TEMPLATES)) {
+      batch.set(db.doc(`companies/${company.id}/templates/${trade}`), template);
+    }
   }
 
   for (const person of staff) {
@@ -244,8 +265,8 @@ async function main(): Promise<void> {
     roles: { 'omar-haddad': 'crew', [anna.uid]: 'client' },
     clientUids: [anna.uid],
     crewUids: ['omar-haddad'],
-    totals: { approvedExtraWorkOre: 0, openDecisions: 0, unansweredQuestions: 1 },
-    nextVisitId: null,
+    totals: { approvedExtraWorkOre: 650_000, openDecisions: 1, unansweredQuestions: 1 },
+    nextVisitId: 'v-next',
     lastPostAt: Timestamp.fromMillis(Date.now() - 2 * 3600_000),
     completedAt: null,
     createdAt: now,
@@ -363,16 +384,127 @@ async function main(): Promise<void> {
     deletedAt: null,
   });
 
-  // Matte med Elsa (service client; schedule and visits arrive with M2)
+  // One approved and one open extra-work card (PRD section 13).
+  const approved = post('erik-ek', 8.4, {
+    type: 'decision',
+    text: 'Bjälken under diskbänken är rutten och behöver bytas innan golvet läggs.',
+    media: kitchenPosts[1]![1].media,
+    decision: {
+      kind: 'extra_work',
+      title: 'Byt rutten golvbjälke',
+      description: 'Bjälken under diskbänken är rutten och behöver bytas innan golvet läggs.',
+      priceOre: 650_000,
+      labourOre: 420_000,
+      materialOre: 230_000,
+      vatRate: 0.25,
+      status: 'approved',
+      version: 1,
+      createdByUid: 'erik-ek',
+      sentAt: Timestamp.fromMillis(Date.now() - 8.4 * DAY),
+      sentByUid: 'erik-ek',
+      decidedAt: Timestamp.fromMillis(Date.now() - 8.3 * DAY),
+      approvalId: 'd-bjalke_v1',
+      decidedByName: anna.name,
+      selectedOptionId: null,
+      declineReason: null,
+    },
+  });
+  batch.set(db.doc(`projects/${kitchen}/posts/d-bjalke`), approved);
+  const { snapshot, sha256 } = decisionSnapshot(
+    approved as unknown as Post,
+    'Köksrenovering Lindqvist',
+  );
+  batch.set(db.doc(`projects/${kitchen}/approvals/d-bjalke_v1`), {
+    postId: 'd-bjalke',
+    version: 1,
+    kind: 'decision',
+    outcome: 'approved',
+    optionId: null,
+    priceOre: 650_000,
+    reason: null,
+    snapshot,
+    snapshotSha256: sha256,
+    actorUid: anna.uid,
+    actorName: anna.name,
+    actorPhoneMasked: maskPhone(anna.phoneE164!),
+    phoneVerified: false,
+    createdAt: Timestamp.fromMillis(Date.now() - 8.3 * DAY),
+  });
+  batch.set(
+    db.doc(`projects/${kitchen}/posts/d-uttag`),
+    post('erik-ek', 0.3, {
+      type: 'decision',
+      text: 'Ett dubbeluttag vid fönstret, infällt och jordat.',
+      decision: {
+        kind: 'extra_work',
+        title: 'Extra uttag vid fönstret',
+        description: 'Ett dubbeluttag vid fönstret, infällt och jordat.',
+        priceOre: 180_000,
+        labourOre: 120_000,
+        materialOre: 60_000,
+        vatRate: 0.25,
+        status: 'sent',
+        version: 1,
+        createdByUid: 'erik-ek',
+        sentAt: Timestamp.fromMillis(Date.now() - 0.3 * DAY),
+        sentByUid: 'erik-ek',
+      },
+    }),
+  );
+
+  // Tomorrow's visit with three checklist items (PRD section 13).
+  batch.set(db.doc(`projects/${kitchen}/visits/v-next`), {
+    companyId: 'ek-lind',
+    startAt: Timestamp.fromDate(stockholmAt(1, 7, 30)),
+    endAt: Timestamp.fromDate(stockholmAt(1, 16, 0)),
+    people: 2,
+    notes: 'Vattnet är avstängt 09:00-11:00.',
+    status: 'planned',
+    fromSchedule: false,
+    reportPostId: null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  const item = (id: string, text: string, side: 'client' | 'firm', by: Person) =>
+    batch.set(db.doc(`projects/${kitchen}/checklist/${id}`), {
+      text,
+      side,
+      visitId: 'v-next',
+      createdBy: by.uid,
+      createdByName: by.name,
+      createdAt: now,
+      doneBy: null,
+      doneByName: null,
+      doneAt: null,
+    });
+  item('c-bil', 'Flytta bilen från uppfarten', 'client', staff[0]!);
+  item('c-skap', 'Töm skåpen under diskbänken', 'client', anna);
+  item('c-fix', 'Ta med kakelfix och fogsvamp', 'firm', staff[1]!);
+
+  // Matte med Elsa: weekly on Tuesdays at 15:00, three visits reported so far.
   const tutoring = 'matte-elsa';
+  // Start on the weekday three weeks ago, so there are three past visits.
+  const tutoringStart = stockholmDate(new Date(Date.now() - 21 * DAY));
+  const tutoringWeekday = (['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'] as const)[
+    new Date(`${tutoringStart}T12:00:00Z`).getUTCDay()
+  ];
+  const tutoringSchedule = buildSchedule({
+    interval: 1,
+    weekdays: [tutoringWeekday],
+    startDate: tutoringStart,
+    time: '15:00',
+    durationMinutes: 60,
+  });
   batch.set(db.doc(`projects/${tutoring}`), {
     companyId: 'berg-mattehjalp',
     kind: 'service',
     title: 'Matte med Elsa',
     address: null,
-    schedule: null,
+    schedule: tutoringSchedule,
+    templateId: 'tutoring',
+    photoConsentAt: Timestamp.fromMillis(Date.now() - 30 * DAY),
     status: 'active',
-    startDate: '2026-09-01',
+    startDate: tutoringStart,
     endDate: null,
     branding: branding(companies[1]!),
     roles: { [anna.uid]: 'client' },
@@ -389,15 +521,80 @@ async function main(): Promise<void> {
     db.doc(`projects/${tutoring}/members/${anna.uid}`),
     member('client', anna.name, anna.phoneE164),
   );
-  batch.set(
-    db.doc(`projects/${tutoring}/posts/p01`),
-    post('karin-berg', 2, {
-      text: 'Vi gick igenom ekvationer med en okänd. Elsa jobbade bra! Öva på sidan 42 till nästa gång.',
-      media: [await photo(tutoring, 'matte')],
-    }),
-  );
+  const reports = [
+    {
+      week: 3,
+      note: 'Vi repeterade bråk och började med procent.',
+      rating: 'ok' as const,
+      practice: 'Procentuppgifterna på sidan 30',
+    },
+    {
+      week: 2,
+      note: 'Procent sitter bättre nu. Vi tog några textuppgifter.',
+      rating: 'good' as const,
+      practice: 'Två textuppgifter på sidan 34',
+    },
+    {
+      week: 1,
+      note: 'Vi gick igenom ekvationer med en okänd. Elsa jobbade bra!',
+      rating: 'good' as const,
+      practice: 'Öva på sidan 42',
+    },
+  ];
+  for (const r of reports) {
+    const date = stockholmDate(new Date(Date.now() - r.week * 7 * DAY));
+    const visitId = scheduledVisitId(date);
+    const start = Timestamp.fromDate(stockholmAt(-r.week * 7, 15));
+    batch.set(db.doc(`projects/${tutoring}/visits/${visitId}`), {
+      companyId: 'berg-mattehjalp',
+      startAt: start,
+      endAt: Timestamp.fromMillis(start.toMillis() + 3600_000),
+      people: null,
+      notes: '',
+      status: 'done',
+      fromSchedule: true,
+      reportPostId: `r-${r.week}`,
+      createdAt: now,
+      updatedAt: now,
+    });
+    batch.set(
+      db.doc(`projects/${tutoring}/posts/r-${r.week}`),
+      post('karin-berg', r.week * 7 - 0.05, {
+        type: 'visit_report',
+        text: r.note,
+        media: r.week === 1 ? [await photo(tutoring, 'matte')] : [],
+        report: {
+          visitId,
+          templateId: 'tutoring',
+          done: DEFAULT_TEMPLATES.tutoring.items.map((i) => ({
+            itemId: i.id,
+            label: i.label,
+            checked: true,
+          })),
+          rating: r.rating,
+          note: r.note,
+          flags: [],
+          nextTimeItemIds: [],
+          nextTime: [r.practice],
+        },
+      }),
+    );
+  }
 
   await batch.commit();
+  await generateVisitsForProject(db, tutoring, {
+    companyId: 'berg-mattehjalp',
+    schedule: tutoringSchedule,
+  });
+  const nextLesson = (
+    await db
+      .collection(`projects/${tutoring}/visits`)
+      .where('status', '==', 'planned')
+      .orderBy('startAt')
+      .limit(1)
+      .get()
+  ).docs[0];
+  await db.doc(`projects/${tutoring}`).update({ nextVisitId: nextLesson?.id ?? null });
 
   // Anna's link to the kitchen project, sent the real way: the outbox, then the dev SMS sender.
   const { token, hash } = await createInvite(db, {

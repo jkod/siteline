@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   afterNextRender,
   Component,
@@ -6,14 +7,16 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   input,
+  untracked,
   viewChild,
 } from '@angular/core';
 
 import { firstValueFrom } from 'rxjs';
 
-import { LucideFlag } from '@lucide/angular';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import type { FeedStyle } from '@siteline/shared';
 
 import { errorMessageKey } from '../../core/errors';
 import { Session } from '../../core/session';
@@ -21,69 +24,33 @@ import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Dialogs } from '../ui/dialog';
 import { EmptyState } from '../ui/empty-state';
+import { ScrollDirection } from '../ui/hide-on-scroll';
+import { Icon } from '../ui/icon';
 import { Toasts } from '../ui/toast';
 import { Composer } from './composer';
 import { FeedStore } from './feed-store';
 import { MilestoneDialog, type MilestoneResult } from './milestone-dialog';
 import { PostCard } from './post-card';
 
+/** How close to the bottom counts as "at the bottom" in chat order, in pixels. */
+const NEAR_BOTTOM_PX = 200;
+
+const page = () => document.scrollingElement ?? document.documentElement;
+const smooth = (): ScrollBehavior =>
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
 /**
- * A project's feed: composer, posts being sent, and posts newest first with infinite scroll
- * and real-time updates (PRD F4). Used by both the staff app and the client view.
+ * A project's feed (PRD F4), in the order the person chose: newest first like a social feed,
+ * or newest at the bottom like a chat. In both, the composer stays pinned at the bottom and
+ * posts fade as they scroll under it. Used by both the staff app and the client view.
  */
 @Component({
   selector: 'sl-feed',
-  imports: [TranslatePipe, Composer, PostCard, EmptyState, Button, Card, LucideFlag],
+  imports: [Icon, NgTemplateOutlet, TranslatePipe, Composer, PostCard, EmptyState, Button, Card],
   providers: [FeedStore],
   templateUrl: './feed.html',
-  styles: `
-    :host {
-      display: flex;
-      flex-direction: column;
-      gap: var(--sl-space-4);
-    }
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: var(--sl-space-4);
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-    .pending {
-      opacity: 0.75;
-    }
-    .progress {
-      height: 6px;
-      border-radius: 3px;
-      background: var(--sl-panel-2);
-      overflow: hidden;
-    }
-    .progress span {
-      display: block;
-      height: 100%;
-      background: var(--sl-accent);
-      transition: width var(--sl-duration) linear;
-    }
-    .thumbs {
-      display: flex;
-      gap: var(--sl-space-2);
-    }
-    .thumbs img {
-      width: 56px;
-      height: 56px;
-      object-fit: cover;
-      border-radius: 10px;
-    }
-    .tools {
-      display: flex;
-      justify-content: flex-end;
-    }
-    .more {
-      display: flex;
-      justify-content: center;
-    }
-  `,
+  styleUrl: './feed.css',
+  host: { '[class.chat]': "style() === 'chat'" },
 })
 export class Feed {
   protected readonly store = inject(FeedStore);
@@ -91,6 +58,8 @@ export class Feed {
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(Dialogs);
+  private readonly injector = inject(Injector);
+  private readonly scrollDirection = inject(ScrollDirection);
 
   readonly projectId = input.required<string>();
   readonly mode = input.required<'staff' | 'client'>();
@@ -100,16 +69,32 @@ export class Feed {
 
   private readonly sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
   protected readonly uid = computed(() => this.session.user()?.uid ?? '');
+  protected readonly style = computed<FeedStyle>(() => this.session.feedStyle());
+  /** Newest first, or oldest first so the newest sits by the composer. */
+  protected readonly ordered = computed(() => {
+    const posts = this.store.posts() ?? [];
+    return this.style() === 'chat' ? [...posts].reverse() : posts;
+  });
   protected readonly Math = Math;
 
-  constructor() {
-    effect(() => void this.store.open(this.projectId()));
+  /** In chat order, older posts load only once the feed has opened at the bottom. */
+  private settled = false;
+  private nearBottom = true;
+  private newestId: string | null = null;
 
-    // Load older posts as the end of the list scrolls into view.
+  constructor() {
+    effect(() => {
+      this.settled = false;
+      this.newestId = null;
+      void this.store.open(this.projectId());
+    });
+
+    // Load older posts as the "show older" row scrolls into view: below the list in feed order,
+    // above it in chat order.
     let observer: IntersectionObserver | undefined;
     afterNextRender(() => {
       observer = new IntersectionObserver(
-        (entries) => entries.some((e) => e.isIntersecting) && void this.store.loadMore(),
+        (entries) => entries.some((e) => e.isIntersecting) && void this.loadOlder(),
         { rootMargin: '400px' },
       );
       const el = this.sentinel()?.nativeElement;
@@ -120,16 +105,76 @@ export class Feed {
       observer?.disconnect();
       if (el) observer?.observe(el);
     });
-    inject(DestroyRef).onDestroy(() => observer?.disconnect());
+
+    const onScroll = () => {
+      const p = page();
+      this.nearBottom = p.scrollHeight - (p.scrollTop + window.innerHeight) < NEAR_BOTTOM_PX;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    inject(DestroyRef).onDestroy(() => {
+      observer?.disconnect();
+      window.removeEventListener('scroll', onScroll);
+      this.scrollDirection.reversed.set(false);
+    });
+
+    // In chat order, older posts are up, so the top bar hides when scrolling up.
+    effect(() => this.scrollDirection.reversed.set(this.style() === 'chat'));
+
+    // Chat order: open at the newest post, and follow new posts when already at the bottom or
+    // when they're your own.
+    effect(() => {
+      const posts = this.store.posts();
+      const chat = this.style() === 'chat';
+      if (!posts) return;
+      const newest = posts[0];
+      untracked(() => {
+        const isNew = !!newest && newest.id !== this.newestId;
+        const first = this.newestId === null;
+        this.newestId = newest?.id ?? null;
+        if (!chat) {
+          this.settled = true;
+          return;
+        }
+        if (first || !this.settled) {
+          this.afterRender(() => {
+            if (!this.focusPostId()) page().scrollTo({ top: page().scrollHeight });
+            this.settled = true;
+          });
+        } else if (isNew && (this.nearBottom || newest!.authorUid === this.uid())) {
+          this.afterRender(() => page().scrollTo({ top: page().scrollHeight, behavior: smooth() }));
+        }
+      });
+    });
+
+    // Switching to chat order jumps to the newest post.
+    effect(() => {
+      if (this.style() === 'chat') {
+        untracked(() => this.afterRender(() => page().scrollTo({ top: page().scrollHeight })));
+      }
+    });
 
     effect(() => {
       const id = this.focusPostId();
       if (id && this.store.posts()?.some((p) => p.id === id)) {
-        queueMicrotask(() =>
+        this.afterRender(() =>
           document.getElementById(`post-${id}`)?.scrollIntoView({ block: 'center' }),
         );
       }
     });
+  }
+
+  /** Older posts; in chat order they appear above, so the page keeps its place. */
+  protected async loadOlder(): Promise<void> {
+    if (!this.settled || this.store.loadingMore() || !this.store.hasMore()) return;
+    if (this.style() !== 'chat') return this.store.loadMore();
+    const p = page();
+    const fromBottom = p.scrollHeight - p.scrollTop;
+    await this.store.loadMore();
+    this.afterRender(() => p.scrollTo({ top: p.scrollHeight - fromBottom }));
+  }
+
+  protected async toggleStyle(): Promise<void> {
+    await this.run(() => this.session.setFeedStyle(this.style() === 'chat' ? 'feed' : 'chat'));
   }
 
   protected async edit(postId: string, text: string): Promise<void> {
@@ -164,6 +209,10 @@ export class Feed {
 
   protected async resolve(postId: string): Promise<void> {
     await this.run(() => this.store.markResolved(postId));
+  }
+
+  private afterRender(fn: () => void): void {
+    afterNextRender(fn, { injector: this.injector });
   }
 
   private async run(action: () => Promise<void>): Promise<void> {

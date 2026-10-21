@@ -9,13 +9,13 @@ import {
   viewChild,
 } from '@angular/core';
 
-import { LucideCamera, LucideX } from '@lucide/angular';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { POST_TEXT_MAX, QUESTION_MEDIA_MAX, UPDATE_MEDIA_MAX } from '@siteline/shared';
 
 import { errorMessageKey } from '../../core/errors';
 import { PhotoTooLargeError } from '../../core/photos';
 import { Button } from '../ui/button';
+import { Icon } from '../ui/icon';
 import { Toasts } from '../ui/toast';
 import { FeedStore } from './feed-store';
 
@@ -30,7 +30,7 @@ interface Selected {
  */
 @Component({
   selector: 'sl-composer',
-  imports: [TranslatePipe, LucideCamera, LucideX, Button],
+  imports: [Icon, TranslatePipe, Button],
   templateUrl: './composer.html',
   styleUrl: './composer.css',
 })

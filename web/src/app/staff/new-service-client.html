@@ -1,0 +1,118 @@
+<main class="sl-page sl-stack" id="main">
+  <h1>{{ 'pages.newClient' | translate }}</h1>
+  <form slCard class="sl-stack" novalidate (submit)="save($event)">
+    <fieldset>
+      <legend>{{ 'serviceClient.trade' | translate }}</legend>
+      <div class="segments">
+        @for (t of trades; track t) {
+          <button type="button" [attr.aria-pressed]="trade() === t" (click)="trade.set(t)">
+            {{ 'trades.' + t | translate }}
+          </button>
+        }
+      </div>
+    </fieldset>
+    <sl-field
+      [label]="'serviceClient.subject' | translate"
+      [hint]="'serviceClient.subjectHint.' + trade() | translate"
+      [errors]="form.title().errors()"
+      [touched]="form.title().touched()"
+    >
+      <input slInput type="text" autocomplete="off" [formField]="form.title" />
+    </sl-field>
+    @if (trade() === 'tutoring') {
+      <p class="sl-small">{{ 'serviceClient.tutoringPrivacy' | translate }}</p>
+    }
+    <div class="pair">
+      <sl-field
+        [label]="(trade() === 'tutoring' ? 'serviceClient.parentName' : 'people.name') | translate"
+        [errors]="form.clientName().errors()"
+        [touched]="form.clientName().touched()"
+      >
+        <input slInput type="text" autocomplete="off" [formField]="form.clientName" />
+      </sl-field>
+      <sl-field
+        [label]="'people.mobile' | translate"
+        [errors]="form.clientPhone().errors()"
+        [touched]="form.clientPhone().touched()"
+      >
+        <input
+          slInput
+          type="tel"
+          inputmode="tel"
+          autocomplete="off"
+          [formField]="form.clientPhone"
+        />
+      </sl-field>
+    </div>
+    @if (trade() !== 'tutoring') {
+      <div class="pair">
+        <sl-field [label]="'address.street' | translate" [hint]="'common.optional' | translate">
+          <input slInput type="text" autocomplete="street-address" [formField]="form.street" />
+        </sl-field>
+        <sl-field [label]="'address.city' | translate">
+          <input slInput type="text" autocomplete="address-level2" [formField]="form.city" />
+        </sl-field>
+      </div>
+    }
+
+    <fieldset>
+      <legend>{{ 'serviceClient.schedule' | translate }}</legend>
+      <div class="segments">
+        <button type="button" [attr.aria-pressed]="interval() === 1" (click)="interval.set(1)">
+          {{ 'serviceClient.weekly' | translate }}
+        </button>
+        <button type="button" [attr.aria-pressed]="interval() === 2" (click)="interval.set(2)">
+          {{ 'serviceClient.biweekly' | translate }}
+        </button>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>{{ 'serviceClient.days' | translate }}</legend>
+      <div class="days">
+        @for (day of weekdays; track day) {
+          <button
+            type="button"
+            [attr.aria-pressed]="days().includes(day)"
+            [attr.aria-label]="'weekdays.' + day | translate"
+            (click)="toggleDay(day)"
+          >
+            {{ 'weekdaysShort.' + day | translate }}
+          </button>
+        }
+      </div>
+      @if (daysError()) {
+        <p class="error" role="alert">{{ 'serviceClient.pickDay' | translate }}</p>
+      }
+    </fieldset>
+    <div class="pair">
+      <sl-field
+        [label]="'serviceClient.firstDate' | translate"
+        [errors]="form.startDate().errors()"
+        [touched]="form.startDate().touched()"
+      >
+        <input slInput type="date" [formField]="form.startDate" />
+      </sl-field>
+      <sl-field
+        [label]="'visits.start' | translate"
+        [errors]="form.time().errors()"
+        [touched]="form.time().touched()"
+      >
+        <input slInput type="time" [formField]="form.time" />
+      </sl-field>
+    </div>
+    <sl-field
+      [label]="'serviceClient.duration' | translate"
+      [errors]="form.duration().errors()"
+      [touched]="form.duration().touched()"
+    >
+      <input slInput type="number" inputmode="numeric" step="15" [formField]="form.duration" />
+    </sl-field>
+
+    <div class="actions">
+      <a slButton="secondary" routerLink="/app">{{ 'common.cancel' | translate }}</a>
+      <button slButton size="large" type="submit" [busy]="saving()" [disabled]="saving()">
+        {{ 'serviceClient.create' | translate }}
+      </button>
+    </div>
+  </form>
+</main>

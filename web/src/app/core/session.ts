@@ -11,7 +11,13 @@ import {
   signOut,
   type User,
 } from 'firebase/auth';
-import { isStaffRole, type StaffRole, type TimestampLike, type UserDoc } from '@siteline/shared';
+import {
+  type FeedStyle,
+  isStaffRole,
+  type StaffRole,
+  type TimestampLike,
+  type UserDoc,
+} from '@siteline/shared';
 
 import { FirebaseService } from './firebase';
 import { liveDoc } from './live';
@@ -70,6 +76,20 @@ export class Session {
         void this.refreshClaims();
       }
       if (stamp !== null) lastClaimsUpdate = stamp;
+    });
+  }
+
+  /** The person's feed order: newest first (social feed) or newest at the bottom (chat). */
+  readonly feedStyle = computed<FeedStyle>(() => this.profile()?.feedStyle ?? 'feed');
+
+  /** Saves the feed order on the person's profile, so it follows them across devices. */
+  async setFeedStyle(style: FeedStyle): Promise<void> {
+    const uid = this.userState()?.uid;
+    if (!uid) return;
+    const [db, fs] = await Promise.all([this.firebase.firestore(), import('firebase/firestore')]);
+    await fs.updateDoc(fs.doc(db, 'users', uid), {
+      feedStyle: style,
+      updatedAt: fs.serverTimestamp(),
     });
   }
 

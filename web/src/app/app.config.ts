@@ -15,7 +15,6 @@ import {
 } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 
-import { provideLucideConfig } from '@lucide/angular';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { DEFAULT_LOCALE } from '@siteline/shared';
@@ -41,7 +40,6 @@ export const appConfig: ApplicationConfig = {
       loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
     }),
     provideAppInitializer(() => inject(Language).init()),
-    provideLucideConfig({ strokeWidth: 1.75 }),
     // Caches the app shell for the PWA (PRD section 13); off in development.
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),

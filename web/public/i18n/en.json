@@ -45,7 +45,8 @@
     "terms": "Terms",
     "notFound": "Page not found",
     "devOutbox": "Dev outbox",
-    "devUi": "Components"
+    "devUi": "Components",
+    "visits": "Visits"
   },
   "staff": {
     "nav": "Main menu",
@@ -98,7 +99,9 @@
       "color": "Enter a colour like #127A69.",
       "emailOrPhone": "Fill in an email or mobile number.",
       "min": "The value is too small.",
-      "max": "The value is too large."
+      "max": "The value is too large.",
+      "price": "Enter an amount, for example 6500.",
+      "endBeforeStart": "The end time must be after the start time."
     },
     "auth": {
       "invalid-email": "Enter a valid email address.",
@@ -129,7 +132,15 @@
       "already_in_company": "You're already part of a company.",
       "clients_cannot_join": "You're signed in as a client. Sign out and try again.",
       "unknown_crew": "One of the crew members isn't in the company.",
-      "rate_limited": "Too many attempts. Wait a moment and try again."
+      "rate_limited": "Too many attempts. Wait a moment and try again.",
+      "decision_not_open": "This decision can no longer be answered.",
+      "decision_changed": "The decision has changed. Read the new version.",
+      "decision_not_draft": "Only drafts can be changed this way.",
+      "crew_cannot_send_priced": "Decisions with a price are sent by an owner or admin. Save it as a draft.",
+      "photos_need_consent": "Record the parent's consent before adding photos.",
+      "already_reported": "This visit already has a report.",
+      "visit_not_open": "This visit can no longer be changed.",
+      "request_not_open": "The request has already been answered."
     }
   },
   "dev": {
@@ -174,7 +185,9 @@
       "dialogTitle": "Withdraw this decision?",
       "dialogBody": "The client is told that the decision has been withdrawn.",
       "dialogConfirm": "Withdraw"
-    }
+    },
+    "held": "Waiting to be sent",
+    "heldUntil": "Sends {{when}} (quiet hours)"
   },
   "address": {
     "street": "Address",
@@ -215,6 +228,18 @@
       "activeBody": "Create a project and invite your client. It takes a minute.",
       "completedTitle": "No completed projects yet",
       "archivedTitle": "No archived projects"
+    },
+    "projects": "Projects",
+    "clients": "Clients",
+    "viewFilter": "Show",
+    "clientsTitle": "Clients",
+    "newClient": "New client",
+    "usageClients": "{{used}} of {{limit}} recurring clients",
+    "emptyClients": {
+      "activeTitle": "No recurring clients",
+      "activeBody": "Add a client with a schedule and the visits are created for you.",
+      "completedTitle": "No completed clients",
+      "archivedTitle": "No archived clients"
     }
   },
   "newProject": {
@@ -237,7 +262,12 @@
     "noClients": "No client invited yet",
     "tabs": "Project sections",
     "notFound": "Project not found",
-    "notFoundBody": "It may have been deleted, or you don't have access to it."
+    "notFoundBody": "It may have been deleted, or you don't have access to it.",
+    "openDecisions": {
+      "one": "{{count}} open decision",
+      "other": "{{count}} open decisions"
+    },
+    "nextVisit": "Next visit {{when}}"
   },
   "projectStatus": {
     "complete": "Mark as completed",
@@ -353,7 +383,11 @@
     "emptyStaffBody": "Your client sees it straight away.",
     "emptyClientTitle": "No updates yet",
     "emptyClientBody": "{{firm}} shares updates and photos here.",
-    "loadMore": "Show older"
+    "loadMore": "Show older",
+    "styleFeed": "Newest first",
+    "styleChat": "Newest last",
+    "showNewestFirst": "Newest last, switch to newest first",
+    "showNewestLast": "Newest first, switch to newest last like a chat"
   },
   "milestone": {
     "add": "Milestone",
@@ -407,7 +441,8 @@
   "me": {
     "name": "Your name",
     "email": "Signed in as {{email}}",
-    "saved": "Your changes are saved."
+    "saved": "Your changes are saved.",
+    "emailNotifications": "Email me when clients answer, ask or comment"
   },
   "billing": {
     "currentPlan": "Your plan",
@@ -450,5 +485,238 @@
   },
   "offline": {
     "banner": "You're offline. Showing the latest we have."
+  },
+  "today": {
+    "title": "Today",
+    "open": "Open",
+    "notReported": "No report"
+  },
+  "decisions": {
+    "kind": {
+      "extra_work": "Extra work",
+      "choice": "Choice",
+      "approval": "Approval"
+    },
+    "status": {
+      "draft": "Draft"
+    },
+    "version": "Version {{n}}",
+    "split": "Of which labour {{labour}} and materials {{material}}",
+    "respondBy": "Answer by {{date}}",
+    "approve": "Approve",
+    "choose": "Choose",
+    "ask": "Ask a question",
+    "decline": "Decline",
+    "declineTitle": "Decline the decision",
+    "declineReason": "Why? The company sees your answer.",
+    "send": "Send to the client",
+    "revise": "Change",
+    "withdraw": "Withdraw",
+    "outcome": {
+      "approved": "Approved by {{name}}, {{date}}",
+      "chosen": "Chosen by {{name}}, {{date}}",
+      "declined": "Declined by {{name}}, {{date}}",
+      "withdrawn": "Withdrawn {{date}}",
+      "superseded": "Replaced by a new version"
+    },
+    "answered": "Thank you! Your answer is saved.",
+    "sent": "The decision has been sent to the client.",
+    "draftSaved": "The draft is saved.",
+    "deleted": "The draft is deleted.",
+    "withdrawn": "The decision is withdrawn.",
+    "deleteTitle": "Delete the draft?",
+    "deleteBody": "The draft hasn't been sent and will be gone for good.",
+    "deleteConfirm": "Delete",
+    "withdrawTitle": "Withdraw the decision?",
+    "withdrawBody": "The client is told it has been withdrawn. This can't be undone.",
+    "withdrawConfirm": "Withdraw",
+    "open": "Open decisions",
+    "history": "History",
+    "total": "Approved extra work",
+    "new": "New decision",
+    "exportCsv": "Export CSV",
+    "emptyStaffTitle": "No open decisions",
+    "emptyStaffBody": "Create a decision when the client needs to approve extra work, choose or say yes.",
+    "editor": {
+      "newTitle": "New decision",
+      "editTitle": "Edit draft",
+      "reviseTitle": "Change decision",
+      "reviseHint": "The sent version is replaced and the client answers the new one.",
+      "kind": "Kind of decision",
+      "title": "Title",
+      "titleHint": {
+        "extra_work": "For example Replace rotten floor joist",
+        "choice": "For example Choose bathroom tiles",
+        "approval": "For example Is tile layout B OK?"
+      },
+      "description": "Description",
+      "price": "Price including VAT (SEK)",
+      "priceHint": "For example 6500",
+      "labour": "Of which labour (SEK)",
+      "material": "Of which materials (SEK)",
+      "options": "Options",
+      "optionLabel": "Option {{n}}",
+      "optionDelta": "Price difference for option {{n}}",
+      "deltaPlaceholder": "± SEK",
+      "addOption": "Add option",
+      "removeOption": "Remove option {{n}}",
+      "optionsError": "Fill in at least two options and valid amounts.",
+      "respondBy": "Answer by",
+      "saveDraft": "Save draft",
+      "sendNewVersion": "Send new version"
+    }
+  },
+  "visits": {
+    "status": {
+      "planned": "Planned",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "peopleCount": "People: {{count}}",
+    "book": "Book visit",
+    "change": "Change",
+    "cancel": "Cancel",
+    "markDone": "Mark as done",
+    "report": "Report",
+    "newTitle": "Book a visit",
+    "editTitle": "Change visit",
+    "date": "Date",
+    "start": "Start time",
+    "end": "End time",
+    "people": "Number of people",
+    "notes": "Notes",
+    "notesHint": "For example Water off 09:00-11:00",
+    "noneBody": "Book the next visit and the client is told straight away.",
+    "cancelTitle": "Cancel the visit?",
+    "cancelBody": "The client is told the visit is cancelled.",
+    "cancelConfirm": "Cancel visit",
+    "cancelled": "The visit is cancelled.",
+    "markedDone": "The visit is marked as done. Anything unfinished moves to the next visit.",
+    "requests": "Requests from the client",
+    "wantsToMove": "wants to move the visit on {{when}}",
+    "wantsToCancel": "wants to cancel the visit on {{when}}",
+    "proposed": "to {{when}}",
+    "accept": "Accept",
+    "decline": "Decline",
+    "suggestOther": "Suggest another time",
+    "requestAccepted": "Done. The client is told.",
+    "requestDeclined": "The client is told the visit goes ahead as planned.",
+    "scheduleWeekly": "Every week on {{days}} at {{time}} ({{minutes}} min)",
+    "scheduleBiweekly": "Every other week on {{days}} at {{time}} ({{minutes}} min)",
+    "photoConsent": "The parent's consent to photos is recorded",
+    "photoConsentHint": "Without consent, reports can't include photos.",
+    "consentRecorded": "The consent is saved.",
+    "consentWithdrawn": "Photos are turned off again.",
+    "unreported": "Visits without a report",
+    "upcoming": "Upcoming visits",
+    "history": "Earlier visits",
+    "askToChange": "Ask to move or cancel",
+    "requestPending": "Your request is waiting for an answer.",
+    "requestTitle": "Change the visit on {{when}}",
+    "requestKind": "What would you like to do?",
+    "move": "Move",
+    "requestNote": "Message",
+    "sendRequest": "Send request",
+    "requestSent": "Your request has been sent.",
+    "suggestTitle": "Suggest another time than {{when}}",
+    "suggest": "Move to this time"
+  },
+  "checklist": {
+    "title": "Checklist for the next visit",
+    "yourList": "Your list",
+    "side": {
+      "client": "Client's",
+      "firm": "Company's"
+    },
+    "clientSide": {
+      "client": "You",
+      "firm": "The company"
+    },
+    "doneBy": "Done by {{name}} {{when}}",
+    "empty": "Nothing here yet.",
+    "newItem": "New item",
+    "forWhom": "Who does it?",
+    "add": "Add",
+    "remove": "Remove {{text}}"
+  },
+  "report": {
+    "label": "Visit report",
+    "title": "Report from the visit on {{when}}",
+    "done": "Done today",
+    "howItWent": "How did it go?",
+    "rating": {
+      "good": "Good",
+      "ok": "OK",
+      "hard": "Hard"
+    },
+    "note": "Note",
+    "noteParent": "To the parent",
+    "flags": "Good to know",
+    "flagPlaceholder": "For example The gutter is blocked",
+    "addFlag": "Add",
+    "nextTime": "For next time",
+    "practice": "Practice until next time",
+    "addNextTime": "Add",
+    "removeItem": "Remove {{text}}",
+    "photoReminder": "Photograph the work, not the child.",
+    "send": "Send report",
+    "sent": "The report has been sent."
+  },
+  "serviceClient": {
+    "trade": "Kind of service",
+    "subject": "What the service covers",
+    "subjectHint": {
+      "tutoring": "For example Maths with Elsa",
+      "gardening": "For example Garden, Tallvägen 4",
+      "other": "For example Cleaning every other week"
+    },
+    "tutoringPrivacy": "The client is the parent. Use only the student's first name or nickname.",
+    "parentName": "Parent's name",
+    "schedule": "How often?",
+    "weekly": "Every week",
+    "biweekly": "Every other week",
+    "days": "Which days?",
+    "pickDay": "Pick at least one day.",
+    "firstDate": "First date",
+    "duration": "Length in minutes",
+    "create": "Add client",
+    "created": "{{name}} is added and has been sent a link."
+  },
+  "trades": {
+    "tutoring": "Tutoring",
+    "gardening": "Gardening",
+    "other": "Other"
+  },
+  "weekdays": {
+    "MO": "Mondays",
+    "TU": "Tuesdays",
+    "WE": "Wednesdays",
+    "TH": "Thursdays",
+    "FR": "Fridays",
+    "SA": "Saturdays",
+    "SU": "Sundays"
+  },
+  "weekdaysShort": {
+    "MO": "Mon",
+    "TU": "Tue",
+    "WE": "Wed",
+    "TH": "Thu",
+    "FR": "Fri",
+    "SA": "Sat",
+    "SU": "Sun"
+  },
+  "clientSettings": {
+    "intro": "Choose how you hear about each project. Decisions that need your answer always come straight away.",
+    "digest": "Daily summary at 18:00",
+    "instant": "Every update straight away",
+    "channel": "Send as",
+    "sms": "Text message",
+    "email": "Email"
+  },
+  "feedStyle": {
+    "label": "Feed order",
+    "feed": "Newest first, like a feed",
+    "chat": "Newest last, like a chat",
+    "saved": "The order is saved."
   }
 }

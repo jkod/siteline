@@ -1,7 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { LucideLogOut } from '@lucide/angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { canManageCompany } from '@siteline/shared';
 
@@ -9,6 +8,8 @@ import { Session } from '../core/session';
 import { PluralPipe } from '../shared/pipes/plural';
 import { Brand } from '../shared/ui/brand';
 import { Button } from '../shared/ui/button';
+import { HideOnScroll } from '../shared/ui/hide-on-scroll';
+import { Icon } from '../shared/ui/icon';
 import { CurrentCompany } from './current-company';
 
 /**
@@ -18,14 +19,15 @@ import { CurrentCompany } from './current-company';
 @Component({
   selector: 'sl-staff-shell',
   imports: [
+    Icon,
     PluralPipe,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
     TranslatePipe,
-    LucideLogOut,
     Button,
     Brand,
+    HideOnScroll,
   ],
   templateUrl: './staff-shell.html',
   styleUrl: './staff-shell.css',

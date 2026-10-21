@@ -12,6 +12,7 @@
 }
 .segments {
   display: inline-flex;
+  align-self: flex-start;
   gap: var(--sl-space-1);
   padding: var(--sl-space-1);
   background: var(--sl-panel-2);
@@ -37,7 +38,7 @@
   flex: 1;
   min-width: 200px;
 }
-.search svg {
+.search sl-icon {
   position: absolute;
   left: 14px;
   top: 50%;

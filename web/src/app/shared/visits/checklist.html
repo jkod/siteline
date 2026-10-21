@@ -1,0 +1,76 @@
+@for (s of sides; track s) {
+  <section class="side" [attr.aria-labelledby]="'side-' + s">
+    <h3 [id]="'side-' + s">
+      {{ (mode() === 'client' ? 'checklist.clientSide.' + s : 'checklist.side.' + s) | translate }}
+    </h3>
+    @if (bySide()[s].length) {
+      <ul>
+        @for (item of bySide()[s]; track item.id) {
+          <li [class.done]="item.doneAt">
+            <label>
+              <input
+                type="checkbox"
+                [checked]="!!item.doneAt"
+                [disabled]="!canTick(item)"
+                (change)="toggle(item)"
+              />
+              <span class="text">{{ item.text }}</span>
+            </label>
+            @if (item.doneAt) {
+              <span class="sl-small">{{
+                'checklist.doneBy'
+                  | translate: { name: item.doneByName, when: (item.doneAt | slDate: 'relative') }
+              }}</span>
+            } @else if (isOwn(item)) {
+              <button
+                type="button"
+                class="link"
+                [attr.aria-label]="'checklist.remove' | translate: { text: item.text }"
+                (click)="remove(item)"
+              >
+                {{ 'common.delete' | translate }}
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="sl-small">{{ 'checklist.empty' | translate }}</p>
+    }
+  </section>
+}
+
+<form class="add" (submit)="add($event)">
+  <label class="sl-visually-hidden" for="checklist-text">{{
+    'checklist.newItem' | translate
+  }}</label>
+  <input
+    id="checklist-text"
+    class="sl-input"
+    type="text"
+    maxlength="200"
+    [placeholder]="'checklist.newItem' | translate"
+    [value]="text()"
+    (input)="text.set($any($event.target).value)"
+  />
+  <label class="sl-visually-hidden" for="checklist-side">{{
+    'checklist.forWhom' | translate
+  }}</label>
+  <select
+    id="checklist-side"
+    class="sl-input"
+    [value]="side()"
+    (change)="side.set($any($event.target).value)"
+  >
+    @for (s of sides; track s) {
+      <option [value]="s">
+        {{
+          (mode() === 'client' ? 'checklist.clientSide.' + s : 'checklist.side.' + s) | translate
+        }}
+      </option>
+    }
+  </select>
+  <button slButton="secondary" type="submit" [disabled]="!text().trim() || adding()">
+    {{ 'checklist.add' | translate }}
+  </button>
+</form>

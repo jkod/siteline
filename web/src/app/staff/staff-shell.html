@@ -38,12 +38,12 @@
       </nav>
     }
     <button slButton="ghost" type="button" class="sign-out" (click)="signOut()">
-      <svg lucideLogOut [size]="20"></svg>
+      <sl-icon name="logout" [size]="20" />
       {{ 'common.signOut' | translate }}
     </button>
   </aside>
 
-  <header class="bar">
+  <header class="bar" slHideOnScroll>
     <a class="company" routerLink="/app">{{ company.name() || 'Siteline' }}</a>
     <nav [attr.aria-label]="'staff.nav' | translate">
       @for (link of links(); track link.path) {
@@ -64,7 +64,7 @@
       [attr.aria-label]="'common.signOut' | translate"
       (click)="signOut()"
     >
-      <svg lucideLogOut [size]="20"></svg>
+      <sl-icon name="logout" [size]="20" />
     </button>
   </header>
 

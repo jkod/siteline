@@ -238,3 +238,14 @@ textarea.sl-input {
   background: var(--sl-accent-tint);
   color: var(--sl-accent-text);
 }
+
+/* A floating top bar that slides away while scrolling (see HideOnScroll). */
+.sl-hide-on-scroll {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  transition: transform var(--sl-duration) var(--sl-ease);
+}
+.sl-hide-on-scroll--hidden {
+  transform: translateY(-100%);
+}

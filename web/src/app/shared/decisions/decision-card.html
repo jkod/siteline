@@ -1,0 +1,138 @@
+@let dec = d();
+<div class="decision" [class.final]="!open() && !isDraft()">
+  <div class="top">
+    <p class="sl-label">{{ 'decisions.kind.' + dec.kind | translate }}</p>
+    @if (isDraft()) {
+      <span class="sl-badge sl-badge--neutral">{{ 'decisions.status.draft' | translate }}</span>
+    } @else if (dec.version > 1) {
+      <span class="sl-badge sl-badge--neutral">{{
+        'decisions.version' | translate: { n: dec.version }
+      }}</span>
+    }
+  </div>
+  <p class="title">{{ dec.title }}</p>
+  @if (dec.description) {
+    <p class="description">{{ dec.description }}</p>
+  }
+  @if (dec.kind === 'extra_work') {
+    <p class="price">{{ dec.priceOre | money }}</p>
+    @if (dec.labourOre || dec.materialOre) {
+      <p class="sl-small">
+        {{
+          'decisions.split'
+            | translate
+              : { labour: (dec.labourOre ?? 0 | money), material: (dec.materialOre ?? 0 | money) }
+        }}
+      </p>
+    }
+  }
+  @if (dec.respondBy && open()) {
+    <p class="sl-small">
+      {{ 'decisions.respondBy' | translate: { date: (dec.respondBy | slDate: 'date') } }}
+    </p>
+  }
+
+  @if (dec.kind === 'choice') {
+    <fieldset class="options" [disabled]="!open() || viewerIsStaff()">
+      <legend class="sl-visually-hidden">{{ dec.title }}</legend>
+      @for (option of dec.options ?? []; track option.id) {
+        <label
+          class="option"
+          [class.selected]="dec.selectedOptionId === option.id || chosen() === option.id"
+        >
+          <input
+            type="radio"
+            [name]="'choice-' + post().id"
+            [value]="option.id"
+            [checked]="dec.selectedOptionId === option.id || chosen() === option.id"
+            (change)="chosen.set(option.id)"
+          />
+          <span class="label">{{ option.label }}</span>
+          @if (option.priceDeltaOre) {
+            <span class="delta"
+              >{{ option.priceDeltaOre > 0 ? '+' : '' }}{{ option.priceDeltaOre | money }}</span
+            >
+          }
+        </label>
+      }
+    </fieldset>
+  }
+
+  @switch (dec.status) {
+    @case ('approved') {
+      <p class="outcome ok">
+        <sl-icon name="check_circle" [size]="18" />
+        {{
+          (dec.kind === 'choice' ? 'decisions.outcome.chosen' : 'decisions.outcome.approved')
+            | translate: { name: dec.decidedByName, date: (dec.decidedAt | slDate) }
+        }}
+      </p>
+    }
+    @case ('declined') {
+      <p class="outcome">
+        <sl-icon name="cancel" [size]="18" />
+        {{
+          'decisions.outcome.declined'
+            | translate: { name: dec.decidedByName, date: (dec.decidedAt | slDate) }
+        }}
+      </p>
+      @if (dec.declineReason) {
+        <p class="sl-small">“{{ dec.declineReason }}”</p>
+      }
+    }
+    @case ('withdrawn') {
+      <p class="outcome">
+        {{ 'decisions.outcome.withdrawn' | translate: { date: (dec.decidedAt | slDate) } }}
+      </p>
+    }
+    @case ('superseded') {
+      <p class="outcome">{{ 'decisions.outcome.superseded' | translate }}</p>
+    }
+  }
+
+  @if (open() && !viewerIsStaff()) {
+    <div class="actions">
+      <button
+        slButton
+        type="button"
+        [busy]="busy()"
+        [disabled]="busy() || (dec.kind === 'choice' && !chosen())"
+        (click)="approve()"
+      >
+        <sl-icon name="check" [size]="18" />
+        {{ (dec.kind === 'choice' ? 'decisions.choose' : 'decisions.approve') | translate }}
+      </button>
+      <button slButton="secondary" type="button" (click)="ask.emit()">
+        {{ 'decisions.ask' | translate }}
+      </button>
+      <button slButton="ghost" type="button" [disabled]="busy()" (click)="decline()">
+        {{ 'decisions.decline' | translate }}
+      </button>
+    </div>
+  }
+
+  @if (viewerIsStaff()) {
+    @if (canEditDraft()) {
+      <div class="actions">
+        <button slButton type="button" [busy]="busy()" [disabled]="busy()" (click)="send()">
+          {{ 'decisions.send' | translate }}
+        </button>
+        <button slButton="secondary" type="button" (click)="edit()">
+          {{ 'common.edit' | translate }}
+        </button>
+        <button slButton="ghost" type="button" (click)="remove()">
+          {{ 'common.delete' | translate }}
+        </button>
+      </div>
+    } @else if (open()) {
+      <div class="actions">
+        <button slButton="secondary" type="button" (click)="edit()">
+          {{ 'decisions.revise' | translate }}
+        </button>
+        <button slButton="ghost" type="button" [disabled]="busy()" (click)="withdraw()">
+          {{ 'decisions.withdraw' | translate }}
+        </button>
+      </div>
+    }
+  }
+</div>

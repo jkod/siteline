@@ -1,14 +1,7 @@
 import type { Routes } from '@angular/router';
 
 import { clientProjectGuard } from '../core/guards';
-import { placeholder } from '../shared/ui/placeholder-page';
 import { ClientShell } from './client-shell';
-
-const tab = (titleKey: string, bodyKey: string) => ({
-  loadComponent: () =>
-    import('../staff/project/project-tab-placeholder').then((m) => m.ProjectTabPlaceholder),
-  data: { titleKey, bodyKey },
-});
 
 export const CLIENT_ROUTES: Routes = [
   {
@@ -21,7 +14,11 @@ export const CLIENT_ROUTES: Routes = [
         title: 'pages.clientHome',
         loadComponent: () => import('./client-home').then((m) => m.ClientHome),
       },
-      placeholder('settings', 'pages.clientSettings'),
+      {
+        path: 'settings',
+        title: 'pages.clientSettings',
+        loadComponent: () => import('./client-settings').then((m) => m.ClientSettings),
+      },
       {
         path: ':projectId',
         canActivate: [clientProjectGuard],
@@ -36,12 +33,12 @@ export const CLIENT_ROUTES: Routes = [
           {
             path: 'decisions',
             title: 'pages.decisions',
-            ...tab('placeholders.clientDecisionsTitle', 'placeholders.clientDecisionsBody'),
+            loadComponent: () => import('./client-decisions').then((m) => m.ClientDecisions),
           },
           {
             path: 'visit',
             title: 'pages.visit',
-            ...tab('placeholders.clientVisitTitle', 'placeholders.clientVisitBody'),
+            loadComponent: () => import('./client-visits').then((m) => m.ClientVisits),
           },
         ],
       },

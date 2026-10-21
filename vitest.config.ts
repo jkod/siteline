@@ -5,6 +5,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
-    include: ['shared/src/**/*.spec.ts', 'functions/src/**/*.spec.ts', 'web/i18n.spec.ts'],
+    include: [
+      'shared/src/**/*.spec.ts',
+      'functions/src/**/*.spec.ts',
+      'web/i18n.spec.ts',
+      'web/icons.spec.ts',
+    ],
   },
 });

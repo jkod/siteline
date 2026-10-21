@@ -3,6 +3,7 @@ import type { Locale, Project, StaffMember, UserDoc } from '@siteline/shared';
 
 export interface StaffRecipient {
   uid: string;
+  role: StaffMember['role'];
   email: string | null;
   phone: string | null;
   locale: Locale;
@@ -26,6 +27,7 @@ export async function projectStaff(
       const user = (await db.doc(`users/${doc.id}`).get()).data() as UserDoc | undefined;
       return {
         uid: doc.id,
+        role: member.role,
         email: member.email ?? user?.email ?? null,
         phone: member.phone ?? null,
         locale: user?.locale ?? 'sv',

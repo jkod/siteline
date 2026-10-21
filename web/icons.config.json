@@ -1,0 +1,30 @@
+{
+  "$comment": "Material Symbols for the web app, the same set as the Android app. Change style, weight or fill, then run `npm run icons`. style: outlined | rounded | sharp. weight: 100-700 (weights other than 400 need the matching @material-symbols/svg-<weight> package). Add icon names from https://fonts.google.com/icons as they're used.",
+  "style": "outlined",
+  "weight": 400,
+  "fill": false,
+  "icons": [
+    "add",
+    "calendar_today",
+    "cancel",
+    "chat_bubble",
+    "check",
+    "check_circle",
+    "chevron_left",
+    "chevron_right",
+    "close",
+    "download",
+    "error",
+    "flag",
+    "group",
+    "ios_share",
+    "logout",
+    "mail",
+    "person_add",
+    "photo_camera",
+    "search",
+    "swap_vert",
+    "warning",
+    "wifi_off"
+  ]
+}

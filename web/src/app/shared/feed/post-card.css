@@ -79,3 +79,34 @@
 .link:hover {
   background: var(--sl-panel);
 }
+.done,
+.flags,
+.next-time ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sl-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.done li,
+.flags li {
+  display: flex;
+  align-items: center;
+  gap: var(--sl-space-2);
+}
+.done sl-icon {
+  color: var(--sl-accent-text);
+}
+.flags li {
+  color: var(--sl-alert-text);
+  font-weight: 600;
+}
+.next-time {
+  padding: var(--sl-space-3);
+  background: var(--sl-panel);
+  border-radius: var(--sl-radius-panel);
+}
+.next-time li::before {
+  content: '• ';
+}

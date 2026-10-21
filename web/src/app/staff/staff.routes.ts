@@ -31,7 +31,7 @@ export const STAFF_ROUTES: Routes = [
         path: 'clients/new',
         title: 'pages.newClient',
         ...managers,
-        ...tab('pages.newClient', 'placeholders.serviceClients'),
+        loadComponent: () => import('./new-service-client').then((m) => m.NewServiceClient),
       },
       {
         path: 'projects/:projectId',
@@ -46,12 +46,13 @@ export const STAFF_ROUTES: Routes = [
           {
             path: 'decisions',
             title: 'pages.decisions',
-            ...tab('placeholders.decisionsTitle', 'placeholders.decisionsBody'),
+            loadComponent: () =>
+              import('./project/project-decisions').then((m) => m.ProjectDecisions),
           },
           {
             path: 'visit',
             title: 'pages.visit',
-            ...tab('placeholders.visitTitle', 'placeholders.visitBody'),
+            loadComponent: () => import('./project/project-visits').then((m) => m.ProjectVisits),
           },
           {
             path: 'people',

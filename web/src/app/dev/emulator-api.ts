@@ -49,6 +49,33 @@ export async function listDevMessages(): Promise<DevMessage[]> {
   });
 }
 
+export interface HeldMessage {
+  id: string;
+  channel: string;
+  template: string;
+  sendAfter: string;
+}
+
+/** Messages the outbox is holding back, such as client texts during quiet hours. */
+export async function listHeldMessages(): Promise<HeldMessage[]> {
+  const { host, port } = environment.emulatorHosts.firestore;
+  const url = `http://${host}:${port}/v1/projects/${projectId}/databases/(default)/documents/outbox?pageSize=200`;
+  const response = await fetch(url, { headers: { Authorization: 'Bearer owner' } });
+  if (!response.ok) throw new Error(`Firestore emulator responded ${response.status}`);
+  const body = (await response.json()) as { documents?: FirestoreDocument[] };
+  const now = Date.now();
+  return (body.documents ?? [])
+    .map((doc) => ({
+      id: doc.name.split('/').pop() ?? '',
+      channel: doc.fields?.['channel']?.stringValue ?? '',
+      template: doc.fields?.['template']?.stringValue ?? '',
+      status: doc.fields?.['status']?.stringValue ?? '',
+      sendAfter: doc.fields?.['sendAfter']?.timestampValue ?? '',
+    }))
+    .filter((m) => m.status === 'queued' && Date.parse(m.sendAfter) > now)
+    .map(({ status: _status, ...m }) => m);
+}
+
 export async function listSignInLinks(): Promise<SignInLink[]> {
   const response = await fetch(
     `${environment.emulatorHosts.auth}/emulator/v1/projects/${projectId}/oobCodes`,

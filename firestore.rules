@@ -50,6 +50,14 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(uid())).data.name;
     }
 
+    function postVisibleToClients(projectId, postId) {
+      return get(/databases/$(database)/documents/projects/$(projectId)/posts/$(postId)).data.visibility == 'all';
+    }
+
+    function isOptionalTimestamp(value) {
+      return value == null || value is timestamp;
+    }
+
     function changedOnly(keys) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
     }
@@ -89,9 +97,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if signedIn() && uid() == userId;
       allow update: if signedIn() && uid() == userId
-        && changedOnly(['name', 'locale', 'updatedAt'])
+        && changedOnly(['name', 'locale', 'feedStyle', 'updatedAt'])
         && isName(request.resource.data.name)
         && request.resource.data.locale in ['sv', 'en']
+        && request.resource.data.get('feedStyle', 'feed') in ['feed', 'chat']
         && request.resource.data.updatedAt == request.time;
     }
 
@@ -154,7 +163,10 @@ service cloud.firestore {
       }
 
       match /posts/{postId} {
-        allow read: if isProjectMember(projectData(projectId));
+        // Staff see everything; clients only posts for everyone, never decision drafts.
+        // Client queries therefore filter on visibility == 'all'.
+        allow read: if isProjectStaff(projectData(projectId))
+          || (isProjectClient(projectData(projectId)) && resource.data.visibility == 'all');
 
         // Staff post updates and milestones; clients ask questions.
         allow create: if isProjectMember(projectData(projectId))
@@ -221,9 +233,11 @@ service cloud.firestore {
         }
 
         match /comments/{commentId} {
-          allow read: if isProjectMember(projectData(projectId));
+          allow read: if isProjectStaff(projectData(projectId))
+            || (isProjectClient(projectData(projectId)) && postVisibleToClients(projectId, postId));
 
-          allow create: if isProjectMember(projectData(projectId))
+          allow create: if (isProjectStaff(projectData(projectId))
+              || (isProjectClient(projectData(projectId)) && postVisibleToClients(projectId, postId)))
             && exists(/databases/$(database)/documents/projects/$(projectId)/posts/$(postId))
             && request.resource.data.keys().hasOnly([
               'authorUid', 'authorName', 'authorRole', 'text', 'media', 'createdAt', 'editedAt', 'deletedAt'])
@@ -253,7 +267,111 @@ service cloud.firestore {
         }
       }
 
-      // Decisions, approvals, visits, checklist and handover arrive in later milestones.
+      // Write-once evidence of decisions, written by respondToDecision. Readable by the project,
+      // never changed or deleted through the client SDK (PRD section 10).
+      match /approvals/{approvalId} {
+        allow read: if isProjectMember(projectData(projectId));
+      }
+
+      // Visits: staff plan, move, cancel and complete them; reports go through postVisitReport.
+      match /visits/{visitId} {
+        allow read: if isProjectMember(projectData(projectId));
+
+        allow create: if isProjectStaff(projectData(projectId))
+          && request.resource.data.keys().hasOnly([
+            'companyId', 'startAt', 'endAt', 'people', 'notes', 'status', 'fromSchedule',
+            'reportPostId', 'createdAt', 'updatedAt'])
+          && request.resource.data.companyId == projectData(projectId).companyId
+          && isVisitFields(request.resource.data)
+          && request.resource.data.status == 'planned'
+          && request.resource.data.fromSchedule == false
+          && request.resource.data.reportPostId == null
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+
+        allow update: if isProjectStaff(projectData(projectId))
+          && changedOnly(['startAt', 'endAt', 'people', 'notes', 'status', 'updatedAt'])
+          && isVisitFields(request.resource.data)
+          && request.resource.data.updatedAt == request.time;
+
+        function isVisitFields(data) {
+          return data.startAt is timestamp
+            && (data.endAt == null || (data.endAt is timestamp && data.endAt > data.startAt))
+            && (data.people == null || (data.people is int && data.people >= 1 && data.people <= 50))
+            && isText(data.notes, 500)
+            && data.status in ['planned', 'done', 'cancelled'];
+        }
+      }
+
+      // The shared checklist (PRD F7). Anyone on the project adds items for either side; staff
+      // tick any item, clients only client items; ticks can be undone within 24 hours.
+      match /checklist/{itemId} {
+        allow read: if isProjectMember(projectData(projectId));
+
+        allow create: if isProjectMember(projectData(projectId))
+          && request.resource.data.keys().hasOnly([
+            'text', 'side', 'visitId', 'createdBy', 'createdByName', 'createdAt', 'doneBy',
+            'doneByName', 'doneAt'])
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 200
+          && request.resource.data.side in ['client', 'firm']
+          && (request.resource.data.visitId == null || request.resource.data.visitId is string)
+          && request.resource.data.createdBy == uid()
+          && request.resource.data.createdByName == callerName()
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.doneBy == null
+          && request.resource.data.doneByName == null
+          && request.resource.data.doneAt == null;
+
+        allow update: if mayTick(resource.data) && (
+          // Tick.
+          (resource.data.doneAt == null
+            && changedOnly(['doneBy', 'doneByName', 'doneAt'])
+            && request.resource.data.doneBy == uid()
+            && request.resource.data.doneByName == callerName()
+            && request.resource.data.doneAt == request.time)
+          // Untick, within 24 hours.
+          || (resource.data.doneAt != null
+            && request.time < resource.data.doneAt + duration.value(24, 'h')
+            && changedOnly(['doneBy', 'doneByName', 'doneAt'])
+            && request.resource.data.doneBy == null
+            && request.resource.data.doneByName == null
+            && request.resource.data.doneAt == null)
+        ) || (
+          // The creator edits the text of an open item.
+          resource.data.createdBy == uid()
+            && resource.data.doneAt == null
+            && changedOnly(['text'])
+            && request.resource.data.text is string
+            && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 200
+        );
+
+        allow delete: if signedIn() && resource.data.createdBy == uid() && resource.data.doneAt == null
+          && isProjectMember(projectData(projectId));
+
+        function mayTick(item) {
+          return isProjectStaff(projectData(projectId))
+            || (isProjectClient(projectData(projectId)) && item.side == 'client');
+        }
+      }
+
+      // Requests to move or cancel a visit go through requestVisitChange and
+      // respondVisitChange; the project can read them.
+      match /visitRequests/{requestId} {
+        allow read: if isProjectMember(projectData(projectId));
+      }
+
+      // Handover arrives in M4.
+    }
+
+    // Visit report templates, readable by the company's staff (PRD 4.4).
+    match /companies/{companyId}/templates/{templateId} {
+      allow read: if isStaffOf(companyId);
+    }
+
+    // Today's visits across a company, for owners and admins (crew query per project).
+    match /{path=**}/visits/{visitId} {
+      allow read: if isManagerOf(resource.data.companyId);
     }
 
     // Everything else, including invites, the outbox, approvals, rate limits and devOutbox, is

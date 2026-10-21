@@ -20,6 +20,22 @@ import { environment } from '../../environments/environment';
  * Owns the Firebase app. Auth starts eagerly because guards need it on the first navigation;
  * Firestore, Functions and Storage load on first use, which keeps them out of the initial bundle.
  */
+/**
+ * Drops undefined values: the callable protocol sends them as null, which optional fields in
+ * the shared schemas would reject.
+ */
+export function withoutUndefined<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(withoutUndefined) as T;
+  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, withoutUndefined(v)]),
+    ) as T;
+  }
+  return value;
+}
+
 @Injectable({ providedIn: 'root' })
 export class FirebaseService {
   readonly app = initializeApp(environment.firebase);
@@ -83,7 +99,7 @@ export class FirebaseService {
       this.functions(),
       import('firebase/functions'),
     ]);
-    const result = await httpsCallable<Req, Res>(functions, name)(data);
+    const result = await httpsCallable<Req, Res>(functions, name)(withoutUndefined(data));
     return result.data;
   }
 

@@ -1,0 +1,167 @@
+@if (project(); as p) {
+  @if (requests()?.length) {
+    <section class="sl-stack" aria-labelledby="requests-title">
+      <h2 id="requests-title">{{ 'visits.requests' | translate }}</h2>
+      @for (request of requests(); track request.id) {
+        <article slCard class="request">
+          <p>
+            <strong>{{ request.createdByName }}</strong>
+            {{
+              (request.kind === 'move' ? 'visits.wantsToMove' : 'visits.wantsToCancel')
+                | translate: { when: (visitFor(request)?.startAt | slDate: 'visit') }
+            }}
+            @if (request.kind === 'move' && request.proposedStartAt) {
+              {{
+                'visits.proposed' | translate: { when: (request.proposedStartAt | slDate: 'visit') }
+              }}
+            }
+          </p>
+          @if (request.note) {
+            <p class="sl-small">“{{ request.note }}”</p>
+          }
+          <div class="row">
+            <button slButton type="button" (click)="answer(request, true)">
+              {{ 'visits.accept' | translate }}
+            </button>
+            @if (request.kind === 'move') {
+              <button slButton="secondary" type="button" (click)="suggest(request)">
+                {{ 'visits.suggestOther' | translate }}
+              </button>
+            }
+            <button slButton="ghost" type="button" (click)="answer(request, false)">
+              {{ 'visits.decline' | translate }}
+            </button>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  @if (schedule(); as s) {
+    <section slCard="panel" class="schedule">
+      <p>
+        {{
+          (s.interval === 2 ? 'visits.scheduleBiweekly' : 'visits.scheduleWeekly')
+            | translate: { days: s.days, time: s.time, minutes: s.minutes }
+        }}
+      </p>
+      @if (isTutoring()) {
+        <label class="check">
+          <input
+            type="checkbox"
+            [checked]="!!p.photoConsentAt"
+            (change)="setConsent($any($event.target).checked)"
+          />
+          <span>
+            {{ 'visits.photoConsent' | translate }}
+            <span class="sl-small">{{ 'visits.photoConsentHint' | translate }}</span>
+          </span>
+        </label>
+      }
+    </section>
+  }
+
+  <section class="sl-stack" aria-labelledby="next-title">
+    <div class="title-row">
+      <h2 id="next-title">{{ 'pages.visit' | translate }}</h2>
+      <button slButton="secondary" type="button" (click)="edit()">
+        <sl-icon name="add" [size]="18" />
+        {{ 'visits.book' | translate }}
+      </button>
+    </div>
+    @if (next(); as v) {
+      <article slCard class="sl-stack">
+        <sl-visit-summary [visit]="v" />
+        <div class="row">
+          @if (isService()) {
+            @if (canReport(v)) {
+              <button slButton type="button" (click)="openReport(v)">
+                {{ 'visits.report' | translate }}
+              </button>
+            }
+          } @else {
+            <button slButton type="button" (click)="markDone(v)">
+              {{ 'visits.markDone' | translate }}
+            </button>
+          }
+          <button slButton="secondary" type="button" (click)="edit(v)">
+            {{ 'visits.change' | translate }}
+          </button>
+          <button slButton="ghost" type="button" (click)="cancel(v)">
+            {{ 'visits.cancel' | translate }}
+          </button>
+        </div>
+      </article>
+    } @else if (next() === null) {
+      <sl-empty-state
+        [title]="'placeholders.visitTitle' | translate"
+        [body]="'visits.noneBody' | translate"
+      />
+    }
+  </section>
+
+  <section slCard class="sl-stack" aria-labelledby="checklist-title">
+    <h2 id="checklist-title">{{ 'checklist.title' | translate }}</h2>
+    <sl-checklist [projectId]="p.id" [visitId]="p.nextVisitId" mode="staff" />
+  </section>
+
+  @if (unreported().length) {
+    <section class="sl-stack" aria-labelledby="unreported-title">
+      <h2 id="unreported-title">{{ 'visits.unreported' | translate }}</h2>
+      <ul class="visits">
+        @for (v of unreported(); track v.id) {
+          <li slCard class="visit-row">
+            <span class="when">{{ v.startAt | slDate: 'visit' }}</span>
+            @if (isService()) {
+              <button slButton type="button" (click)="openReport(v)">
+                {{ 'visits.report' | translate }}
+              </button>
+            } @else {
+              <button slButton type="button" (click)="markDone(v)">
+                {{ 'visits.markDone' | translate }}
+              </button>
+            }
+            <button slButton="ghost" type="button" (click)="cancel(v)">
+              {{ 'visits.cancel' | translate }}
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (isService() && upcoming().length > 1) {
+    <section class="sl-stack" aria-labelledby="upcoming-title">
+      <h2 id="upcoming-title">{{ 'visits.upcoming' | translate }}</h2>
+      <ul class="visits">
+        @for (v of upcoming().slice(1); track v.id) {
+          <li class="visit-row plain">
+            <span class="when">{{ v.startAt | slDate: 'visit' }}</span>
+            <button slButton="ghost" type="button" (click)="edit(v)">
+              {{ 'visits.change' | translate }}
+            </button>
+            <button slButton="ghost" type="button" (click)="cancel(v)">
+              {{ 'visits.cancel' | translate }}
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (history().length) {
+    <section class="sl-stack" aria-labelledby="history-title">
+      <h2 id="history-title">{{ 'visits.history' | translate }}</h2>
+      <ul class="visits">
+        @for (v of history(); track v.id) {
+          <li class="visit-row plain">
+            <span class="when">{{ v.startAt | slDate: 'visit' }}</span>
+            <span class="sl-badge sl-badge--neutral">{{
+              'visits.status.' + v.status | translate
+            }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+}

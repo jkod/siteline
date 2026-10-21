@@ -32,6 +32,14 @@ const FUNCTION_REASONS = new Set([
   'clients_cannot_join',
   'unknown_crew',
   'rate_limited',
+  'decision_not_open',
+  'decision_changed',
+  'decision_not_draft',
+  'crew_cannot_send_priced',
+  'photos_need_consent',
+  'already_reported',
+  'visit_not_open',
+  'request_not_open',
 ]);
 
 /** Errors that need no message, such as closing the Google sign-in popup. */

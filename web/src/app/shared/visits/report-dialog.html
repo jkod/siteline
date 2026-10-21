@@ -1,0 +1,176 @@
+<form class="body" (submit)="send($event)">
+  <h2 [id]="titleId">{{ 'report.title' | translate: { when: data.when } }}</h2>
+
+  <fieldset>
+    <legend>{{ 'report.done' | translate }}</legend>
+    @for (item of data.template.items; track item.id) {
+      <label class="check">
+        <input
+          type="checkbox"
+          [checked]="checked().has(item.id)"
+          (change)="toggle(item.id, $any($event.target).checked)"
+        />
+        {{ item.label }}
+      </label>
+    }
+  </fieldset>
+
+  @if (data.template.fields.rating) {
+    <fieldset>
+      <legend>{{ 'report.howItWent' | translate }}</legend>
+      <div class="segments">
+        @for (r of ratings; track r) {
+          <button
+            type="button"
+            [attr.aria-pressed]="rating() === r"
+            (click)="rating.set(rating() === r ? null : r)"
+          >
+            {{ 'report.rating.' + r | translate }}
+          </button>
+        }
+      </div>
+    </fieldset>
+  }
+
+  @if (data.template.fields.note) {
+    <label class="field">
+      <span class="label">{{
+        (data.template.trade === 'tutoring' ? 'report.noteParent' : 'report.note') | translate
+      }}</span>
+      <textarea
+        class="sl-input"
+        rows="3"
+        maxlength="2000"
+        [value]="note()"
+        (input)="note.set($any($event.target).value)"
+      ></textarea>
+    </label>
+  }
+
+  @if (data.template.fields.flags) {
+    <div class="field">
+      <label class="label" for="report-flag">{{ 'report.flags' | translate }}</label>
+      <ul class="chips">
+        @for (flag of flags(); track $index; let i = $index) {
+          <li>
+            {{ flag }}
+            <button
+              type="button"
+              [attr.aria-label]="'report.removeItem' | translate: { text: flag }"
+              (click)="removeFrom('flags', i)"
+            >
+              <sl-icon name="close" [size]="14" />
+            </button>
+          </li>
+        }
+      </ul>
+      <div class="row">
+        <input
+          #flagInput
+          id="report-flag"
+          class="sl-input"
+          type="text"
+          maxlength="200"
+          [placeholder]="'report.flagPlaceholder' | translate"
+          (keydown.enter)="$event.preventDefault(); addTo('flags', flagInput)"
+        />
+        <button
+          slButton="secondary"
+          icon
+          type="button"
+          [attr.aria-label]="'report.addFlag' | translate"
+          (click)="addTo('flags', flagInput)"
+        >
+          <sl-icon name="add" [size]="18" />
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (data.template.fields.nextTime) {
+    <div class="field">
+      <label class="label" for="report-next">{{
+        (data.template.trade === 'tutoring' ? 'report.practice' : 'report.nextTime') | translate
+      }}</label>
+      <ul class="chips">
+        @for (item of nextTime(); track $index; let i = $index) {
+          <li>
+            {{ item }}
+            <button
+              type="button"
+              [attr.aria-label]="'report.removeItem' | translate: { text: item }"
+              (click)="removeFrom('nextTime', i)"
+            >
+              <sl-icon name="close" [size]="14" />
+            </button>
+          </li>
+        }
+      </ul>
+      <div class="row">
+        <input
+          #nextInput
+          id="report-next"
+          class="sl-input"
+          type="text"
+          maxlength="200"
+          (keydown.enter)="$event.preventDefault(); addTo('nextTime', nextInput)"
+        />
+        <button
+          slButton="secondary"
+          icon
+          type="button"
+          [attr.aria-label]="'report.addNextTime' | translate"
+          (click)="addTo('nextTime', nextInput)"
+        >
+          <sl-icon name="add" [size]="18" />
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (data.photosAllowed) {
+    <div class="photos">
+      @if (data.template.trade === 'tutoring') {
+        <p class="sl-small">{{ 'report.photoReminder' | translate }}</p>
+      }
+      @for (photo of photos(); track photo.path) {
+        <sl-storage-image [path]="photo.thumbPath" alt="" />
+      }
+      <input
+        #files
+        type="file"
+        accept="image/*"
+        multiple
+        class="sl-visually-hidden"
+        tabindex="-1"
+        aria-hidden="true"
+        (change)="addPhotos($any($event.target).files)"
+      />
+      <button
+        slButton="secondary"
+        type="button"
+        [busy]="uploading()"
+        [disabled]="uploading()"
+        (click)="files.click()"
+      >
+        <sl-icon name="photo_camera" [size]="18" />
+        {{ 'composer.photo' | translate }}
+      </button>
+    </div>
+  }
+
+  <div class="actions">
+    <button slButton="ghost" type="button" (click)="ref.close()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button
+      slButton
+      size="large"
+      type="submit"
+      [busy]="sending()"
+      [disabled]="sending() || uploading()"
+    >
+      {{ 'report.send' | translate }}
+    </button>
+  </div>
+</form>

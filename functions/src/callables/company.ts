@@ -3,6 +3,7 @@ import { type CallableRequest, onCall } from 'firebase-functions/https';
 import {
   type Company,
   createCompanyInput,
+  DEFAULT_TEMPLATES,
   PLAN_LIMITS,
   type StaffMember,
   TIME_ZONE,
@@ -68,6 +69,10 @@ export async function createCompanyHandler(request: CallableRequest<unknown>) {
   batch.create(company, companyData);
   batch.create(company.collection('staff').doc(caller.uid), staff);
   batch.set(db.doc(`users/${caller.uid}`), { createdAt: now, ...user }, { merge: true });
+  // Default visit report templates, editable per company (PRD 4.4).
+  for (const [trade, template] of Object.entries(DEFAULT_TEMPLATES)) {
+    batch.create(company.collection('templates').doc(trade), template);
+  }
   await batch.commit();
   await setStaffClaims(auth, caller.uid, { cid: company.id, crole: 'owner' });
   return { companyId: company.id };

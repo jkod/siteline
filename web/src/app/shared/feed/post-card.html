@@ -31,7 +31,7 @@
       @case ('milestone') {
         <div class="milestone-body">
           <p class="sl-label stage">
-            <svg lucideFlag [size]="16"></svg>
+            <sl-icon name="flag" [size]="16" />
             @let m = p.milestone;
             @if (m && m.stage && m.stageCount) {
               {{ 'feed.stageOf' | translate: { stage: m.stage, count: m.stageCount } }}
@@ -45,8 +45,45 @@
       @case ('question') {
         <p class="sl-label">{{ 'feed.question' | translate }}</p>
       }
+      @case ('decision') {
+        <sl-decision-card
+          [post]="p"
+          [projectId]="projectId()"
+          [viewerIsStaff]="viewerIsStaff()"
+          (ask)="showComments.set(true)"
+        />
+      }
+      @case ('visit_report') {
+        @let r = p.report;
+        <p class="sl-label">{{ 'report.label' | translate }}</p>
+        @if (r) {
+          @if (r.done.length) {
+            <ul class="done">
+              @for (item of r.done; track item.itemId) {
+                @if (item.checked) {
+                  <li><sl-icon name="check" [size]="16" />{{ item.label }}</li>
+                }
+              }
+            </ul>
+          }
+          @if (r.rating) {
+            <p>
+              <span class="sl-badge sl-badge--accent">{{
+                'report.rating.' + r.rating | translate
+              }}</span>
+            </p>
+          }
+          @if (r.flags?.length) {
+            <ul class="flags">
+              @for (flag of r.flags; track flag) {
+                <li><sl-icon name="warning" [size]="16" />{{ flag }}</li>
+              }
+            </ul>
+          }
+        }
+      }
     }
-    @if (p.type !== 'milestone') {
+    @if (p.type !== 'milestone' && p.type !== 'decision') {
       @if (editing()) {
         <label class="sl-visually-hidden" [attr.for]="'edit-post-' + p.id">{{
           'feed.editPost' | translate
@@ -71,6 +108,16 @@
         <p class="text">{{ p.text }}</p>
       }
     }
+    @if (p.type === 'visit_report' && p.report?.nextTime?.length && p.report.nextTime) {
+      <div class="next-time">
+        <p class="sl-label">{{ 'report.nextTime' | translate }}</p>
+        <ul>
+          @for (item of p.report.nextTime; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </div>
+    }
     @if (p.media.length) {
       <sl-photo-grid [media]="p.media" [alt]="photoAlt()" />
     }
@@ -85,7 +132,7 @@
         [attr.aria-controls]="'comments-' + p.id"
         (click)="showComments.set(!commentsOpen())"
       >
-        <svg lucideMessageCircle [size]="18"></svg>
+        <sl-icon name="chat_bubble" [size]="18" />
         @if (p.commentCount === 0) {
           {{ 'feed.comment' | translate }}
         } @else {
@@ -99,7 +146,7 @@
         {{ 'feed.markResolved' | translate }}
       </button>
     }
-    @if (isOwn() && !isDeleted() && !editing()) {
+    @if (isOwn() && editable() && !isDeleted() && !editing()) {
       @if (p.type !== 'milestone') {
         <button type="button" class="link" (click)="startEdit()">
           {{ 'common.edit' | translate }}

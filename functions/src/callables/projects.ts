@@ -14,7 +14,7 @@ import {
 
 import { db } from '../lib/admin';
 import { brandingFor } from '../lib/branding';
-import { assertProjectManager, requireManager } from '../lib/context';
+import { assertProjectManager, requireManager, type StaffCaller } from '../lib/context';
 import { callableOptions } from '../lib/env';
 import { CLIENT_LINK_DAYS_AFTER_COMPLETION, setClientInviteExpiry } from '../lib/invites';
 import { parseInput } from '../lib/validate';
@@ -62,10 +62,22 @@ function crewMember(name: string): ProjectMember<FieldValue> {
   };
 }
 
-/** Creates a project, enforcing the plan's limit for its kind in a transaction (PRD F2). */
-export async function createProjectHandler(request: CallableRequest<unknown>) {
-  const caller = requireManager(request);
-  const input = parseInput(createProjectInput, request.data);
+export interface NewProject {
+  kind: ProjectKind;
+  title: string;
+  address: Project['address'];
+  startDate: string | null;
+  endDate: string | null;
+  crewUids: string[];
+  schedule?: Project['schedule'];
+  templateId?: string | null;
+}
+
+/**
+ * Creates a project or service client, enforcing the plan's limit for its kind in a transaction
+ * (PRD F2). Shared by createProject and createServiceClient.
+ */
+export async function createProjectRecord(caller: StaffCaller, input: NewProject): Promise<string> {
   const companyRef = db.doc(`companies/${caller.companyId}`);
   const projectRef = db.collection('projects').doc();
   const branding = await brandingFor((await companyRef.get()).data() as Company);
@@ -82,7 +94,9 @@ export async function createProjectHandler(request: CallableRequest<unknown>) {
       kind: input.kind,
       title: input.title,
       address: input.address,
-      schedule: null,
+      schedule: input.schedule ?? null,
+      templateId: input.templateId ?? null,
+      photoConsentAt: null,
       status: 'active',
       startDate: input.startDate,
       endDate: input.endDate,
@@ -102,7 +116,14 @@ export async function createProjectHandler(request: CallableRequest<unknown>) {
       tx.create(projectRef.collection('members').doc(c.uid), crewMember(c.name));
     tx.update(companyRef, { [`usage.${usageKey(input.kind)}`]: FieldValue.increment(1) });
   });
-  return { projectId: projectRef.id };
+  return projectRef.id;
+}
+
+/** Creates a project (PRD F2). */
+export async function createProjectHandler(request: CallableRequest<unknown>) {
+  const caller = requireManager(request);
+  const input = parseInput(createProjectInput, request.data);
+  return { projectId: await createProjectRecord(caller, input) };
 }
 
 /**

@@ -3,7 +3,6 @@ import { Component, inject, input, signal } from '@angular/core';
 import { email, form, FormField, required, submit } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 
-import { LucideMail } from '@lucide/angular';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { environment } from '../../environments/environment';
@@ -13,6 +12,7 @@ import { Session } from '../core/session';
 import { Button } from '../shared/ui/button';
 import { Card } from '../shared/ui/card';
 import { Field, Input } from '../shared/ui/field';
+import { Icon } from '../shared/ui/icon';
 import { LanguageSwitch } from '../shared/ui/language-switch';
 import { Toasts } from '../shared/ui/toast';
 import { safeReturnUrl } from './return-url';
@@ -21,11 +21,11 @@ import { safeReturnUrl } from './return-url';
 @Component({
   selector: 'sl-login',
   imports: [
+    Icon,
     NgOptimizedImage,
     TranslatePipe,
     FormField,
     RouterLink,
-    LucideMail,
     Button,
     Card,
     Field,

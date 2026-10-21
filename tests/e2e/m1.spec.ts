@@ -76,7 +76,9 @@ test('staff create a project and invite a client, who asks a question that staff
 
 test('a photo update is resized, stripped of GPS and shows for staff and clients', async ({
   page,
-}) => {
+}, testInfo) => {
+  // Both browser projects post to the same project, so each run's text is its own.
+  const text = `Golvet är spacklat (${testInfo.project.name}).`;
   // A 3000 px photo with GPS data in its Exif.
   const photoPage = await page.context().newPage();
   await photoPage.setViewportSize({ width: 3000, height: 2000 });
@@ -92,17 +94,17 @@ test('a photo update is resized, stripped of GPS and shows for staff and clients
 
   await signIn(page, 'erik@eklind.example');
   await page.goto('/app/projects/lindqvist-kok');
-  await page.getByLabel('Skriv en uppdatering').fill('Golvet är spacklat.');
+  await page.getByLabel('Skriv en uppdatering').fill(text);
   await page
     .locator('sl-composer input[type=file]')
     .setInputFiles({ name: 'golv.jpg', mimeType: 'image/jpeg', buffer: fixture });
   await page.getByRole('button', { name: 'Publicera' }).click();
-  const post = page.locator('sl-post-card').filter({ hasText: 'Golvet är spacklat.' });
+  const post = page.locator('sl-post-card').filter({ hasText: text });
   await expect(post.getByRole('button', { name: /Öppna foto 1 av 1/ })).toBeVisible({
     timeout: 15_000,
   });
 
-  const [path] = await postMedia('lindqvist-kok', 'Golvet är spacklat.');
+  const [path] = await postMedia('lindqvist-kok', text);
   const stored = await downloadStorageFile(path!);
   expect(hasExif(stored)).toBe(false);
   const size = jpegSize(stored);

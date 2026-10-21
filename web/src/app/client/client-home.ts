@@ -16,7 +16,10 @@ import { EmptyState } from '../shared/ui/empty-state';
   imports: [TranslatePipe, RouterLink, DatePipe, Brand, EmptyState],
   template: `
     <main class="sl-page sl-stack" id="main">
-      <h1>{{ 'clientHome.greeting' | translate: { name: firstName() } }}</h1>
+      <div class="title-row">
+        <h1>{{ 'clientHome.greeting' | translate: { name: firstName() } }}</h1>
+        <a routerLink="/c/settings">{{ 'pages.clientSettings' | translate }}</a>
+      </div>
       @if (projects(); as list) {
         @if (list.length) {
           <ul class="projects">
@@ -56,6 +59,19 @@ import { EmptyState } from '../shared/ui/empty-state';
     </main>
   `,
   styles: `
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sl-space-3);
+    }
+    .title-row a {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--sl-target);
+      font-weight: 600;
+    }
     .projects {
       display: flex;
       flex-direction: column;
