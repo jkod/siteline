@@ -16,6 +16,7 @@ import { errorMessageKey, errorReason } from '../core/errors';
 import { FirebaseService } from '../core/firebase';
 import { Language } from '../core/language';
 import { useFirestore } from '../core/live';
+import { forgetReferralCode, pendingReferralCode } from '../core/referral-code';
 import { Session } from '../core/session';
 import { BrandPreview } from '../shared/ui/brand-preview';
 import { Button } from '../shared/ui/button';
@@ -121,7 +122,9 @@ export class Onboarding {
             orgNumber: c.orgNumber,
             accentColor: c.accentColor,
             locale: c.locale,
+            referralCode: pendingReferralCode() ?? undefined,
           });
+          forgetReferralCode();
           await this.session.refreshClaims();
           await this.language.use(c.locale);
           await this.uploadLogo(companyId);

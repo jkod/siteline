@@ -308,3 +308,22 @@ describe('decision lifecycle', () => {
     );
   });
 });
+
+describe('Today list support (F14)', () => {
+  it('keeps the send time of the longest-waiting open decision on the project', async () => {
+    const { owner, client, projectId } = await setup();
+    expect((await totals(projectId)).oldestOpenDecisionAt ?? null).toBeNull();
+    const first = await draftAndSend(owner, projectId);
+    const second = await draftAndSend(owner, projectId, { ...extraWork, title: 'Extra uttag' });
+    const firstSent = (await post(projectId, first))['decision'].sentAt;
+    expect((await totals(projectId)).oldestOpenDecisionAt).toEqual(firstSent);
+
+    await respondToDecisionHandler(
+      request(client, { projectId, postId: first, version: 1, outcome: 'approved' }),
+    );
+    const secondSent = (await post(projectId, second))['decision'].sentAt;
+    expect((await totals(projectId)).oldestOpenDecisionAt).toEqual(secondSent);
+    await withdrawDecisionHandler(request(owner, { projectId, postId: second }));
+    expect((await totals(projectId)).oldestOpenDecisionAt).toBeNull();
+  });
+});

@@ -110,3 +110,14 @@
 .next-time li::before {
   content: '• ';
 }
+
+.seen {
+  display: flex;
+  align-items: center;
+  gap: var(--sl-space-1);
+  font: var(--sl-text-small);
+  color: var(--sl-text-2);
+}
+.card.milestone .seen {
+  color: inherit;
+}

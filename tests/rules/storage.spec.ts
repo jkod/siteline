@@ -140,14 +140,14 @@ describe('company logo', () => {
 });
 
 describe('paths not opened yet', () => {
-  it.each([
-    'projects/p1/audio/a1.webm',
-    'projects/p1/attachments/f1/manual.pdf',
-    'projects/p1/handover/handover-v1.pdf',
-  ])('denies %s', async (path) => {
-    await assertFails(
-      uploadString(ref(storageAs(owner), path), 'x', 'raw', { contentType: 'application/pdf' }),
-    );
-    await assertFails(getBytes(ref(storageAs(owner), path)));
-  });
+  // Audio opened in M3; tests/rules/m3.spec.ts covers it.
+  it.each(['projects/p1/attachments/f1/manual.pdf', 'projects/p1/handover/handover-v1.pdf'])(
+    'denies %s',
+    async (path) => {
+      await assertFails(
+        uploadString(ref(storageAs(owner), path), 'x', 'raw', { contentType: 'application/pdf' }),
+      );
+      await assertFails(getBytes(ref(storageAs(owner), path)));
+    },
+  );
 });

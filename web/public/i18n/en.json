@@ -387,7 +387,8 @@
     "styleFeed": "Newest first",
     "styleChat": "Newest last",
     "showNewestFirst": "Newest last, switch to newest first",
-    "showNewestLast": "Newest first, switch to newest last like a chat"
+    "showNewestLast": "Newest first, switch to newest last like a chat",
+    "seenBy": "Seen by {{names}}"
   },
   "milestone": {
     "add": "Milestone",
@@ -449,7 +450,13 @@
     "activeProjects": "{{used}} of {{limit}} active projects",
     "serviceClients": "{{used}} of {{limit}} recurring clients",
     "staff": "{{used}} of {{limit}} staff",
-    "upgradeSoon": "Upgrading by card is coming soon. Get in touch and we'll help in the meantime."
+    "upgradeSoon": "Upgrading by card is coming soon. Get in touch and we'll help in the meantime.",
+    "referralsTitle": "Businesses referred",
+    "referrals": {
+      "one": "Your clients have brought {{count}} business to Siteline.",
+      "other": "Your clients have brought {{count}} businesses to Siteline."
+    },
+    "referralsHow": "Clients can invite other businesses they use. When one of them starts paying, you get a free month (arrives with payments)."
   },
   "redeem": {
     "working": "Opening your project…",
@@ -718,5 +725,130 @@
     "feed": "Newest first, like a feed",
     "chat": "Newest last, like a chat",
     "saved": "The order is saved."
+  },
+  "voice": {
+    "hold": "Hold to talk",
+    "stop": "Stop",
+    "recording": "Recording",
+    "recorded": "Recording done. Writing the draft.",
+    "noMicrophone": "We can't use the microphone. Allow it in your browser and try again.",
+    "tooShort": "The recording was too short. Hold the button while you talk.",
+    "failed": "We couldn't draft an update from the recording. Write it yourself.",
+    "transcriptOnly": "The draft couldn't be rewritten, so you get what you said word for word.",
+    "drafting": "Writing a draft of what you said …",
+    "review": "Draft from your recording. Read it through and edit before you post.",
+    "unsure": "Words marked [?] were hard to hear.",
+    "discard": "Discard draft"
+  },
+  "todo": {
+    "title": "To do",
+    "decisionsWaiting": {
+      "one": "A decision has waited over a day for an answer",
+      "other": "{{count}} decisions have waited over a day for an answer"
+    },
+    "questions": {
+      "one": "{{count}} unanswered question",
+      "other": "{{count}} unanswered questions"
+    },
+    "visitTomorrow": {
+      "one": "Visit tomorrow at {{time}}, {{count}} item open",
+      "other": "Visit tomorrow at {{time}}, {{count}} items open"
+    },
+    "quiet": {
+      "one": "Nothing new for {{count}} day",
+      "other": "Nothing new for {{count}} days"
+    }
+  },
+  "invite": {
+    "title": "Getting other work done at home?",
+    "body": "Invite them to Siteline, and everything is here, next to the others.",
+    "kind": "What kind of business?",
+    "kinds": {
+      "renovation": "Renovation and building",
+      "garden": "Garden",
+      "cleaning": "Cleaning",
+      "tutoring": "Tutoring",
+      "other": "Other"
+    },
+    "showFirstName": "Show my first name on the invite",
+    "share": "Share invite",
+    "private": "You send the link yourself. The business doesn't see your phone number or address.",
+    "message": "I get updates from my tradespeople in Siteline. You should try it too:",
+    "copied": "Link copied. Paste it into a message."
+  },
+  "referral": {
+    "title": "You've been invited to Siteline",
+    "titleNamed": "{{name}} invites you to Siteline",
+    "intro": {
+      "renovation": "Siteline brings photos, questions, decisions and extras for each renovation together, so your client always knows where things stand.",
+      "garden": "Siteline gives your garden clients a report after each visit, with photos and the next time.",
+      "cleaning": "Siteline gives your clients a short report after each clean and reminds them of the next time.",
+      "tutoring": "Siteline gives parents a report after each lesson, with what you covered and what to practise.",
+      "other": "Siteline brings updates, questions and decisions for your clients together in one place."
+    },
+    "point1": "Clients open a link, with no app and no password.",
+    "point2": "Post an update in a minute, or say it out loud.",
+    "point3": "Decisions and extras are approved with one tap and kept on record.",
+    "start": "Get started",
+    "free": "Free to start. No card needed."
+  },
+  "legal": {
+    "draft": "Draft. Counsel will replace this text before Siteline launches.",
+    "privacy": {
+      "who": {
+        "title": "Who is responsible",
+        "body": "Siteline is responsible for personal data in the service. The businesses using Siteline are responsible for what they add about their clients."
+      },
+      "what": {
+        "title": "What we hold",
+        "body": "Names, mobile numbers or emails, photos and text in project feeds, decisions with their times, and when you last opened a project."
+      },
+      "where": {
+        "title": "Where it is kept",
+        "body": "Everything is stored in the EU, in Google Cloud's region in Finland. Voice recordings are processed in the EU."
+      },
+      "why": {
+        "title": "Why we hold it",
+        "body": "To show you your projects, send the messages you chose and keep decisions on record. We measure how the service is used with our own statistics, with no third-party trackers."
+      },
+      "how_long": {
+        "title": "How long",
+        "body": "Voice recordings are deleted 30 days after their update is posted. Projects stay as long as the business keeps them, and deleted projects' files go within 30 days."
+      },
+      "rights": {
+        "title": "Your rights",
+        "body": "You can get a copy of your data, correct it or ask us to delete it. Contact us or the business you use."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Contact details will be added before launch."
+      }
+    },
+    "terms": {
+      "service": {
+        "title": "The service",
+        "body": "Siteline is a service where businesses share updates, questions and decisions with their clients."
+      },
+      "accounts": {
+        "title": "Accounts",
+        "body": "Each business decides which staff and clients have access. Links sent to clients should be treated like passwords."
+      },
+      "content": {
+        "title": "Content",
+        "body": "You own what you post. You allow us to store it and show it to the people who have access to the project."
+      },
+      "payment": {
+        "title": "Payment",
+        "body": "Paid plans and their terms will be added when payments arrive."
+      },
+      "liability": {
+        "title": "Liability",
+        "body": "We do our best to keep the service working, but aren't responsible for agreements between businesses and their clients."
+      },
+      "changes": {
+        "title": "Changes",
+        "body": "We give notice of changes to these terms in good time."
+      }
+    }
   }
 }

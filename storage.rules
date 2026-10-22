@@ -45,7 +45,17 @@ service firebase.storage {
         && request.resource.contentType == 'image/jpeg';
     }
 
-    // Audio, attachments and handover PDFs are opened in the milestones that add them.
+    // Voice recordings for drafts (PRD F5): staff on the project only, up to 5 MB. The
+    // draftFromVoice function reads them; nobody downloads them in the app.
+    match /projects/{projectId}/audio/{file} {
+      allow read: if isProjectStaff(projectId);
+      allow create: if isProjectStaff(projectId)
+        && file.matches('[A-Za-z0-9_-]{8,64}[.](webm|m4a|ogg)')
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('audio/(webm|mp4|ogg)(;.*)?');
+    }
+
+    // Attachments and handover PDFs are opened in M4.
     match /{allPaths=**} {
       allow read, write: if false;
     }

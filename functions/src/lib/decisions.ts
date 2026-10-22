@@ -1,4 +1,4 @@
-import type { Firestore } from 'firebase-admin/firestore';
+import { type Firestore, Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/https';
 import {
   agreedPrice,
@@ -103,8 +103,14 @@ export async function recountDecisions(db: Firestore, projectId: string): Promis
     .where('type', '==', 'decision')
     .get();
   const decisions = posts.docs.map((d) => (d.data() as Post).decision!).filter(Boolean);
+  const open = decisions.filter((d) => d.status === 'sent');
+  const sentAt = open
+    .map((d) => d.sentAt)
+    .filter((t): t is Timestamp => t instanceof Timestamp)
+    .sort((a, b) => a.toMillis() - b.toMillis());
   await db.doc(`projects/${projectId}`).update({
-    'totals.openDecisions': decisions.filter((d) => d.status === 'sent').length,
+    'totals.openDecisions': open.length,
+    'totals.oldestOpenDecisionAt': sentAt[0] ?? null,
     'totals.approvedExtraWorkOre': approvedExtraWorkTotal(decisions),
   });
 }

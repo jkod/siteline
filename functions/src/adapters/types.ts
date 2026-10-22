@@ -45,9 +45,18 @@ export interface SpeechDraft {
   draft: string | null;
 }
 
+export interface SpeechAudio {
+  /** The recording in Cloud Storage, as a gs:// URI. */
+  uri: string;
+  contentType: string;
+}
+
 export interface SpeechDrafter {
-  /** Transcribes audio and rewrites it as a short update. Never receives names or numbers. */
-  draft(audioPath: string, locale: Locale): Promise<SpeechDraft>;
+  /**
+   * Transcribes audio and rewrites it as a short update in the project's language. Receives only
+   * the audio and the language, never names or phone numbers (PRD section 7).
+   */
+  draft(audio: SpeechAudio, locale: Locale): Promise<SpeechDraft>;
 }
 
 export interface PdfRenderer {

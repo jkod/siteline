@@ -1,10 +1,19 @@
 import { type DocumentSnapshot, type Firestore, Timestamp } from 'firebase-admin/firestore';
 import { onDocumentWritten } from 'firebase-functions/firestore';
-import type { Post, Project, ProjectMember, UserDoc, Visit } from '@siteline/shared';
+import {
+  type Post,
+  type Project,
+  type ProjectMember,
+  type UserDoc,
+  type Visit,
+  VOICE_RETENTION_DAYS,
+  type VoiceDraft,
+} from '@siteline/shared';
 
 import { db } from '../lib/admin';
 import { appUrl } from '../lib/env';
 import { dayOf } from '../lib/format';
+import { recordEvent } from '../lib/metrics';
 import { queueBatched, queueMessage } from '../lib/outbox';
 import { projectStaff } from '../lib/recipients';
 
@@ -35,6 +44,29 @@ async function bumpLastPostAt(
     const current = (await tx.get(ref)).get('lastPostAt') as Timestamp | null | undefined;
     if (!current || current.toMillis() < createdAt.toMillis())
       tx.update(ref, { lastPostAt: createdAt });
+  });
+}
+
+/**
+ * A post drafted by voice keeps its audio for 30 days after publishing (PRD F5). Only the
+ * recording's own author can claim it, and only once.
+ */
+async function claimVoice(
+  firestore: Firestore,
+  projectId: string,
+  postId: string,
+  post: Post,
+  createdAt: Timestamp,
+): Promise<void> {
+  if (!post.voiceId) return;
+  const ref = firestore.doc(`projects/${projectId}/voice/${post.voiceId}`);
+  await firestore.runTransaction(async (tx) => {
+    const voice = (await tx.get(ref)).data() as VoiceDraft | undefined;
+    if (!voice || voice.postId || voice.createdBy !== post.authorUid) return;
+    tx.update(ref, {
+      postId,
+      deleteAfter: Timestamp.fromMillis(createdAt.toMillis() + VOICE_RETENTION_DAYS * 86_400_000),
+    });
   });
 }
 
@@ -149,6 +181,18 @@ export async function handlePostWritten(
   if (current && !previous) {
     const createdAt = current.createdAt instanceof Timestamp ? current.createdAt : Timestamp.now();
     await bumpLastPostAt(firestore, projectId, createdAt);
+    await claimVoice(firestore, projectId, postId, current, createdAt);
+    if (current.authorRole !== 'system') {
+      const companyId = (await firestore.doc(`projects/${projectId}`).get()).get('companyId');
+      await recordEvent(firestore, {
+        name: 'post_published',
+        companyId: typeof companyId === 'string' ? companyId : null,
+        projectId,
+        uid: current.authorUid,
+        role: current.authorRole,
+        props: { type: current.type, photos: current.media?.length ?? 0, voice: !!current.voiceId },
+      });
+    }
     if (current.type === 'question') await notifyQuestion(firestore, projectId, postId, current);
     if (
       current.visibility === 'all' &&

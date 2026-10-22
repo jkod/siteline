@@ -36,6 +36,18 @@ interface Rendered {
 
 type Copy = (p: Params) => Rendered;
 
+// The invite card in the digest email (F20); texts stay short, so they leave it out.
+const invite = {
+  sv: (p: Params) =>
+    p['inviteLink']
+      ? `\n\nFår du annat gjort hemma? Bjud in dem till Siteline: ${p['inviteLink']}`
+      : '',
+  en: (p: Params) =>
+    p['inviteLink']
+      ? `\n\nGetting other work done at home? Invite them to Siteline: ${p['inviteLink']}`
+      : '',
+};
+
 const footer = {
   sv: (p: Params) => `\n\nÄndra dina aviseringar: ${p['settingsLink']}`,
   en: (p: Params) => `\n\nChange your notifications: ${p['settingsLink']}`,
@@ -250,12 +262,12 @@ const TEMPLATES: Record<TemplateName, Record<Locale, Copy>> = {
     sv: (p) => ({
       sms: `Idag på ${p['project']}: ${p['summary']}. Se dem här: ${p['link']}`,
       subject: `Idag på ${p['project']}: ${p['summary']}`,
-      text: `Idag på ${p['project']}: ${p['summary']}.\n\nSe dem här: ${p['link']}${footer.sv(p)}`,
+      text: `Idag på ${p['project']}: ${p['summary']}.\n\nSe dem här: ${p['link']}${invite.sv(p)}${footer.sv(p)}`,
     }),
     en: (p) => ({
       sms: `Today on ${p['project']}: ${p['summary']}. See them here: ${p['link']}`,
       subject: `Today on ${p['project']}: ${p['summary']}`,
-      text: `Today on ${p['project']}: ${p['summary']}.\n\nSee them here: ${p['link']}${footer.en(p)}`,
+      text: `Today on ${p['project']}: ${p['summary']}.\n\nSee them here: ${p['link']}${invite.en(p)}${footer.en(p)}`,
     }),
   },
   newUpdate: {

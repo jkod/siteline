@@ -19,6 +19,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { FeedStyle } from '@siteline/shared';
 
 import { errorMessageKey } from '../../core/errors';
+import { ProjectContext } from '../../core/project-context';
 import { Session } from '../../core/session';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -30,7 +31,10 @@ import { Toasts } from '../ui/toast';
 import { Composer } from './composer';
 import { FeedStore } from './feed-store';
 import { MilestoneDialog, type MilestoneResult } from './milestone-dialog';
-import { PostCard } from './post-card';
+import { PostCard, type SeenBy } from './post-card';
+
+/** Posts this recent show who has seen them (PRD F16). */
+const SEEN_WINDOW_MS = 7 * 86_400_000;
 
 /** How close to the bottom counts as "at the bottom" in chat order, in pixels. */
 const NEAR_BOTTOM_PX = 200;
@@ -60,6 +64,7 @@ export class Feed {
   private readonly dialogs = inject(Dialogs);
   private readonly injector = inject(Injector);
   private readonly scrollDirection = inject(ScrollDirection);
+  private readonly context = inject(ProjectContext, { optional: true });
 
   readonly projectId = input.required<string>();
   readonly mode = input.required<'staff' | 'client'>();
@@ -76,6 +81,25 @@ export class Feed {
     return this.style() === 'chat' ? [...posts].reverse() : posts;
   });
   protected readonly Math = Math;
+  /**
+   * For staff: each recent post's clients who have opened the feed since it was posted, from
+   * their last-seen time (PRD F16). A client's own question doesn't count.
+   */
+  protected readonly seenBy = computed(() => {
+    const seen = new Map<string, SeenBy[]>();
+    if (this.mode() !== 'staff') return seen;
+    const clients = (this.context?.clients() ?? []).filter((c) => c.lastSeenAt);
+    const since = Date.now() - SEEN_WINDOW_MS;
+    for (const post of this.store.posts() ?? []) {
+      const posted = post.createdAt?.toMillis();
+      if (!posted || posted < since || post.visibility !== 'all') continue;
+      const list = clients
+        .filter((c) => c.id !== post.authorUid && c.lastSeenAt!.toMillis() >= posted)
+        .map((c) => ({ name: c.name, at: c.lastSeenAt! }));
+      if (list.length) seen.set(post.id, list);
+    }
+    return seen;
+  });
 
   /** In chat order, older posts load only once the feed has opened at the bottom. */
   private settled = false;

@@ -123,6 +123,13 @@
     }
   }
 
+  @if (seenLine() && !isDeleted()) {
+    <p class="seen">
+      <sl-icon name="visibility" [size]="16" />
+      {{ 'feed.seenBy' | translate: { names: seenLine() } }}
+    </p>
+  }
+
   <footer class="foot">
     @if (!isDeleted() || p.commentCount > 0) {
       <button

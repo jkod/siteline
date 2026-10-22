@@ -1,19 +1,37 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import { provideTestTranslations } from '../../../testing/translate';
+import { Metrics } from '../../core/metrics';
+import { type VoiceResult, VoiceService } from '../../core/voice';
 import { Composer } from './composer';
 import { FeedStore, type NewPost } from './feed-store';
+import { VoiceRecorder } from './voice-recorder';
 
 describe('Composer', () => {
   const published: NewPost[] = [];
+  const tracked: string[] = [];
+  const discarded: string[] = [];
+  let voiceResult: VoiceResult;
 
   beforeEach(() => {
     published.length = 0;
+    tracked.length = 0;
+    discarded.length = 0;
+    voiceResult = { audioId: 'rec1', transcript: 'skåpen är uppe', draft: 'Skåpen är uppe.' };
     localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
         provideTestTranslations(),
         { provide: FeedStore, useValue: { publish: async (p: NewPost) => void published.push(p) } },
+        { provide: Metrics, useValue: { track: (name: string) => void tracked.push(name) } },
+        {
+          provide: VoiceService,
+          useValue: {
+            draft: async () => voiceResult,
+            discard: async (_: string, id: string) => void discarded.push(id),
+          },
+        },
       ],
     });
   });
@@ -68,5 +86,64 @@ describe('Composer', () => {
     const { el, textarea } = await render('update');
     const label = el.querySelector(`label[for="${textarea.id}"]`);
     expect(label?.textContent?.trim()).toBe('composer.updateLabel');
+  });
+
+  describe('voice drafts (PRD F5)', () => {
+    const recording = { audio: new Blob(['x']), format: 'webm' as const, seconds: 5 };
+    async function talk(view: Awaited<ReturnType<typeof render>>) {
+      const recorder = view.fixture.debugElement.query(By.directive(VoiceRecorder));
+      (recorder.componentInstance as VoiceRecorder).recorded.emit(recording);
+      await view.fixture.whenStable();
+    }
+
+    it('offers voice for updates only', async () => {
+      expect((await render('update')).el.querySelector('sl-voice-recorder')).not.toBeNull();
+      expect((await render('question')).el.querySelector('sl-voice-recorder')).toBeNull();
+    });
+
+    it('puts the draft in the box for review, and posts it with its recording', async () => {
+      const view = await render('update');
+      await talk(view);
+      expect(view.textarea.value).toBe('Skåpen är uppe.');
+      expect(view.el.querySelector('.voice-note')?.textContent).toContain('voice.review');
+      view.submit.click();
+      await view.fixture.whenStable();
+      expect(published[0]).toMatchObject({ text: 'Skåpen är uppe.', voiceId: 'rec1' });
+      expect(tracked).toEqual(['voice_draft_used']);
+      expect(view.el.querySelector('.voice-note')).toBeNull();
+    });
+
+    it('notes words the AI was unsure of', async () => {
+      voiceResult = { ...voiceResult, draft: 'Bänken kommer på måndag [?].' };
+      const view = await render('update');
+      await talk(view);
+      expect(view.el.querySelector('.voice-note')?.textContent).toContain('voice.unsure');
+    });
+
+    it('falls back to the transcript, or to an empty box, when the AI fails', async () => {
+      voiceResult = { audioId: 'rec2', transcript: 'skåpen är uppe', draft: null };
+      const view = await render('update');
+      await talk(view);
+      expect(view.textarea.value).toBe('skåpen är uppe');
+
+      voiceResult = { audioId: 'rec3', transcript: null, draft: null };
+      const empty = await render('update');
+      localStorage.clear();
+      await empty.type('');
+      await talk(empty);
+      expect(empty.textarea.value).toBe('');
+      expect(discarded).toEqual(['rec3']);
+      expect(empty.submit.disabled).toBe(true);
+    });
+
+    it('throws the draft and its audio away on request', async () => {
+      const view = await render('update');
+      await talk(view);
+      (view.el.querySelector('.voice-note button') as HTMLButtonElement).click();
+      await view.fixture.whenStable();
+      expect(view.textarea.value).toBe('');
+      expect(discarded).toEqual(['rec1']);
+      expect(tracked).toEqual(['voice_draft_discarded']);
+    });
   });
 });

@@ -59,5 +59,13 @@ form {
 
 .footer {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: var(--sl-space-4);
+}
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sl-target);
 }

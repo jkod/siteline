@@ -14,6 +14,7 @@ export {
 export { redeemInvite, requestNewLink } from './callables/links';
 export { logClientError } from './callables/log-client-error';
 export { assignCrew, createProject, setProjectStatus } from './callables/projects';
+export { createReferral, openReferral } from './callables/referrals';
 export { acceptStaffInvite, inviteStaff, removeStaff, setStaffRole } from './callables/staff';
 export {
   createServiceClient,
@@ -23,6 +24,11 @@ export {
   setPhotoConsent,
   updateSchedule,
 } from './callables/visits';
+export { discardVoiceDraft, draftFromVoice } from './callables/voice';
+export {
+  aggregateMetricsJob as aggregateMetrics,
+  purgeVoiceAudioJob as purgeVoiceAudio,
+} from './scheduled/maintenance';
 export {
   generateVisitsJob as generateVisits,
   sendDigestsJob as sendDigests,

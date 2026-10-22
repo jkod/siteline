@@ -387,7 +387,8 @@
     "styleFeed": "Nyast överst",
     "styleChat": "Nyast nederst",
     "showNewestFirst": "Nyast nederst, byt till nyast överst",
-    "showNewestLast": "Nyast överst, byt till nyast nederst som i en chatt"
+    "showNewestLast": "Nyast överst, byt till nyast nederst som i en chatt",
+    "seenBy": "Sedd av {{names}}"
   },
   "milestone": {
     "add": "Milstolpe",
@@ -449,7 +450,13 @@
     "activeProjects": "{{used}} av {{limit}} aktiva projekt",
     "serviceClients": "{{used}} av {{limit}} återkommande kunder",
     "staff": "{{used}} av {{limit}} medarbetare",
-    "upgradeSoon": "Uppgradering med kort kommer snart. Hör av dig så hjälper vi dig så länge."
+    "upgradeSoon": "Uppgradering med kort kommer snart. Hör av dig så hjälper vi dig så länge.",
+    "referralsTitle": "Tipsade företag",
+    "referrals": {
+      "one": "Dina kunder har tagit med {{count}} företag till Siteline.",
+      "other": "Dina kunder har tagit med {{count}} företag till Siteline."
+    },
+    "referralsHow": "Kunder kan bjuda in andra företag de anlitar. När ett sådant företag börjar betala får ni en gratis månad (kommer med betalningarna)."
   },
   "redeem": {
     "working": "Öppnar ditt projekt…",
@@ -718,5 +725,130 @@
     "feed": "Nyast överst, som ett flöde",
     "chat": "Nyast nederst, som en chatt",
     "saved": "Ordningen är sparad."
+  },
+  "voice": {
+    "hold": "Håll för att prata",
+    "stop": "Stoppa",
+    "recording": "Spelar in",
+    "recorded": "Inspelningen är klar. Utkastet skrivs.",
+    "noMicrophone": "Vi kommer inte åt mikrofonen. Tillåt mikrofonen i webbläsaren och försök igen.",
+    "tooShort": "Inspelningen var för kort. Håll in knappen medan du pratar.",
+    "failed": "Det gick inte att göra ett utkast av inspelningen. Skriv uppdateringen själv.",
+    "transcriptOnly": "Utkastet kunde inte skrivas om, så du får det du sa ord för ord.",
+    "drafting": "Skriver ett utkast av det du sa …",
+    "review": "Utkast från din inspelning. Läs igenom och ändra innan du publicerar.",
+    "unsure": "Ord med [?] var svåra att höra.",
+    "discard": "Släng utkastet"
+  },
+  "todo": {
+    "title": "Att göra",
+    "decisionsWaiting": {
+      "one": "Ett beslut har väntat på svar i över ett dygn",
+      "other": "{{count}} beslut har väntat på svar i över ett dygn"
+    },
+    "questions": {
+      "one": "{{count}} obesvarad fråga",
+      "other": "{{count}} obesvarade frågor"
+    },
+    "visitTomorrow": {
+      "one": "Besök i morgon {{time}}, {{count}} punkt kvar",
+      "other": "Besök i morgon {{time}}, {{count}} punkter kvar"
+    },
+    "quiet": {
+      "one": "Inget nytt på {{count}} dag",
+      "other": "Inget nytt på {{count}} dagar"
+    }
+  },
+  "invite": {
+    "title": "Får du annat gjort hemma?",
+    "body": "Bjud in dem till Siteline, så samlas allt här, bredvid de andra.",
+    "kind": "Vilken sorts företag?",
+    "kinds": {
+      "renovation": "Renovering och bygg",
+      "garden": "Trädgård",
+      "cleaning": "Städning",
+      "tutoring": "Läxhjälp",
+      "other": "Annat"
+    },
+    "showFirstName": "Visa mitt förnamn på inbjudan",
+    "share": "Dela inbjudan",
+    "private": "Du skickar länken själv. Företaget ser inte ditt telefonnummer eller din adress.",
+    "message": "Jag får uppdateringar från mina hantverkare i Siteline. Prova du också:",
+    "copied": "Länken är kopierad. Klistra in den i ett meddelande."
+  },
+  "referral": {
+    "title": "Du har blivit inbjuden till Siteline",
+    "titleNamed": "{{name}} bjuder in dig till Siteline",
+    "intro": {
+      "renovation": "Siteline samlar bilder, frågor, beslut och tillägg för varje renoveringsprojekt, så att kunden alltid vet läget.",
+      "garden": "Siteline ger dina trädgårdskunder en rapport efter varje besök, med bilder och nästa tid.",
+      "cleaning": "Siteline ger dina kunder en kort rapport efter varje städning och påminner om nästa tid.",
+      "tutoring": "Siteline ger föräldrar en rapport efter varje lektion, med vad ni gjorde och vad som ska övas.",
+      "other": "Siteline samlar uppdateringar, frågor och beslut till dina kunder på ett ställe."
+    },
+    "point1": "Kunden öppnar en länk, utan app och utan lösenord.",
+    "point2": "Du lägger upp en uppdatering på en minut, eller pratar in den.",
+    "point3": "Beslut och tillägg godkänns med ett tryck och sparas.",
+    "start": "Kom igång",
+    "free": "Det är gratis att börja. Inget kort behövs."
+  },
+  "legal": {
+    "draft": "Utkast. Den här texten ersätts av en jurist innan Siteline lanseras.",
+    "privacy": {
+      "who": {
+        "title": "Vem som ansvarar",
+        "body": "Siteline ansvarar för personuppgifterna i tjänsten. Företagen som använder Siteline ansvarar för de uppgifter de lägger in om sina kunder."
+      },
+      "what": {
+        "title": "Vilka uppgifter vi har",
+        "body": "Namn, mobilnummer eller e-post, bilder och texter i projektflöden, beslut med tidpunkt, och när du senast öppnade ett projekt."
+      },
+      "where": {
+        "title": "Var uppgifterna finns",
+        "body": "Allt lagras inom EU, i Google Clouds region i Finland. Röstinspelningar bearbetas inom EU."
+      },
+      "why": {
+        "title": "Varför vi har dem",
+        "body": "För att visa dig dina projekt, skicka de meddelanden du valt och spara beslut som underlag. Vi mäter hur tjänsten används med egen statistik, utan spårare från andra."
+      },
+      "how_long": {
+        "title": "Hur länge",
+        "body": "Röstinspelningar raderas 30 dagar efter att uppdateringen publicerats. Projekt finns kvar så länge företaget har dem, och raderade projekts filer tas bort inom 30 dagar."
+      },
+      "rights": {
+        "title": "Dina rättigheter",
+        "body": "Du kan få ut dina uppgifter, rätta dem eller be oss radera dem. Kontakta oss eller företaget du anlitar."
+      },
+      "contact": {
+        "title": "Kontakt",
+        "body": "Kontaktuppgifter läggs till innan lansering."
+      }
+    },
+    "terms": {
+      "service": {
+        "title": "Tjänsten",
+        "body": "Siteline är en tjänst där företag delar uppdateringar, frågor och beslut med sina kunder."
+      },
+      "accounts": {
+        "title": "Konton",
+        "body": "Företaget ansvarar för vilka medarbetare och kunder som får tillgång. Länkar till kunder ska hanteras som lösenord."
+      },
+      "content": {
+        "title": "Innehåll",
+        "body": "Du äger det du lägger upp. Du ger oss rätt att lagra och visa det för de personer som har tillgång till projektet."
+      },
+      "payment": {
+        "title": "Betalning",
+        "body": "Betalda abonnemang och villkor för dem läggs till när betalningar införs."
+      },
+      "liability": {
+        "title": "Ansvar",
+        "body": "Vi gör vårt bästa för att tjänsten ska fungera, men ansvarar inte för avtal mellan företag och deras kunder."
+      },
+      "changes": {
+        "title": "Ändringar",
+        "body": "Vi meddelar ändringar av villkoren i god tid."
+      }
+    }
   }
 }

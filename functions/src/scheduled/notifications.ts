@@ -99,6 +99,7 @@ export async function sendDigests(firestore: Firestore, now = new Date()): Promi
               firm: project.branding.name,
               summary: digestSummary(today.length, photos, user.locale),
               link: `${appUrl.value()}/c/${projectDoc.id}`,
+              inviteLink: `${appUrl.value()}/c?invite=1`,
               settingsPath: '/c/settings',
             },
             locale: user.locale,

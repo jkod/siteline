@@ -18,6 +18,11 @@ export default defineConfig({
     // Our CSS turns transitions off under reduced motion, so axe never sees text mid-fade.
     reducedMotion: 'reduce',
     trace: 'retain-on-failure',
+    // Voice-to-update records from Chromium's fake microphone (a steady tone), with no prompt.
+    permissions: ['microphone'],
+    launchOptions: {
+      args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+    },
   },
   projects: [
     { name: 'mobile', use: { ...devices['Pixel 7'] } },

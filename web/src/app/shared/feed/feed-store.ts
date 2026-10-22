@@ -25,6 +25,8 @@ export interface NewPost {
   text: string;
   files: File[];
   milestone?: { stage: number | null; stageCount: number | null };
+  /** The recording a voice draft came from, so its audio is kept 30 days (PRD F5). */
+  voiceId?: string | null;
 }
 
 /**
@@ -152,6 +154,7 @@ export class FeedStore {
         createdAt: fs.serverTimestamp(),
         editedAt: null,
         deletedAt: null,
+        ...(post.voiceId ? { voiceId: post.voiceId } : {}),
       });
       this.pending.update((list) => list.filter((p) => p.tempId !== tempId));
       previews.forEach((url) => URL.revokeObjectURL(url));

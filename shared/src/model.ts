@@ -44,6 +44,8 @@ export interface Company<T = TimestampLike> {
   limits: PlanLimits;
   usage: CompanyUsage;
   referredBy: { code: string; companyId: string; clientUid: string } | null;
+  /** How many businesses this firm's clients have brought in (PRD F20). */
+  referralSignups?: number;
   settings: CompanySettings;
   createdAt: T;
   updatedAt: T;
@@ -98,10 +100,12 @@ export interface Branding {
   showSitelineFooter: boolean;
 }
 
-export interface ProjectTotals {
+export interface ProjectTotals<T = TimestampLike> {
   approvedExtraWorkOre: number;
   openDecisions: number;
   unansweredQuestions: number;
+  /** When the longest-waiting open decision was sent, for the Today list (F14). */
+  oldestOpenDecisionAt?: T | null;
 }
 
 export interface Project<T = TimestampLike> {
@@ -123,7 +127,7 @@ export interface Project<T = TimestampLike> {
   roles: Record<string, ProjectRole>;
   clientUids: string[];
   crewUids: string[];
-  totals: ProjectTotals;
+  totals: ProjectTotals<T>;
   nextVisitId: string | null;
   lastPostAt: T | null;
   completedAt: T | null;
@@ -227,6 +231,8 @@ export interface Post<T = TimestampLike> {
   milestone: { stage: number | null; stageCount: number | null } | null;
   decision?: Decision<T> | null;
   report?: VisitReport | null;
+  /** The voice recording a staff post was drafted from (PRD F5). */
+  voiceId?: string | null;
   commentCount: number;
   unanswered: boolean;
   createdAt: T;
@@ -356,4 +362,69 @@ export interface OutboxMessage<T = TimestampLike> {
   error: string | null;
   createdAt: T;
   updatedAt: T;
+}
+
+/** A voice recording on its way to a post (PRD F5). Audio is deleted on `deleteAfter`. */
+export interface VoiceDraft<T = TimestampLike> {
+  path: string;
+  createdBy: string;
+  postId: string | null;
+  deleteAfter: T;
+  createdAt: T;
+}
+
+/** The kinds of business a client can invite (PRD 4.5). */
+export const BUSINESS_KINDS = ['renovation', 'garden', 'cleaning', 'tutoring', 'other'] as const;
+export type BusinessKind = (typeof BUSINESS_KINDS)[number];
+
+/** A client's invite to another business (PRD F20); functions only. */
+export interface Referral<T = TimestampLike> {
+  clientUid: string;
+  /** Set only when the client chose to be named on the invite page. */
+  firstName: string | null;
+  sourceCompanyId: string;
+  sourceProjectId: string;
+  businessKind: BusinessKind;
+  openedCount: number;
+  signedUpCompanyId: string | null;
+  firstPaidAt: T | null;
+  rewardGrantedAt: T | null;
+  createdAt: T;
+}
+
+/** First-party product metrics (PRD section 8). Props never hold names, numbers or text. */
+export interface MetricEvent<T = TimestampLike> {
+  name: MetricName;
+  companyId: string | null;
+  projectId: string | null;
+  uid: string | null;
+  role: AuthorRole | null;
+  props: Record<string, string | number | boolean>;
+  at: T;
+}
+
+/** Events the browser may record itself; the rest are written by functions. */
+export const CLIENT_METRICS = [
+  'invite_card_shown',
+  'invite_shared',
+  'feed_opened',
+  'voice_draft_used',
+  'voice_draft_discarded',
+] as const;
+export const SERVER_METRICS = [
+  'invite_link_opened',
+  'referral_signup',
+  'first_payment',
+  'post_published',
+  'voice_draft_created',
+  'decision_answered',
+] as const;
+export type MetricName = (typeof CLIENT_METRICS)[number] | (typeof SERVER_METRICS)[number];
+
+/** Daily counts per company, rolled up from events each night. */
+export interface DailyMetrics {
+  companyId: string | null;
+  /** YYYY-MM-DD in Stockholm time. */
+  date: string;
+  counts: Partial<Record<MetricName, number>>;
 }

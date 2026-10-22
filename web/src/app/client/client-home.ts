@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import type { Project } from '@siteline/shared';
@@ -9,11 +9,15 @@ import { Session } from '../core/session';
 import { DatePipe } from '../shared/pipes/date';
 import { Brand } from '../shared/ui/brand';
 import { EmptyState } from '../shared/ui/empty-state';
+import { InviteCard } from './invite-card';
 
-/** Every project and service from every firm the client uses, on one screen (PRD F3). */
+/**
+ * Every project and service from every firm the client uses, on one screen (PRD F3), and the
+ * card for inviting other businesses (F20).
+ */
 @Component({
   selector: 'sl-client-home',
-  imports: [TranslatePipe, RouterLink, DatePipe, Brand, EmptyState],
+  imports: [TranslatePipe, RouterLink, DatePipe, Brand, EmptyState, InviteCard],
   template: `
     <main class="sl-page sl-stack" id="main">
       <div class="title-row">
@@ -49,6 +53,11 @@ import { EmptyState } from '../shared/ui/empty-state';
               </li>
             }
           </ul>
+          <sl-invite-card
+            [projectId]="list[0]!.id"
+            [companyId]="list[0]!.companyId"
+            [focus]="inviteLink"
+          />
         } @else {
           <sl-empty-state
             [title]="'clientHome.emptyTitle' | translate"
@@ -123,6 +132,8 @@ import { EmptyState } from '../shared/ui/empty-state';
 })
 export class ClientHome {
   private readonly session = inject(Session);
+  /** Arrived from the invite link in the digest (F20). */
+  protected readonly inviteLink = inject(ActivatedRoute).snapshot.queryParamMap.has('invite');
   protected readonly firstName = computed(
     () => (this.session.profile()?.name ?? '').split(' ')[0] ?? '',
   );

@@ -19,6 +19,13 @@ describe('formatDate', () => {
     expect(formatDate(at('2026-10-01T12:00:00Z'), 'relative', 'en', now)).toMatch(/1 Oct 2026/);
   });
 
+  it('shows "seen" times as a clock today and with the day otherwise (PRD F16)', () => {
+    // 22:30 UTC is already the next day in Stockholm.
+    const now = at('2026-10-21T22:30:00Z').getTime();
+    expect(formatDate(at('2026-10-21T22:10:00Z'), 'seen', 'sv', now)).toBe('00:10');
+    expect(formatDate(at('2026-10-21T16:42:00Z'), 'seen', 'sv', now)).toBe('ons 21 okt. 18:42');
+  });
+
   it('is empty for missing values', () => {
     expect(formatDate(null, 'date', 'sv')).toBe('');
   });

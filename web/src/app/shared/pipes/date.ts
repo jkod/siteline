@@ -4,7 +4,7 @@ import { INTL_LOCALE, TIME_ZONE, type TimestampLike } from '@siteline/shared';
 
 import { Language } from '../../core/language';
 
-export type DateStyle = 'dateTime' | 'date' | 'time' | 'relative' | 'visit' | 'visitDay';
+export type DateStyle = 'dateTime' | 'date' | 'time' | 'relative' | 'visit' | 'visitDay' | 'seen';
 
 /**
  * Formats a timestamp in the app language and Stockholm time (PRD section 12): 24-hour times,
@@ -28,6 +28,11 @@ export function formatDate(
     if (abs < 86_400) return rtf.format(Math.round(seconds / 3600), 'hour');
     if (abs < 7 * 86_400) return rtf.format(Math.round(seconds / 86_400), 'day');
     style = 'dateTime';
+  }
+  if (style === 'seen') {
+    // "18:42" today, otherwise "tis 4 nov. 18:42" (PRD F16).
+    const day = (d: Date) => new Intl.DateTimeFormat('sv-SE', { timeZone: TIME_ZONE }).format(d);
+    style = day(date) === day(new Date(nowMs)) ? 'time' : 'visit';
   }
   if (style === 'visit' || style === 'visitDay') {
     // "tis 4 nov. 15:00": weekday first, for visits.

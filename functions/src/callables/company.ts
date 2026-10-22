@@ -15,6 +15,7 @@ import { setStaffClaims } from '../lib/claims';
 import { requireNewStaff } from '../lib/context';
 import { callableOptions } from '../lib/env';
 import { parseInput } from '../lib/validate';
+import { attachReferral } from './referrals';
 
 /** Creates the company and the owner membership, and sets the owner's claims (PRD F1). */
 export async function createCompanyHandler(request: CallableRequest<unknown>) {
@@ -34,7 +35,6 @@ export async function createCompanyHandler(request: CallableRequest<unknown>) {
     compedUntil: null,
     limits: PLAN_LIMITS.free,
     usage: { activeProjects: 0, serviceClients: 0, staff: 1, smsThisMonth: 0 },
-    // Invite-loop referrals are stored from M3 (F20).
     referredBy: null,
     settings: {
       digestTime: '18:00',
@@ -74,6 +74,8 @@ export async function createCompanyHandler(request: CallableRequest<unknown>) {
     batch.create(company.collection('templates').doc(trade), template);
   }
   await batch.commit();
+  // A sign-up from a client's invite link (F20); an unknown or used code is ignored.
+  if (input.referralCode) await attachReferral(db, input.referralCode, company.id);
   await setStaffClaims(auth, caller.uid, { cid: company.id, crole: 'owner' });
   return { companyId: company.id };
 }

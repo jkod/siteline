@@ -12,7 +12,24 @@
       (mode() === 'question' ? 'composer.questionPlaceholder' : 'composer.updatePlaceholder')
         | translate: { firm: firmName() }
     "
+    [attr.aria-describedby]="voiceId() ? 'voice-note' : null"
   ></textarea>
+
+  @if (drafting()) {
+    <p class="voice-note" role="status">{{ 'voice.drafting' | translate }}</p>
+  } @else if (voiceId()) {
+    <div class="voice-note" id="voice-note">
+      <p>
+        {{ 'voice.review' | translate }}
+        @if (hasUnsureWords()) {
+          {{ 'voice.unsure' | translate }}
+        }
+      </p>
+      <button slButton="ghost" type="button" (click)="discardVoice()">
+        {{ 'voice.discard' | translate }}
+      </button>
+    </div>
+  }
 
   @if (photos().length) {
     <ul class="previews" [attr.aria-label]="'composer.selectedPhotos' | translate">
@@ -52,6 +69,9 @@
       <sl-icon name="photo_camera" [size]="20" />
       {{ 'composer.photo' | translate }}
     </button>
+    @if (mode() === 'update') {
+      <sl-voice-recorder [disabled]="drafting() || sending()" (recorded)="onRecorded($event)" />
+    }
     <button slButton type="submit" [disabled]="!canSend()" [busy]="sending()">
       {{ (mode() === 'question' ? 'composer.ask' : 'composer.post') | translate }}
     </button>

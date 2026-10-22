@@ -1,8 +1,10 @@
 import { db } from '../lib/admin';
 import { elksPassword, elksUsername, isEmulator } from '../lib/env';
 import { DevEmailSender, DevPushSender, DevSmsSender } from './dev-outbox';
+import { DevSpeechDrafter } from './dev-speech';
 import { ElksSmsSender } from './elks-sms';
-import type { EmailSender, PushSender, SmsSender } from './types';
+import type { EmailSender, PushSender, SmsSender, SpeechDrafter } from './types';
+import { VertexSpeechDrafter } from './vertex-speech';
 
 export type * from './types';
 
@@ -23,4 +25,8 @@ export function emailSender(): EmailSender {
 
 export function pushSender(): PushSender {
   return isEmulator ? new DevPushSender(db) : notConfigured('push');
+}
+
+export function speechDrafter(): SpeechDrafter {
+  return isEmulator ? new DevSpeechDrafter() : new VertexSpeechDrafter();
 }

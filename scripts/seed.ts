@@ -265,7 +265,13 @@ async function main(): Promise<void> {
     roles: { 'omar-haddad': 'crew', [anna.uid]: 'client' },
     clientUids: [anna.uid],
     crewUids: ['omar-haddad'],
-    totals: { approvedExtraWorkOre: 650_000, openDecisions: 1, unansweredQuestions: 1 },
+    totals: {
+      approvedExtraWorkOre: 650_000,
+      openDecisions: 1,
+      unansweredQuestions: 1,
+      // d-uttag, sent 0.3 days ago.
+      oldestOpenDecisionAt: Timestamp.fromMillis(Date.now() - 0.3 * DAY),
+    },
     nextVisitId: 'v-next',
     lastPostAt: Timestamp.fromMillis(Date.now() - 2 * 3600_000),
     completedAt: null,

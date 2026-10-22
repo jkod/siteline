@@ -42,6 +42,7 @@
         [viewerIsStaff]="mode() === 'staff'"
         [firmName]="firmName()"
         [expanded]="post.id === focusPostId()"
+        [seenBy]="seenBy().get(post.id) ?? []"
         (edit)="edit(post.id, $event)"
         (remove)="remove(post.id)"
         (resolve)="resolve(post.id)"

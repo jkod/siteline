@@ -172,7 +172,8 @@ service cloud.firestore {
         allow create: if isProjectMember(projectData(projectId))
           && request.resource.data.keys().hasOnly([
             'type', 'authorUid', 'authorName', 'authorRole', 'text', 'media', 'visibility',
-            'milestone', 'commentCount', 'unanswered', 'createdAt', 'editedAt', 'deletedAt'])
+            'milestone', 'commentCount', 'unanswered', 'createdAt', 'editedAt', 'deletedAt',
+            'voiceId'])
           && request.resource.data.authorUid == uid()
           && request.resource.data.authorName == callerName()
           && request.resource.data.authorRole == callerRole(projectData(projectId))
@@ -187,12 +188,16 @@ service cloud.firestore {
               && request.resource.data.type in ['update', 'milestone']
               && request.resource.data.unanswered == false
               && isMediaList(request.resource.data.media, 20)
+              // A post drafted by voice names its recording, so the audio is kept 30 days (F5).
+              && (!('voiceId' in request.resource.data)
+                || request.resource.data.voiceId.matches('[A-Za-z0-9_-]{8,64}'))
               && (request.resource.data.type == 'update'
                 ? request.resource.data.milestone == null
                 : isMilestone(request.resource.data)))
             || (isProjectClient(projectData(projectId))
               && request.resource.data.type == 'question'
               && request.resource.data.unanswered == true
+              && !('voiceId' in request.resource.data)
               && request.resource.data.milestone == null
               && request.resource.data.text.size() >= 1
               && isMediaList(request.resource.data.media, 5))
@@ -374,7 +379,28 @@ service cloud.firestore {
       allow read: if isManagerOf(resource.data.companyId);
     }
 
-    // Everything else, including invites, the outbox, approvals, rate limits and devOutbox, is
-    // denied to the client SDK.
+    // First-party product events the browser records itself (PRD section 8). Each names the
+    // signed-in person and their role; a project's events must come from its members.
+    match /events/{eventId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(
+          ['name', 'companyId', 'projectId', 'uid', 'role', 'props', 'at'])
+        && request.resource.data.name in [
+          'invite_card_shown', 'invite_shared', 'feed_opened', 'voice_draft_used',
+          'voice_draft_discarded']
+        && request.resource.data.uid == uid()
+        && request.resource.data.role == (request.auth.token.get('kind', null) == 'client'
+          ? 'client' : request.auth.token.get('crole', null))
+        && request.resource.data.props is map && request.resource.data.props.size() <= 8
+        && request.resource.data.at == request.time
+        && (request.resource.data.projectId == null
+          ? request.resource.data.companyId == request.auth.token.get('cid', null)
+          : (isProjectMember(projectData(request.resource.data.projectId))
+            && request.resource.data.companyId
+              == projectData(request.resource.data.projectId).companyId));
+    }
+
+    // Everything else, including invites, the outbox, approvals, rate limits, devOutbox, voice
+    // drafts, referrals, events (reading) and metrics, is denied to the client SDK.
   }
 }

@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { isStaffRole, POST_TEXT_MAX } from '@siteline/shared';
+import { isStaffRole, POST_TEXT_MAX, type TimestampLike } from '@siteline/shared';
 
 import { Language } from '../../core/language';
 import { DecisionCard } from '../decisions/decision-card';
@@ -13,6 +13,11 @@ import { Icon } from '../ui/icon';
 import { Comments } from './comments';
 import type { FeedPost } from './feed-store';
 import { PhotoGrid } from './photo-grid';
+
+export interface SeenBy {
+  name: string;
+  at: TimestampLike;
+}
 
 /** One feed item, with a variant per post type (PRD section 11). */
 @Component({
@@ -42,6 +47,8 @@ export class PostCard {
   readonly viewerIsStaff = input(false);
   readonly firmName = input('');
   readonly expanded = input(false);
+  /** Clients who have opened the feed since this post, for staff (PRD F16). */
+  readonly seenBy = input<SeenBy[]>([]);
 
   readonly edit = output<string>();
   readonly remove = output<void>();
@@ -58,6 +65,12 @@ export class PostCard {
     ['update', 'milestone', 'question'].includes(this.post().type),
   );
   protected readonly isDeleted = computed(() => this.post().deletedAt != null);
+  /** "Anna 18:42, Bo tis 4 nov. 09:10", first names only. */
+  protected readonly seenLine = computed(() =>
+    this.seenBy()
+      .map((s) => `${s.name.split(/\s+/)[0]} ${formatDate(s.at, 'seen', this.language.lang())}`)
+      .join(', '),
+  );
   protected readonly commentsOpen = computed(() => this.showComments() || this.expanded());
   protected readonly authorIsStaff = computed(() => isStaffRole(this.post().authorRole));
   protected readonly roleLabel = computed(() =>

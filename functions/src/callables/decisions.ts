@@ -26,6 +26,7 @@ import {
   recountDecisions,
 } from '../lib/decisions';
 import { appUrl, callableOptions } from '../lib/env';
+import { recordEvent } from '../lib/metrics';
 import { queueMessage } from '../lib/outbox';
 import { projectStaff } from '../lib/recipients';
 import { parseInput } from '../lib/validate';
@@ -340,6 +341,14 @@ export async function respondToDecisionHandler(request: CallableRequest<unknown>
       dedupeKey: `answered:${approvalRef.id}:${staff.uid}`,
     });
   }
+  await recordEvent(db, {
+    name: 'decision_answered',
+    companyId: project.companyId,
+    projectId: input.projectId,
+    uid: caller.uid,
+    role: 'client',
+    props: { outcome: input.outcome },
+  });
   return { approvalId: approvalRef.id };
 }
 

@@ -11,6 +11,13 @@ export default defineConfig({
     include: ['tests/integration/**/*.spec.ts'],
     fileParallelism: false,
     testTimeout: 20_000,
-    env: { APP_URL: 'http://localhost:4300' },
+    env: {
+      APP_URL: 'http://localhost:4300',
+      // The default bucket, as the Functions runtime would provide it.
+      FIREBASE_CONFIG: JSON.stringify({
+        projectId: 'demo-siteline-test',
+        storageBucket: 'demo-siteline-test.appspot.com',
+      }),
+    },
   },
 });

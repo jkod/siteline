@@ -11,14 +11,25 @@ import { Button } from '../shared/ui/button';
 import { EmptyState } from '../shared/ui/empty-state';
 import { Icon } from '../shared/ui/icon';
 import { CurrentCompany } from './current-company';
+import { TodayList } from './today-list';
 import { TodayStrip } from './today-strip';
 
 const STATUSES: ProjectStatus[] = ['active', 'completed', 'archived'];
 
-/** Staff home: projects by status, with search (PRD section 11). */
+/** Staff home: the Today list, today's visits, and projects by status with search (PRD section 11). */
 @Component({
   selector: 'sl-staff-home',
-  imports: [Icon, TranslatePipe, RouterLink, DatePipe, PluralPipe, Button, EmptyState, TodayStrip],
+  imports: [
+    Icon,
+    TranslatePipe,
+    RouterLink,
+    DatePipe,
+    PluralPipe,
+    Button,
+    EmptyState,
+    TodayList,
+    TodayStrip,
+  ],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

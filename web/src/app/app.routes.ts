@@ -35,9 +35,17 @@ export const routes: Routes = [
     title: 'pages.linkExpired',
     loadComponent: () => import('./client/link-expired').then((m) => m.LinkExpired),
   },
-  placeholder('r/:code', 'pages.referral'),
-  placeholder('legal/privacy', 'pages.privacy'),
-  placeholder('legal/terms', 'pages.terms'),
+  {
+    path: 'r/:code',
+    title: 'pages.referral',
+    loadComponent: () => import('./auth/referral').then((m) => m.Referral),
+  },
+  ...(['privacy', 'terms'] as const).map((page) => ({
+    path: `legal/${page}`,
+    title: `pages.${page}`,
+    data: { page },
+    loadComponent: () => import('./legal/legal-page').then((m) => m.LegalPage),
+  })),
   ...DEV_ROUTES,
   placeholder('**', 'pages.notFound'),
 ];

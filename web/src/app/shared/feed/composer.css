@@ -61,6 +61,24 @@ textarea::placeholder {
 }
 .actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--sl-space-2) var(--sl-space-3);
+}
+.actions [type='submit'] {
+  margin-left: auto;
+}
+.voice-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--sl-space-3);
+  gap: var(--sl-space-2);
+  padding: var(--sl-space-2) var(--sl-space-3);
+  border-radius: var(--sl-radius-panel);
+  background: var(--sl-accent-tint);
+  color: var(--sl-text);
+  font: var(--sl-text-small);
+}
+.voice-note p {
+  flex: 1 1 200px;
 }

@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 
 import type {
+  BusinessKind,
   CreateCompanyInput,
   CreateProjectInput,
   CreateServiceClientInput,
@@ -11,6 +12,7 @@ import type {
   ProjectStatus,
   ScheduleInput,
   StaffRole,
+  VoiceDraftInput,
 } from '@siteline/shared';
 
 import { FirebaseService } from './firebase';
@@ -162,5 +164,27 @@ export class Api {
     startAt?: string | null;
   }) {
     return this.firebase.call('respondVisitChange', input);
+  }
+
+  draftFromVoice(input: VoiceDraftInput) {
+    return this.firebase.call<VoiceDraftInput, { transcript: string | null; draft: string | null }>(
+      'draftFromVoice',
+      input,
+    );
+  }
+
+  discardVoiceDraft(projectId: string, audioId: string) {
+    return this.firebase.call('discardVoiceDraft', { projectId, audioId });
+  }
+
+  createReferral(input: { projectId: string; businessKind: BusinessKind; showFirstName: boolean }) {
+    return this.firebase.call<typeof input, { code: string; url: string }>('createReferral', input);
+  }
+
+  openReferral(code: string) {
+    return this.firebase.call<
+      { code: string },
+      { firstName: string | null; businessKind: BusinessKind }
+    >('openReferral', { code });
   }
 }

@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { NotifyChannel, Project, ProjectMember } from '@siteline/shared';
@@ -9,6 +10,7 @@ import { Session } from '../core/session';
 import { Card } from '../shared/ui/card';
 import { FeedStylePicker } from '../shared/ui/feed-style-picker';
 import { Toasts } from '../shared/ui/toast';
+import { InviteCard } from './invite-card';
 
 /** One project's notification choices, saved on the client's own member document. */
 @Component({
@@ -111,7 +113,7 @@ export class ProjectNotify {
  */
 @Component({
   selector: 'sl-client-settings',
-  imports: [TranslatePipe, ProjectNotify, Card, FeedStylePicker],
+  imports: [TranslatePipe, RouterLink, ProjectNotify, Card, FeedStylePicker, InviteCard],
   template: `
     <main class="sl-page sl-stack" id="main">
       <h1>{{ 'pages.clientSettings' | translate }}</h1>
@@ -122,7 +124,26 @@ export class ProjectNotify {
       @for (project of projects() ?? []; track project.id) {
         <sl-project-notify [project]="project" />
       }
+      @if (projects()?.[0]; as first) {
+        <sl-invite-card [projectId]="first.id" [companyId]="first.companyId" />
+      }
+      <p class="sl-small legal">
+        <a routerLink="/legal/privacy">{{ 'pages.privacy' | translate }}</a>
+        <a routerLink="/legal/terms">{{ 'pages.terms' | translate }}</a>
+      </p>
     </main>
+  `,
+  styles: `
+    .legal {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sl-space-4);
+    }
+    .legal a {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--sl-target);
+    }
   `,
 })
 export class ClientSettings {
