@@ -6,6 +6,7 @@ import {
   reviseDecisionHandler,
   saveDecisionDraftHandler,
   sendDecisionHandler,
+  setApprovalRuleHandler,
   withdrawDecisionHandler,
 } from '../../functions/src/callables/decisions';
 import { createProjectHandler } from '../../functions/src/callables/projects';
@@ -325,5 +326,127 @@ describe('Today list support (F14)', () => {
     expect((await totals(projectId)).oldestOpenDecisionAt).toEqual(secondSent);
     await withdrawDecisionHandler(request(owner, { projectId, postId: second }));
     expect((await totals(projectId)).oldestOpenDecisionAt).toBeNull();
+  });
+});
+
+describe('approval rules set by clients', () => {
+  async function couple() {
+    const ctx = await setup();
+    const { uid } = await inviteClientHandler(
+      request(ctx.owner, { projectId: ctx.projectId, name: 'Per Lindqvist', phone: '0701740606' }),
+    );
+    const per: TestCaller = { uid, token: { kind: 'client' } };
+    return { ...ctx, anna: ctx.client, per };
+  }
+  const answer = (caller: TestCaller, projectId: string, postId: string, extra = {}) =>
+    respondToDecisionHandler(
+      request(caller, { projectId, postId, version: 1, outcome: 'approved', ...extra }),
+    );
+  const approvals = async (projectId: string) =>
+    (await db.collection(`projects/${projectId}/approvals`).get()).docs.map((d) => d.id).sort();
+
+  it('lets any client change the rule, announced in the feed; staff cannot', async () => {
+    const { owner, anna, projectId } = await couple();
+    expect(
+      (await failure(setApprovalRuleHandler(request(owner, { projectId, rule: 'all' })))).message,
+    ).toBe('clients_only');
+    await expect(
+      setApprovalRuleHandler(request(anna, { projectId, rule: 'all' })),
+    ).resolves.toEqual({ changed: true });
+    expect((await db.doc(`projects/${projectId}`).get()).get('approvalRule')).toBe('all');
+    const system = await db
+      .collection(`projects/${projectId}/posts`)
+      .where('type', '==', 'system')
+      .get();
+    expect(system.docs[0]!.data()).toMatchObject({
+      authorName: 'Anna Lindqvist',
+      visibility: 'all',
+      system: { event: 'approval_rule', rule: 'all' },
+    });
+    await expect(
+      setApprovalRuleHandler(request(anna, { projectId, rule: 'all' })),
+    ).resolves.toEqual({ changed: false });
+  });
+
+  it('needs both when the couple requires it; each approval is its own record', async () => {
+    const { owner, anna, per, projectId } = await couple();
+    await setApprovalRuleHandler(request(anna, { projectId, rule: 'all' }));
+    const postId = await draftAndSend(owner, projectId);
+    expect((await post(projectId, postId))['decision'].requiredApproverUids.sort()).toEqual(
+      [anna.uid, per.uid].sort(),
+    );
+
+    await expect(answer(anna, projectId, postId)).resolves.toMatchObject({ complete: false });
+    let d = (await post(projectId, postId))['decision'];
+    expect(d.status).toBe('sent');
+    expect(d.approvals.map((a: { name: string }) => a.name)).toEqual(['Anna Lindqvist']);
+    expect((await failure(answer(anna, projectId, postId))).message).toBe('already_answered');
+    expect((await outbox()).filter((m) => m.template === 'decisionAnswered')).toHaveLength(0);
+
+    await expect(answer(per, projectId, postId)).resolves.toMatchObject({ complete: true });
+    d = (await post(projectId, postId))['decision'];
+    expect(d.status).toBe('approved');
+    expect(d.decidedByName).toBe('Anna Lindqvist & Per Lindqvist');
+    expect(await approvals(projectId)).toEqual(
+      [`${postId}_v1_${anna.uid}`, `${postId}_v1_${per.uid}`].sort(),
+    );
+    expect(
+      (await outbox()).filter((m) => m.template === 'decisionAnswered').length,
+    ).toBeGreaterThan(0);
+    expect((await totals(projectId)).approvedExtraWorkOre).toBe(650_000);
+  });
+
+  it('declines on a single no', async () => {
+    const { owner, anna, per, projectId } = await couple();
+    await setApprovalRuleHandler(request(per, { projectId, rule: 'all' }));
+    const postId = await draftAndSend(owner, projectId);
+    await answer(anna, projectId, postId);
+    await answer(per, projectId, postId, { outcome: 'declined', reason: 'För dyrt' });
+    const d = (await post(projectId, postId))['decision'];
+    expect(d).toMatchObject({
+      status: 'declined',
+      decidedByName: 'Per Lindqvist',
+      declineReason: 'För dyrt',
+    });
+    expect((await totals(projectId)).approvedExtraWorkOre).toBe(0);
+  });
+
+  it('needs everyone to pick the same option on a priced choice', async () => {
+    const { owner, anna, per, projectId } = await couple();
+    await setApprovalRuleHandler(request(anna, { projectId, rule: 'all' }));
+    const postId = await draftAndSend(owner, projectId, {
+      kind: 'choice',
+      title: 'Bänkskiva',
+      options: [
+        { id: 'ek', label: 'Ek', priceDeltaOre: 0 },
+        { id: 'sten', label: 'Sten', priceDeltaOre: 900_000 },
+      ],
+    });
+    await answer(anna, projectId, postId, { outcome: 'chosen', optionId: 'sten' });
+    expect(
+      (await failure(answer(per, projectId, postId, { outcome: 'chosen', optionId: 'ek' })))
+        .message,
+    ).toBe('choice_differs');
+    await answer(per, projectId, postId, { outcome: 'chosen', optionId: 'sten' });
+    expect((await post(projectId, postId))['decision']).toMatchObject({
+      status: 'approved',
+      selectedOptionId: 'sten',
+    });
+  });
+
+  it('keeps the rule a card was sent under, and lets one decide unpriced cards', async () => {
+    const { owner, anna, projectId } = await couple();
+    const before = await draftAndSend(owner, projectId);
+    await setApprovalRuleHandler(request(anna, { projectId, rule: 'all' }));
+    await answer(anna, projectId, before);
+    expect((await post(projectId, before))['decision'].status).toBe('approved');
+
+    const unpriced = await draftAndSend(owner, projectId, {
+      kind: 'approval',
+      title: 'Kakelmönster',
+    });
+    await answer(anna, projectId, unpriced);
+    expect((await post(projectId, unpriced))['decision'].status).toBe('approved');
+    expect(await approvals(projectId)).toContain(`${unpriced}_v1`);
   });
 });

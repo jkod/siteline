@@ -74,3 +74,12 @@
   gap: var(--sl-space-2);
   margin-top: var(--sl-space-2);
 }
+
+.shared {
+  display: flex;
+  align-items: center;
+  gap: var(--sl-space-2);
+  font: var(--sl-text-small);
+  font-weight: 600;
+  color: var(--sl-text-2);
+}

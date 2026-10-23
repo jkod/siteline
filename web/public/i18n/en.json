@@ -147,7 +147,10 @@
       "request_not_open": "The request has already been answered.",
       "demo_mode": "In the trial you can't invite or send to real people.",
       "invalid_contact": "Enter a mobile number or an email address.",
-      "clients_only": "Only clients can do this."
+      "clients_only": "Only clients can do this.",
+      "already_answered": "You've already answered this decision.",
+      "choice_differs": "Someone already picked another option. Talk it over, or decline and ask a question.",
+      "not_an_approver": "This decision was sent before you joined the project, so you don't need to answer."
     }
   },
   "dev": {
@@ -395,7 +398,13 @@
     "styleChat": "Newest last",
     "showNewestFirst": "Newest last, switch to newest first",
     "showNewestLast": "Newest first, switch to newest last like a chat",
-    "seenBy": "Seen by {{names}}"
+    "seenBy": "Seen by {{names}}",
+    "system": {
+      "approvalRule": {
+        "all": "{{name}} changed it so every client must approve decisions with a price.",
+        "any": "{{name}} changed it so one client is enough to approve decisions with a price."
+      }
+    }
   },
   "milestone": {
     "add": "Milestone",
@@ -579,6 +588,11 @@
       "respondBy": "Answer by",
       "saveDraft": "Save draft",
       "sendNewVersion": "Send new version"
+    },
+    "shared": {
+      "needsAll": "Everyone must approve. Waiting for {{waiting}}.",
+      "progress": "{{approved}} approved. Waiting for {{waiting}}.",
+      "youApproved": "You approved. Waiting for {{waiting}}."
     }
   },
   "visits": {
@@ -892,5 +906,12 @@
     "label": "{{firm}}, switch project",
     "menu": "Your projects",
     "news": "New since you last looked"
+  },
+  "approvalRule": {
+    "label": "Who approves decisions with a price?",
+    "any": "Any one of us",
+    "all": "Everyone must approve",
+    "help": "Covers extras and choices that cost money. Decisions already sent keep the rule they were sent under.",
+    "saved": "Rule saved. Everyone on the project sees the change in the feed."
   }
 }

@@ -94,6 +94,12 @@ export interface Schedule {
 }
 export type ProjectStatus = 'active' | 'completed' | 'archived';
 
+/**
+ * Who must approve a priced decision when a project has several clients: any one of them, or
+ * all of them (the user's request; a couple can require both). Clients choose it.
+ */
+export type ApprovalRule = 'any' | 'all';
+
 /** The firm's branding, copied onto each project so clients never read company documents. */
 export interface Branding {
   name: string;
@@ -119,6 +125,8 @@ export interface Project<T = TimestampLike> {
   schedule: Schedule | null;
   /** The report template for service clients. */
   templateId?: string | null;
+  /** Defaults to 'any'. Each decision keeps the rule it was sent under. */
+  approvalRule?: ApprovalRule;
   /** Tutoring: photos in reports only after a parent's recorded consent (PRD section 10). */
   photoConsentAt?: T | null;
   status: ProjectStatus;
@@ -204,6 +212,18 @@ export interface Decision<T = TimestampLike> {
   /** The client who answered, for "Approved by Anna Lindqvist, 3 Oct 2026, 18:42". */
   decidedByName?: string | null;
   declineReason?: string | null;
+  /** Under "all must approve": every client who must approve, fixed when the card is sent. */
+  requiredApproverUids?: string[] | null;
+  /** Approvals so far under "all must approve", each with its own approval record. */
+  approvals?: DecisionApproval<T>[];
+}
+
+export interface DecisionApproval<T = TimestampLike> {
+  uid: string;
+  name: string;
+  optionId: string | null;
+  approvalId: string;
+  at: T;
 }
 
 export interface VisitReport {
@@ -235,6 +255,8 @@ export interface Post<T = TimestampLike> {
   report?: VisitReport | null;
   /** The voice recording a staff post was drafted from (PRD F5). */
   voiceId?: string | null;
+  /** For system posts: what happened, shown as a translated line. */
+  system?: { event: 'approval_rule'; rule: ApprovalRule } | null;
   commentCount: number;
   unanswered: boolean;
   createdAt: T;

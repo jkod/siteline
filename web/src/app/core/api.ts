@@ -202,4 +202,10 @@ export class Api {
     });
   }
 
+  setApprovalRule(projectId: string, rule: 'any' | 'all') {
+    return this.firebase.call<unknown, { changed: boolean }>('setApprovalRule', {
+      projectId,
+      rule,
+    });
+  }
 }

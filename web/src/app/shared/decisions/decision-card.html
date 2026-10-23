@@ -33,18 +33,18 @@
   }
 
   @if (dec.kind === 'choice') {
-    <fieldset class="options" [disabled]="!open() || viewerIsStaff()">
+    <fieldset class="options" [disabled]="!open() || viewerIsStaff() || !!earlierChoice()">
       <legend class="sl-visually-hidden">{{ dec.title }}</legend>
       @for (option of dec.options ?? []; track option.id) {
         <label
           class="option"
-          [class.selected]="dec.selectedOptionId === option.id || chosen() === option.id"
+          [class.selected]="dec.selectedOptionId === option.id || selection() === option.id"
         >
           <input
             type="radio"
             [name]="'choice-' + post().id"
             [value]="option.id"
-            [checked]="dec.selectedOptionId === option.id || chosen() === option.id"
+            [checked]="dec.selectedOptionId === option.id || selection() === option.id"
             (change)="chosen.set(option.id)"
           />
           <span class="label">{{ option.label }}</span>
@@ -90,13 +90,26 @@
     }
   }
 
-  @if (open() && !viewerIsStaff()) {
+  @if (progress(); as p) {
+    <p class="shared" role="status">
+      <sl-icon name="group" [size]="18" />
+      @if (iApproved()) {
+        {{ 'decisions.shared.youApproved' | translate: { waiting: p.waiting } }}
+      } @else if (p.any) {
+        {{ 'decisions.shared.progress' | translate: { approved: p.approved, waiting: p.waiting } }}
+      } @else {
+        {{ 'decisions.shared.needsAll' | translate: { waiting: p.waiting } }}
+      }
+    </p>
+  }
+
+  @if (open() && !viewerIsStaff() && !iApproved()) {
     <div class="actions">
       <button
         slButton
         type="button"
         [busy]="busy()"
-        [disabled]="busy() || (dec.kind === 'choice' && !chosen())"
+        [disabled]="busy() || (dec.kind === 'choice' && !selection())"
         (click)="approve()"
       >
         <sl-icon name="check" [size]="18" />

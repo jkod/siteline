@@ -1,4 +1,4 @@
-import type { Decision, DecisionStatus } from './model';
+import type { ApprovalRule, Decision, DecisionStatus } from './model';
 import { formatMoney } from './money';
 
 /** States a decision never leaves (PRD 4.3). */
@@ -91,4 +91,18 @@ export function decisionsCsv(rows: DecisionCsvRow[]): string {
       .join(';'),
   );
   return `\uFEFF${[header.join(';'), ...lines].join('\r\n')}\r\n`;
+}
+
+/**
+ * Who must approve a decision being sent: every current client when the project requires all
+ * of them and the decision has a price, otherwise null (any one client decides).
+ */
+export function requiredApprovers(
+  rule: ApprovalRule | undefined,
+  decision: Pick<Decision, 'kind' | 'priceOre' | 'options'>,
+  clientUids: string[],
+): string[] | null {
+  return rule === 'all' && clientUids.length > 1 && decisionHasPrice(decision)
+    ? [...clientUids]
+    : null;
 }

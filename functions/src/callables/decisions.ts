@@ -1,4 +1,4 @@
-import { FieldValue, type Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { type CallableRequest, HttpsError, onCall } from 'firebase-functions/https';
 import {
   agreedPrice,
@@ -9,9 +9,11 @@ import {
   type Post,
   type Project,
   type ProjectMember,
+  requiredApprovers,
   respondToDecisionInput,
   reviseDecisionInput,
   saveDecisionDraftInput,
+  setApprovalRuleInput,
   type UserDoc,
 } from '@siteline/shared';
 
@@ -159,6 +161,13 @@ export async function sendDecisionHandler(request: CallableRequest<unknown>) {
       status: 'sent' as const,
       sentAt: FieldValue.serverTimestamp(),
       sentByUid: caller.uid,
+      // The project's approval rule as it is now; later changes don't move the goalposts.
+      requiredApproverUids: requiredApprovers(
+        project.approvalRule,
+        current.decision,
+        project.clientUids,
+      ),
+      approvals: [],
     };
     // Sending moves the card to the top of the feed.
     tx.update(ref, { visibility: 'all', decision, createdAt: FieldValue.serverTimestamp() });
@@ -206,6 +215,8 @@ export async function reviseDecisionHandler(request: CallableRequest<unknown>) {
         createdByUid: old.decision.createdByUid,
         sentAt: FieldValue.serverTimestamp(),
         sentByUid: caller.uid,
+        requiredApproverUids: requiredApprovers(project.approvalRule, fields, project.clientUids),
+        approvals: [],
       },
       commentCount: 0,
       unanswered: false,
@@ -262,60 +273,103 @@ export async function respondToDecisionHandler(request: CallableRequest<unknown>
     throw new HttpsError('permission-denied', 'clients_only');
 
   const postRef = db.doc(`projects/${input.projectId}/posts/${input.postId}`);
-  const approvalRef = db.doc(
-    `projects/${input.projectId}/approvals/${input.postId}_v${input.version}`,
-  );
   const member = (
     await db.doc(`projects/${input.projectId}/members/${caller.uid}`).get()
   ).data() as ProjectMember | undefined;
 
-  const result = await db.runTransaction(async (tx) => {
-    const post = (await tx.get(postRef)).data() as Post | undefined;
-    const d = post?.decision;
-    if (!post || !d || post.visibility !== 'all')
-      throw new HttpsError('not-found', 'decision_not_found');
-    if (d.version !== input.version)
-      throw new HttpsError('failed-precondition', 'decision_changed');
-    if (d.status !== 'sent') throw new HttpsError('failed-precondition', 'decision_not_open');
-    const valid =
-      input.outcome === 'declined' ||
-      (input.outcome === 'approved' && d.kind !== 'choice') ||
-      (input.outcome === 'chosen' &&
-        d.kind === 'choice' &&
-        !!d.options?.some((o) => o.id === input.optionId));
-    if (!valid) throw new HttpsError('invalid-argument', 'invalid_outcome');
+  const result = await db
+    .runTransaction(async (tx) => {
+      const post = (await tx.get(postRef)).data() as Post | undefined;
+      const d = post?.decision;
+      if (!post || !d || post.visibility !== 'all')
+        throw new HttpsError('not-found', 'decision_not_found');
+      if (d.version !== input.version)
+        throw new HttpsError('failed-precondition', 'decision_changed');
+      if (d.status !== 'sent') throw new HttpsError('failed-precondition', 'decision_not_open');
+      const valid =
+        input.outcome === 'declined' ||
+        (input.outcome === 'approved' && d.kind !== 'choice') ||
+        (input.outcome === 'chosen' &&
+          d.kind === 'choice' &&
+          !!d.options?.some((o) => o.id === input.optionId));
+      if (!valid) throw new HttpsError('invalid-argument', 'invalid_outcome');
 
-    const { snapshot, sha256 } = decisionSnapshot(post, project.title);
-    const optionId = input.outcome === 'chosen' ? input.optionId! : null;
-    const approval: Approval<FieldValue> = {
-      postId: input.postId,
-      version: d.version,
-      kind: 'decision',
-      outcome: input.outcome,
-      optionId,
-      priceOre: input.outcome === 'declined' ? null : agreedPrice(d, optionId),
-      reason: input.outcome === 'declined' ? (input.reason ?? null) : null,
-      snapshot,
-      snapshotSha256: sha256,
-      actorUid: caller.uid,
-      actorName: member?.name ?? '',
-      actorPhoneMasked: member?.phoneMasked ?? null,
-      phoneVerified: false,
-      createdAt: FieldValue.serverTimestamp(),
-    };
-    // create() fails if a record for this version exists, so it's written exactly once.
-    tx.create(approvalRef, approval);
-    tx.update(postRef, {
-      'decision.status': input.outcome === 'declined' ? 'declined' : 'approved',
-      'decision.decidedAt': FieldValue.serverTimestamp(),
-      'decision.selectedOptionId': optionId,
-      'decision.approvalId': approvalRef.id,
-      'decision.decidedByName': approval.actorName,
-      'decision.declineReason': approval.reason,
+      // "All must approve": the clients fixed at sending who are still on the project. Each
+      // answers with their own record; one decline declines the card.
+      const required = (d.requiredApproverUids ?? []).filter((uid) =>
+        project.clientUids.includes(uid),
+      );
+      const shared = required.length > 1;
+      if (shared && !required.includes(caller.uid))
+        throw new HttpsError('permission-denied', 'not_an_approver');
+      const earlier = d.approvals ?? [];
+      const optionId = input.outcome === 'chosen' ? input.optionId! : null;
+      if (shared && optionId && earlier[0] && earlier[0].optionId !== optionId)
+        throw new HttpsError('failed-precondition', 'choice_differs');
+
+      const approvalRef = db.doc(
+        `projects/${input.projectId}/approvals/${input.postId}_v${input.version}${shared ? `_${caller.uid}` : ''}`,
+      );
+      const { snapshot, sha256 } = decisionSnapshot(post, project.title);
+      const approval: Approval<FieldValue> = {
+        postId: input.postId,
+        version: d.version,
+        kind: 'decision',
+        outcome: input.outcome,
+        optionId,
+        priceOre: input.outcome === 'declined' ? null : agreedPrice(d, optionId),
+        reason: input.outcome === 'declined' ? (input.reason ?? null) : null,
+        snapshot,
+        snapshotSha256: sha256,
+        actorUid: caller.uid,
+        actorName: member?.name ?? '',
+        actorPhoneMasked: member?.phoneMasked ?? null,
+        phoneVerified: false,
+        createdAt: FieldValue.serverTimestamp(),
+      };
+      // create() fails if the record exists, so each person's answer is written exactly once.
+      tx.create(approvalRef, approval);
+
+      const approvals = [
+        ...earlier,
+        {
+          uid: caller.uid,
+          name: approval.actorName,
+          optionId,
+          approvalId: approvalRef.id,
+          at: Timestamp.now(),
+        },
+      ];
+      const complete =
+        input.outcome === 'declined' ||
+        !shared ||
+        required.every((uid) => approvals.some((a) => a.uid === uid));
+      if (!complete) {
+        tx.update(postRef, { 'decision.approvals': approvals });
+        return { post, actorName: approval.actorName, complete, approvalId: approvalRef.id };
+      }
+      tx.update(postRef, {
+        'decision.status': input.outcome === 'declined' ? 'declined' : 'approved',
+        'decision.decidedAt': FieldValue.serverTimestamp(),
+        'decision.selectedOptionId': optionId,
+        'decision.approvalId': approvalRef.id,
+        'decision.decidedByName':
+          input.outcome === 'declined' || !shared
+            ? approval.actorName
+            : approvals.map((a) => a.name).join(' & '),
+        'decision.declineReason': approval.reason,
+        ...(shared && input.outcome !== 'declined' ? { 'decision.approvals': approvals } : {}),
+      });
+      return { post, actorName: approval.actorName, complete, approvalId: approvalRef.id };
+    })
+    .catch((error: unknown) => {
+      if ((error as { code?: number }).code === 6)
+        throw new HttpsError('already-exists', 'already_answered');
+      throw error;
     });
-    return { post, actorName: approval.actorName };
-  });
 
+  // Staff hear when a card is decided, not about each partial approval.
+  if (!result.complete) return { approvalId: result.approvalId, complete: false };
   await recountDecisions(db, input.projectId);
   const d = result.post.decision!;
   const recipients = (await projectStaff(db, project)).filter(
@@ -338,7 +392,7 @@ export async function respondToDecisionHandler(request: CallableRequest<unknown>
       locale: staff.locale,
       companyId: project.companyId,
       projectId: input.projectId,
-      dedupeKey: `answered:${approvalRef.id}:${staff.uid}`,
+      dedupeKey: `answered:${result.approvalId}:${staff.uid}`,
     });
   }
   await recordEvent(db, {
@@ -349,7 +403,7 @@ export async function respondToDecisionHandler(request: CallableRequest<unknown>
     role: 'client',
     props: { outcome: input.outcome },
   });
-  return { approvalId: approvalRef.id };
+  return { approvalId: result.approvalId, complete: true };
 }
 
 /** All sent decisions as CSV, for staff and for the records (PRD F6, section 10). */
@@ -378,7 +432,7 @@ export async function exportDecisionsCsvHandler(request: CallableRequest<unknown
         priceOre: d.kind === 'extra_work' ? (d.priceOre ?? null) : (approval?.priceOre ?? null),
         sentAt: d.sentAt?.toDate() ?? null,
         decidedAt: d.decidedAt?.toDate() ?? null,
-        decidedBy: approval?.actorName ?? '',
+        decidedBy: d.decidedByName ?? approval?.actorName ?? '',
         choice: d.options?.find((o) => o.id === d.selectedOptionId)?.label ?? '',
         reason: d.declineReason ?? '',
       };
@@ -390,6 +444,44 @@ export async function exportDecisionsCsvHandler(request: CallableRequest<unknown
   return { csv: decisionsCsv(rows), filename: `beslut-${slug || 'projekt'}.csv` };
 }
 
+/**
+ * A client sets who must approve priced decisions on their project: any one client, or all of
+ * them (the user's request). The change is announced in the feed for everyone on the project,
+ * and cards already sent keep the rule they were sent under.
+ */
+export async function setApprovalRuleHandler(request: CallableRequest<unknown>) {
+  const caller = requireAuth(request);
+  const input = parseInput(setApprovalRuleInput, request.data);
+  const projectRef = db.doc(`projects/${input.projectId}`);
+  const project = projectOrThrow((await projectRef.get()).data() as Project | undefined);
+  if (!project.clientUids.includes(caller.uid))
+    throw new HttpsError('permission-denied', 'clients_only');
+  if ((project.approvalRule ?? 'any') === input.rule) return { changed: false };
+  const member = (await projectRef.collection('members').doc(caller.uid).get()).data() as
+    ProjectMember | undefined;
+  const batch = db.batch();
+  batch.update(projectRef, { approvalRule: input.rule, updatedAt: FieldValue.serverTimestamp() });
+  batch.create(projectRef.collection('posts').doc(), {
+    type: 'system',
+    authorUid: caller.uid,
+    authorName: member?.name ?? '',
+    authorRole: 'client',
+    text: '',
+    media: [],
+    visibility: 'all',
+    milestone: null,
+    system: { event: 'approval_rule', rule: input.rule },
+    commentCount: 0,
+    unanswered: false,
+    createdAt: FieldValue.serverTimestamp(),
+    editedAt: null,
+    deletedAt: null,
+  });
+  await batch.commit();
+  return { changed: true };
+}
+
+export const setApprovalRule = onCall(callableOptions, setApprovalRuleHandler);
 export const saveDecisionDraft = onCall(callableOptions, saveDecisionDraftHandler);
 export const deleteDecisionDraft = onCall(callableOptions, deleteDecisionDraftHandler);
 export const sendDecision = onCall(callableOptions, sendDecisionHandler);

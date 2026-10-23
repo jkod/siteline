@@ -28,6 +28,14 @@
     <p class="removed">{{ 'feed.removedByAuthor' | translate }}</p>
   } @else {
     @switch (p.type) {
+      @case ('system') {
+        @if (p.system?.event === 'approval_rule') {
+          <p class="system">
+            <sl-icon name="group" [size]="18" />
+            {{ 'feed.system.approvalRule.' + p.system!.rule | translate: { name: p.authorName } }}
+          </p>
+        }
+      }
       @case ('milestone') {
         <div class="milestone-body">
           <p class="sl-label stage">

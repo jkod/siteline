@@ -23,6 +23,9 @@ const FUNCTION_CODES = new Set([
 const FUNCTION_REASONS = new Set([
   'plan_limit',
   'demo_mode',
+  'already_answered',
+  'choice_differs',
+  'not_an_approver',
   'invalid_contact',
   'clients_only',
   'link_expired',

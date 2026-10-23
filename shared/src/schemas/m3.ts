@@ -34,3 +34,8 @@ export type StartDemoInput = z.input<typeof startDemoInput>;
 export const emailSchema = z.email().max(120);
 
 export const clientSignInInput = z.object({ contact: z.string().trim().min(3).max(120) });
+
+export const setApprovalRuleInput = z.object({
+  projectId: id,
+  rule: z.enum(['any', 'all']),
+});

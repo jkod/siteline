@@ -6,6 +6,7 @@ import { canManageCompany, type Decision } from '@siteline/shared';
 import { Api } from '../../core/api';
 import { errorMessageKey } from '../../core/errors';
 import type { WithId } from '../../core/live';
+import { ProjectContext } from '../../core/project-context';
 import { Session } from '../../core/session';
 import type { FeedPost } from '../feed/feed-store';
 import { DatePipe } from '../pipes/date';
@@ -34,6 +35,7 @@ export class DecisionCard {
   private readonly dialogs = inject(Dialogs);
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
+  private readonly context = inject(ProjectContext, { optional: true });
 
   readonly post = input.required<WithId<FeedPost> | FeedPost>();
   readonly projectId = input.required<string>();
@@ -47,6 +49,27 @@ export class DecisionCard {
   protected readonly open = computed(() => this.d().status === 'sent');
   protected readonly isDraft = computed(() => this.d().status === 'draft');
   protected readonly canManage = computed(() => canManageCompany(this.session.role()));
+
+  /** "All must approve" (set by the clients): who still has to, and whether the viewer has. */
+  protected readonly shared = computed(() => (this.d().requiredApproverUids?.length ?? 0) > 1);
+  protected readonly iApproved = computed(() =>
+    (this.d().approvals ?? []).some((a) => a.uid === this.session.user()?.uid),
+  );
+  /** On a shared choice, the first person's pick is the one the others confirm. */
+  protected readonly earlierChoice = computed(() => this.d().approvals?.[0]?.optionId ?? null);
+  protected readonly selection = computed(() => this.chosen() ?? this.earlierChoice());
+  protected readonly progress = computed(() => {
+    const d = this.d();
+    if (!this.shared() || d.status !== 'sent') return null;
+    const names = new Map((this.context?.clients() ?? []).map((c) => [c.id, c.name]));
+    const first = (name: string) => name.split(/\s+/)[0] ?? name;
+    const approved = (d.approvals ?? []).map((a) => first(a.name));
+    const waiting = (d.requiredApproverUids ?? [])
+      .filter((uid) => !(d.approvals ?? []).some((a) => a.uid === uid))
+      .map((uid) => first(names.get(uid) ?? ''))
+      .filter(Boolean);
+    return { approved: approved.join(', '), waiting: waiting.join(', '), any: approved.length > 0 };
+  });
   protected readonly canEditDraft = computed(
     () =>
       this.isDraft() && (this.canManage() || this.d().createdByUid === this.session.user()?.uid),
@@ -54,7 +77,7 @@ export class DecisionCard {
 
   protected async approve(): Promise<void> {
     const d = this.d();
-    if (d.kind === 'choice' && !this.chosen()) return;
+    if (d.kind === 'choice' && !this.selection()) return;
     await this.run(
       () =>
         this.api.respondToDecision({
@@ -62,7 +85,7 @@ export class DecisionCard {
           postId: this.post().id,
           version: d.version,
           outcome: d.kind === 'choice' ? 'chosen' : 'approved',
-          optionId: this.chosen() ?? undefined,
+          optionId: this.selection() ?? undefined,
         }),
       'decisions.answered',
     );

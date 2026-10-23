@@ -1,4 +1,10 @@
-import { agreedPrice, approvedExtraWorkTotal, decisionHasPrice, decisionsCsv } from './decisions';
+import {
+  agreedPrice,
+  approvedExtraWorkTotal,
+  decisionHasPrice,
+  decisionsCsv,
+  requiredApprovers,
+} from './decisions';
 
 describe('approvedExtraWorkTotal', () => {
   it('sums only approved extra-work versions (PRD F6)', () => {
@@ -63,5 +69,31 @@ describe('decisionsCsv', () => {
     expect(csv).toContain(
       '"Byt golvbjälke; kök";extra_work;approved;1;6 500 kr;2026-10-03T16:00:00.000Z',
     );
+  });
+});
+
+describe('requiredApprovers', () => {
+  const priced = { kind: 'extra_work' as const, priceOre: 180_000 };
+  it('needs every client for priced decisions when the project says all', () => {
+    expect(requiredApprovers('all', priced, ['anna', 'per'])).toEqual(['anna', 'per']);
+  });
+  it('lets any one client decide otherwise', () => {
+    expect(requiredApprovers('any', priced, ['anna', 'per'])).toBeNull();
+    expect(requiredApprovers(undefined, priced, ['anna', 'per'])).toBeNull();
+    expect(requiredApprovers('all', priced, ['anna'])).toBeNull();
+    expect(requiredApprovers('all', { kind: 'approval' }, ['anna', 'per'])).toBeNull();
+    expect(
+      requiredApprovers('all', { kind: 'choice', options: [{ id: 'a', label: 'A' }] }, [
+        'anna',
+        'per',
+      ]),
+    ).toBeNull();
+    expect(
+      requiredApprovers(
+        'all',
+        { kind: 'choice', options: [{ id: 'a', label: 'A', priceDeltaOre: 50_000 }] },
+        ['anna', 'per'],
+      ),
+    ).toEqual(['anna', 'per']);
   });
 });

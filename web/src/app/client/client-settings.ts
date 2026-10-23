@@ -2,8 +2,9 @@ import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import type { NotifyChannel, Project, ProjectMember } from '@siteline/shared';
+import type { ApprovalRule, NotifyChannel, Project, ProjectMember } from '@siteline/shared';
 
+import { Api } from '../core/api';
 import { errorMessageKey } from '../core/errors';
 import { liveDoc, liveQuery, useFirestore, type WithId } from '../core/live';
 import { Session } from '../core/session';
@@ -48,6 +49,24 @@ import { InviteCard } from './invite-card';
           <option value="email">{{ 'clientSettings.email' | translate }}</option>
         </select>
       </label>
+      @if (p.clientUids.length > 1) {
+        <fieldset class="rule">
+          <legend>{{ 'approvalRule.label' | translate }}</legend>
+          @for (rule of rules; track rule) {
+            <label class="check">
+              <input
+                type="radio"
+                [name]="'rule-' + p.id"
+                [value]="rule"
+                [checked]="(p.approvalRule ?? 'any') === rule"
+                (change)="setRule(rule)"
+              />
+              {{ 'approvalRule.' + rule | translate }}
+            </label>
+          }
+          <p class="sl-small">{{ 'approvalRule.help' | translate }}</p>
+        </fieldset>
+      }
     </section>
   `,
   styles: `
@@ -62,6 +81,17 @@ import { InviteCard } from './invite-card';
       height: 22px;
       accent-color: var(--sl-accent);
     }
+    .rule {
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    .rule legend {
+      padding: 0;
+      font-weight: 600;
+    }
     .field {
       display: flex;
       flex-direction: column;
@@ -75,8 +105,10 @@ export class ProjectNotify {
   private readonly firestore = useFirestore();
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
+  private readonly api = inject(Api);
 
   readonly project = input.required<WithId<Project>>();
+  protected readonly rules: ApprovalRule[] = ['any', 'all'];
   private readonly member = liveDoc<ProjectMember>(() => {
     const uid = this.session.user()?.uid;
     return uid ? `projects/${this.project().id}/members/${uid}` : null;
@@ -87,6 +119,17 @@ export class ProjectNotify {
     channel: 'sms' as NotifyChannel,
     ...this.member()?.notify,
   }));
+
+  /** Who must approve priced decisions on this project (the user's request). */
+  protected async setRule(rule: ApprovalRule): Promise<void> {
+    try {
+      await this.api.setApprovalRule(this.project().id, rule);
+      this.toasts.show(this.translate.instant('approvalRule.saved'), 'success');
+    } catch (error) {
+      const key = errorMessageKey(error);
+      if (key) this.toasts.show(this.translate.instant(key), 'error');
+    }
+  }
 
   protected async set(
     change: Partial<{ digest: boolean; instant: boolean; channel: NotifyChannel }>,

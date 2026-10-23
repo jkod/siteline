@@ -9,6 +9,7 @@ export {
   reviseDecision,
   saveDecisionDraft,
   sendDecision,
+  setApprovalRule,
   withdrawDecision,
 } from './callables/decisions';
 export { startDemo } from './callables/demo';

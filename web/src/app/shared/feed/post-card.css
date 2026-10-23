@@ -121,3 +121,10 @@
 .card.milestone .seen {
   color: inherit;
 }
+
+.system {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sl-space-2);
+  font-weight: 600;
+}

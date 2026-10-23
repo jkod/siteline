@@ -147,7 +147,10 @@
       "request_not_open": "Önskemålet är redan besvarat.",
       "demo_mode": "I provläget kan du inte bjuda in eller skicka till riktiga personer.",
       "invalid_contact": "Skriv ett mobilnummer eller en e-postadress.",
-      "clients_only": "Det här kan bara kunder göra."
+      "clients_only": "Det här kan bara kunder göra.",
+      "already_answered": "Du har redan svarat på det här beslutet.",
+      "choice_differs": "Någon har redan valt ett annat alternativ. Prata ihop er, eller avböj och ställ en fråga.",
+      "not_an_approver": "Det här beslutet skickades innan du kom med i projektet, så du behöver inte svara."
     }
   },
   "dev": {
@@ -395,7 +398,13 @@
     "styleChat": "Nyast nederst",
     "showNewestFirst": "Nyast nederst, byt till nyast överst",
     "showNewestLast": "Nyast överst, byt till nyast nederst som i en chatt",
-    "seenBy": "Sedd av {{names}}"
+    "seenBy": "Sedd av {{names}}",
+    "system": {
+      "approvalRule": {
+        "all": "{{name}} ändrade så att alla kunder måste godkänna beslut med pris.",
+        "any": "{{name}} ändrade så att det räcker att en kund godkänner beslut med pris."
+      }
+    }
   },
   "milestone": {
     "add": "Milstolpe",
@@ -579,6 +588,11 @@
       "respondBy": "Svara senast",
       "saveDraft": "Spara utkast",
       "sendNewVersion": "Skicka ny version"
+    },
+    "shared": {
+      "needsAll": "Alla måste godkänna. Väntar på {{waiting}}.",
+      "progress": "{{approved}} har godkänt. Väntar på {{waiting}}.",
+      "youApproved": "Du har godkänt. Väntar på {{waiting}}."
     }
   },
   "visits": {
@@ -892,5 +906,12 @@
     "label": "{{firm}}, byt projekt",
     "menu": "Dina projekt",
     "news": "Nytt sedan du tittade senast"
+  },
+  "approvalRule": {
+    "label": "Vem godkänner beslut med pris?",
+    "any": "Någon av oss räcker",
+    "all": "Alla måste godkänna",
+    "help": "Gäller tillägg och val som kostar. Beslut som redan är skickade behåller den regel de skickades med.",
+    "saved": "Regeln är sparad. Alla i projektet ser ändringen i flödet."
   }
 }
