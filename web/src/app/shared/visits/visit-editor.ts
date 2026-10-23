@@ -14,11 +14,11 @@ import {
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { Visit } from '@siteline/shared';
 
-import { errorMessageKey } from '../../core/errors';
 import { useFirestore, type WithId } from '../../core/live';
 import { Button } from '../ui/button';
 import { dialogTitleId } from '../ui/dialog';
 import { Field, Input } from '../ui/field';
+import { FormError, showSaveError } from '../ui/form-error';
 import { Toasts } from '../ui/toast';
 import { fromInstant, toInstant } from './visit-time';
 
@@ -31,7 +31,7 @@ export interface VisitEditorData {
 /** Books or changes a visit: date, start, optional end, people and notes (PRD F7). */
 @Component({
   selector: 'sl-visit-editor',
-  imports: [TranslatePipe, FormField, Button, Field, Input],
+  imports: [TranslatePipe, FormField, Button, Field, Input, FormError],
   template: `
     <form class="body" novalidate (submit)="save($event)">
       <h2 [id]="titleId">
@@ -72,6 +72,7 @@ export interface VisitEditorData {
       <sl-field [label]="'visits.notes' | translate" [hint]="'visits.notesHint' | translate">
         <textarea slInput rows="2" [formField]="form.notes"></textarea>
       </sl-field>
+      <sl-form-error [key]="saveError()" />
       <div class="actions">
         <button slButton="secondary" type="button" (click)="ref.close()">
           {{ 'common.cancel' | translate }}
@@ -102,6 +103,8 @@ export interface VisitEditorData {
   `,
 })
 export class VisitEditor {
+  /** A failed save, shown in the dialog as well as in a toast. */
+  protected readonly saveError = signal<string | null>(null);
   private readonly firestore = useFirestore();
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
@@ -161,8 +164,7 @@ export class VisitEditor {
         });
         this.ref.close();
       } catch (error) {
-        const key = errorMessageKey(error);
-        if (key) this.toasts.show(this.translate.instant(key), 'error');
+        showSaveError(error, this.saveError, this.toasts, this.translate);
       } finally {
         this.saving.set(false);
       }

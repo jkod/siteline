@@ -151,11 +151,15 @@ export class ClientVisits {
   }
 
   protected request(visit: WithId<Visit>): void {
-    this.dialogs.open<void, VisitRequestDialogData, VisitRequestDialog>(VisitRequestDialog, {
-      projectId: this.projectId()!,
-      visitId: visit.id,
-      when: formatDate(visit.startAt, 'visit', this.language.lang()),
-      mode: 'client',
-    });
+    this.dialogs.open<void, VisitRequestDialogData, VisitRequestDialog>(
+      VisitRequestDialog,
+      {
+        projectId: this.projectId()!,
+        visitId: visit.id,
+        when: formatDate(visit.startAt, 'visit', this.language.lang()),
+        mode: 'client',
+      },
+      { wide: true },
+    );
   }
 }

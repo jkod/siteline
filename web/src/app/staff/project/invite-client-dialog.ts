@@ -6,16 +6,16 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { normalizePhone } from '@siteline/shared';
 
 import { Api } from '../../core/api';
-import { errorMessageKey } from '../../core/errors';
 import { Button } from '../../shared/ui/button';
 import { dialogTitleId } from '../../shared/ui/dialog';
 import { Field, Input } from '../../shared/ui/field';
+import { FormError, showSaveError } from '../../shared/ui/form-error';
 import { Toasts } from '../../shared/ui/toast';
 
 /** Name, mobile number and an optional email; the client gets a link by text (PRD 4.1). */
 @Component({
   selector: 'sl-invite-client-dialog',
-  imports: [TranslatePipe, FormField, Button, Field, Input],
+  imports: [TranslatePipe, FormField, Button, Field, Input, FormError],
   template: `
     <form class="body" novalidate (submit)="send($event)">
       <h2 [id]="titleId">{{ 'people.inviteTitle' | translate }}</h2>
@@ -43,6 +43,7 @@ import { Toasts } from '../../shared/ui/toast';
       >
         <input slInput type="email" autocomplete="off" [formField]="form.email" />
       </sl-field>
+      <sl-form-error [key]="saveError()" />
       <div class="actions">
         <button slButton="secondary" type="button" (click)="ref.close()">
           {{ 'common.cancel' | translate }}
@@ -68,6 +69,8 @@ import { Toasts } from '../../shared/ui/toast';
   `,
 })
 export class InviteClientDialog {
+  /** A failed save, shown in the dialog as well as in a toast. */
+  protected readonly saveError = signal<string | null>(null);
   private readonly api = inject(Api);
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
@@ -100,8 +103,7 @@ export class InviteClientDialog {
         this.toasts.show(this.translate.instant('people.inviteSent', { name: m.name }), 'success');
         this.ref.close(true);
       } catch (error) {
-        const key = errorMessageKey(error);
-        if (key) this.toasts.show(this.translate.instant(key), 'error');
+        showSaveError(error, this.saveError, this.toasts, this.translate);
       } finally {
         this.sending.set(false);
       }

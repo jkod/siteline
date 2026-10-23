@@ -128,3 +128,15 @@
   gap: var(--sl-space-2);
   font-weight: 600;
 }
+
+.notes {
+  margin: 0;
+  padding-left: var(--sl-space-5);
+}
+.outcome {
+  display: flex;
+  align-items: center;
+  gap: var(--sl-space-2);
+  font-weight: 600;
+  color: var(--sl-accent-text);
+}

@@ -86,8 +86,11 @@ nav a.active {
     border-radius: 50%;
     background: var(--sl-alert);
   }
-  .sign-out {
+  .language {
     margin-top: auto;
+    padding: 0 var(--sl-space-3);
+  }
+  .sign-out {
     justify-content: flex-start;
   }
 }

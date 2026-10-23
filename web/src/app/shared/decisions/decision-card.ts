@@ -110,13 +110,17 @@ export class DecisionCard {
   }
 
   protected edit(): void {
-    this.dialogs.open<void, DecisionEditorData, DecisionEditor>(DecisionEditor, {
-      projectId: this.projectId(),
-      postId: this.post().id,
-      decision: this.d(),
-      media: this.post().media,
-      mode: this.isDraft() ? 'draft' : 'revise',
-    });
+    this.dialogs.open<void, DecisionEditorData, DecisionEditor>(
+      DecisionEditor,
+      {
+        projectId: this.projectId(),
+        postId: this.post().id,
+        decision: this.d(),
+        media: this.post().media,
+        mode: this.isDraft() ? 'draft' : 'revise',
+      },
+      { wide: true },
+    );
   }
 
   protected async send(): Promise<void> {

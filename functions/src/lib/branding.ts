@@ -1,18 +1,18 @@
 import { getDownloadURL } from 'firebase-admin/storage';
-import { type Branding, type Company, showsSitelineFooter } from '@siteline/shared';
+import { type Branding, type Company, projectBranding } from '@siteline/shared';
 
 import { bucket } from './admin';
 
-/** The branding copied onto each project, so clients never read company documents (PRD 8). */
+/**
+ * The branding copied onto each project, so clients never read company documents (PRD 8), as
+ * the plan allows: logo from Solo, colour from Team (F10).
+ */
 export async function brandingFor(
-  company: Pick<Company, 'name' | 'logoPath' | 'accentColor' | 'plan'>,
+  company: Pick<Company, 'name' | 'logoPath' | 'accentColor' | 'plan' | 'compedUntil'>,
+  now = new Date(),
 ): Promise<Branding> {
-  return {
-    name: company.name,
-    logoUrl: company.logoPath ? await logoUrl(company.logoPath) : null,
-    accentColor: company.accentColor,
-    showSitelineFooter: showsSitelineFooter(company.plan),
-  };
+  const logo = company.logoPath ? await logoUrl(company.logoPath) : null;
+  return projectBranding(company, logo, now.getTime());
 }
 
 async function logoUrl(path: string): Promise<string | null> {

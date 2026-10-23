@@ -44,6 +44,12 @@
           />
         </div>
       </sl-field>
+      @if (!company.features().colours) {
+        <p class="sl-small locked">
+          {{ 'companySettings.colourFromTeam' | translate }}
+          <a routerLink="/app/settings/billing">{{ 'companySettings.seePlans' | translate }}</a>
+        </p>
+      }
       @if (lowContrast()) {
         <p class="sl-small">
           {{ 'companySettings.lowContrast' | translate: { shade: textShade() } }}
@@ -78,6 +84,12 @@
           {{ 'companySettings.uploadLogo' | translate }}
         </button>
         <p class="sl-small">{{ 'companySettings.logoHint' | translate }}</p>
+        @if (!company.features().logo) {
+          <p class="sl-small locked">
+            {{ 'companySettings.logoFromSolo' | translate }}
+            <a routerLink="/app/settings/billing">{{ 'companySettings.seePlans' | translate }}</a>
+          </p>
+        }
       </div>
 
       <div class="end">
@@ -86,6 +98,11 @@
         </button>
       </div>
     </form>
-    <sl-brand-preview [name]="model().name" [accent]="accent()" [logoUrl]="logoUrl()" />
+    <!-- What clients see: the colour and logo only where the plan includes them. -->
+    <sl-brand-preview
+      [name]="model().name"
+      [accent]="company.features().colours ? accent() : defaultAccent"
+      [logoUrl]="company.features().logo ? logoUrl() : null"
+    />
   </div>
 </main>

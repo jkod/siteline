@@ -1,10 +1,15 @@
 import { Component, inject } from '@angular/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
+import type { Locale } from '@siteline/shared';
 
 import { Language } from '../../core/language';
+import { Session } from '../../core/session';
 
-/** Switches between Swedish and English. Each option is named in its own language. */
+/**
+ * Switches between Swedish and English, named each in its own language. Signed in, the choice
+ * is saved on the person's profile, so texts and emails to them follow it.
+ */
 @Component({
   selector: 'sl-language-switch',
   imports: [TranslatePipe],
@@ -15,7 +20,7 @@ import { Language } from '../../core/language';
           type="button"
           [attr.lang]="lang"
           [attr.aria-pressed]="language.lang() === lang"
-          (click)="language.use(lang)"
+          (click)="choose(lang)"
         >
           {{ 'language.' + lang | translate }}
         </button>
@@ -49,4 +54,10 @@ import { Language } from '../../core/language';
 })
 export class LanguageSwitch {
   protected readonly language = inject(Language);
+  private readonly session = inject(Session);
+
+  protected async choose(lang: Locale): Promise<void> {
+    await this.language.use(lang);
+    await this.session.setLocale(lang).catch(() => undefined);
+  }
 }

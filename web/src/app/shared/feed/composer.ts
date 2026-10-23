@@ -25,6 +25,8 @@ import { type Recording, VoiceRecorder } from './voice-recorder';
 interface Selected {
   file: File;
   preview: string;
+  /** Pipes, wiring, waterproofing or insulation before it's covered (F18). */
+  hiddenWork: boolean;
 }
 
 /**
@@ -107,9 +109,15 @@ export class Composer {
       ...list,
       ...files
         .slice(0, Math.max(0, room))
-        .map((file) => ({ file, preview: URL.createObjectURL(file) })),
+        .map((file) => ({ file, preview: URL.createObjectURL(file), hiddenWork: false })),
     ]);
     this.fileInput().nativeElement.value = '';
+  }
+
+  protected toggleHiddenWork(index: number): void {
+    this.photos.update((list) =>
+      list.map((p, i) => (i === index ? { ...p, hiddenWork: !p.hiddenWork } : p)),
+    );
   }
 
   protected removePhoto(index: number): void {
@@ -157,6 +165,9 @@ export class Composer {
       type: this.mode(),
       text: this.text().trim(),
       files: this.photos().map((p) => p.file),
+      hiddenWork: this.photos().some((p) => p.hiddenWork)
+        ? this.photos().flatMap((p, i) => (p.hiddenWork ? [i] : []))
+        : undefined,
       voiceId: this.voiceId() ?? undefined,
     };
     this.sending.set(true);

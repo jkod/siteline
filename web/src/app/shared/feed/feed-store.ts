@@ -24,6 +24,8 @@ export interface NewPost {
   type: 'update' | 'question' | 'milestone';
   text: string;
   files: File[];
+  /** Photos tagged as hidden work (F18), by their index in files. */
+  hiddenWork?: number[];
   milestone?: { stage: number | null; stageCount: number | null };
   /** The recording a voice draft came from, so its audio is kept 30 days (PRD F5). */
   voiceId?: string | null;
@@ -128,13 +130,18 @@ export class FeedStore {
       const media: Media[] = [];
       for (const [i, file] of post.files.entries()) {
         media.push(
-          await this.media.upload(this.projectId, file, (fraction) => {
-            progress[i] = fraction;
-            const total = progress.reduce((a, b) => a + b, 0) / progress.length;
-            this.pending.update((list) =>
-              list.map((p) => (p.tempId === tempId ? { ...p, progress: total } : p)),
-            );
-          }),
+          await this.media.upload(
+            this.projectId,
+            file,
+            (fraction) => {
+              progress[i] = fraction;
+              const total = progress.reduce((a, b) => a + b, 0) / progress.length;
+              this.pending.update((list) =>
+                list.map((p) => (p.tempId === tempId ? { ...p, progress: total } : p)),
+              );
+            },
+            post.hiddenWork?.includes(i) ? ['hidden_work'] : [],
+          ),
         );
       }
       const [db, fs] = await this.load();

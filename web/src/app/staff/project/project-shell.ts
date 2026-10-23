@@ -1,5 +1,5 @@
 import { Component, computed, DestroyRef, effect, inject, input, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { canManageCompany, type ProjectStatus, type Visit } from '@siteline/shared';
@@ -16,6 +16,7 @@ import { Dialogs } from '../../shared/ui/dialog';
 import { HideOnScroll } from '../../shared/ui/hide-on-scroll';
 import { Toasts } from '../../shared/ui/toast';
 import { usePlanLimitDialog } from '../plan-limit';
+import { type DeleteProjectData, DeleteProjectDialog } from './delete-project-dialog';
 
 /**
  * A project for staff: header with the clients and open questions, and tabs for the feed,
@@ -46,10 +47,12 @@ export class ProjectShell {
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
   private readonly planLimit = usePlanLimitDialog();
+  private readonly router = inject(Router);
 
   readonly projectId = input.required<string>();
 
   protected readonly canManage = computed(() => canManageCompany(this.session.role()));
+  protected readonly isOwner = computed(() => this.session.role() === 'owner');
   protected readonly clientNames = computed(() =>
     this.context
       .clients()
@@ -79,6 +82,18 @@ export class ProjectShell {
     onMedia();
     media.addEventListener('change', onMedia);
     inject(DestroyRef).onDestroy(() => media.removeEventListener('change', onMedia));
+  }
+
+  /** Deleting, behind the typed-name dialog (PRD F11). */
+  protected async deleteProject(title: string): Promise<void> {
+    const ref = this.dialogs.open<boolean, DeleteProjectData, DeleteProjectDialog>(
+      DeleteProjectDialog,
+      { projectId: this.projectId(), title },
+    );
+    const { firstValueFrom } = await import('rxjs');
+    if (!(await firstValueFrom(ref.closed))) return;
+    this.toasts.show(this.translate.instant('deleteProject.done'), 'success');
+    await this.router.navigateByUrl('/app');
   }
 
   protected async setStatus(status: ProjectStatus): Promise<void> {

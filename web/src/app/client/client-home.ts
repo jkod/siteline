@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import type { Project } from '@siteline/shared';
@@ -8,7 +8,9 @@ import { liveQuery } from '../core/live';
 import { Session } from '../core/session';
 import { DatePipe } from '../shared/pipes/date';
 import { Brand } from '../shared/ui/brand';
+import { Button } from '../shared/ui/button';
 import { EmptyState } from '../shared/ui/empty-state';
+import { Icon } from '../shared/ui/icon';
 import { InviteCard } from './invite-card';
 
 /**
@@ -17,12 +19,18 @@ import { InviteCard } from './invite-card';
  */
 @Component({
   selector: 'sl-client-home',
-  imports: [TranslatePipe, RouterLink, DatePipe, Brand, EmptyState, InviteCard],
+  imports: [TranslatePipe, RouterLink, DatePipe, Brand, Button, EmptyState, Icon, InviteCard],
   template: `
     <main class="sl-page sl-stack" id="main">
       <div class="title-row">
         <h1>{{ 'clientHome.greeting' | translate: { name: firstName() } }}</h1>
-        <a routerLink="/c/settings">{{ 'pages.clientSettings' | translate }}</a>
+        <div class="links">
+          <a routerLink="/c/settings">{{ 'pages.clientSettings' | translate }}</a>
+          <button slButton="ghost" type="button" (click)="signOut()">
+            <sl-icon name="logout" [size]="20" />
+            {{ 'common.signOut' | translate }}
+          </button>
+        </div>
       </div>
       @if (projects(); as list) {
         @if (list.length) {
@@ -74,6 +82,12 @@ import { InviteCard } from './invite-card';
       align-items: center;
       justify-content: space-between;
       gap: var(--sl-space-3);
+    }
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--sl-space-2);
     }
     .title-row a {
       display: inline-flex;
@@ -132,6 +146,7 @@ import { InviteCard } from './invite-card';
 })
 export class ClientHome {
   private readonly session = inject(Session);
+  private readonly router = inject(Router);
   /** Arrived from the invite link in the digest (F20). */
   protected readonly inviteLink = inject(ActivatedRoute).snapshot.queryParamMap.has('invite');
   protected readonly firstName = computed(
@@ -150,4 +165,10 @@ export class ClientHome {
     },
     () => this.session.user()?.uid,
   );
+
+  /** Clients sign back in with their link, or by mobile number or email at /login/client. */
+  protected async signOut(): Promise<void> {
+    await this.session.signOut();
+    await this.router.navigateByUrl('/login');
+  }
 }

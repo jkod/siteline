@@ -159,6 +159,7 @@
     </div>
   }
 
+  <sl-form-error [key]="saveError()" />
   <div class="actions">
     <button slButton="ghost" type="button" (click)="ref.close()">
       {{ 'common.cancel' | translate }}

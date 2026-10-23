@@ -29,6 +29,7 @@ import { ScrollDirection } from '../ui/hide-on-scroll';
 import { Icon } from '../ui/icon';
 import { Toasts } from '../ui/toast';
 import { Composer } from './composer';
+import { ConditionDialog } from './condition-dialog';
 import { FeedStore } from './feed-store';
 import { MilestoneDialog, type MilestoneResult } from './milestone-dialog';
 import { PostCard, type SeenBy } from './post-card';
@@ -69,6 +70,8 @@ export class Feed {
   readonly projectId = input.required<string>();
   readonly mode = input.required<'staff' | 'client'>();
   readonly firmName = input('');
+  /** Condition check-in is in the company's plan (F12, from Solo). */
+  readonly canReportCondition = input(false);
   /** A post to open with its comments, from a notification link. */
   readonly focusPostId = input<string | null>(null);
 
@@ -228,6 +231,16 @@ export class Feed {
         files: [],
         milestone: { stage: result.stage, stageCount: result.stageCount },
       }),
+    );
+  }
+
+  protected reportCondition(): void {
+    this.dialogs.open<boolean, { projectId: string }, ConditionDialog>(
+      ConditionDialog,
+      {
+        projectId: this.projectId(),
+      },
+      { wide: true },
     );
   }
 

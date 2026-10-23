@@ -14,6 +14,7 @@ import {
 import {
   type FeedStyle,
   isStaffRole,
+  type Locale,
   type StaffRole,
   type TimestampLike,
   type UserDoc,
@@ -84,6 +85,14 @@ export class Session {
 
   /** The person's feed order: newest first (social feed) or newest at the bottom (chat). */
   readonly feedStyle = computed<FeedStyle>(() => this.profile()?.feedStyle ?? 'feed');
+
+  /** Saves the app language on the person's profile, so messages to them use it too. */
+  async setLocale(locale: Locale): Promise<void> {
+    const uid = this.userState()?.uid;
+    if (!uid || !this.profile()) return;
+    const [db, fs] = await Promise.all([this.firebase.firestore(), import('firebase/firestore')]);
+    await fs.updateDoc(fs.doc(db, 'users', uid), { locale, updatedAt: fs.serverTimestamp() });
+  }
 
   /** Saves the feed order on the person's profile, so it follows them across devices. */
   async setFeedStyle(style: FeedStyle): Promise<void> {

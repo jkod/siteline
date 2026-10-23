@@ -1,5 +1,14 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, Injectable, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  Injectable,
+  signal,
+} from '@angular/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -62,6 +71,7 @@ export class Toasts {
 @Component({
   selector: 'sl-toaster',
   imports: [Icon, NgTemplateOutlet, TranslatePipe],
+  host: { popover: 'manual' },
   template: `
     <div class="region" role="status" aria-live="polite">
       @for (toast of polite(); track toast.id) {
@@ -100,10 +110,19 @@ export class Toasts {
     </ng-template>
   `,
   styles: `
+    /* An always-open manual popover lives in the top layer, so toasts show above dialogs. The
+       popover's own box styles are reset; clicks pass through except on the toasts. */
     :host {
       position: fixed;
       inset: auto 0 0 0;
       z-index: 1100;
+      width: 100%;
+      height: auto;
+      margin: 0;
+      border: 0;
+      background: transparent;
+      overflow: visible;
+      color: inherit;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -166,6 +185,24 @@ export class Toasts {
 })
 export class Toaster {
   protected readonly toasts = inject(Toasts);
+
+  constructor() {
+    const host: HTMLElement = inject(ElementRef).nativeElement;
+    afterNextRender(() => {
+      if (typeof host.showPopover === 'function') host.showPopover();
+    });
+    // Dialogs open as popovers too, above earlier ones; a new toast lifts the toaster back on top.
+    let count = 0;
+    effect(() => {
+      const now = this.toasts.toasts().length;
+      if (now > count && host.matches?.(':popover-open')) {
+        host.hidePopover();
+        host.showPopover();
+      }
+      count = now;
+    });
+  }
+
   protected readonly polite = computed(() =>
     this.toasts.toasts().filter((t) => t.kind !== 'error'),
   );

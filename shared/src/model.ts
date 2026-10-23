@@ -154,7 +154,8 @@ export interface ProjectMember<T = TimestampLike> {
   /** Set when a client first opens their link; staff are joined when assigned. */
   joinedAt: T | null;
   lastSeenAt: T | null;
-  notify: { instant: boolean; digest: boolean; channel: NotifyChannel };
+  /** aftercare: false turns off aftercare reminders for this project (F13). */
+  notify: { instant: boolean; digest: boolean; channel: NotifyChannel; aftercare?: boolean };
   phoneVerifiedAt: T | null;
   /** The client's current invite link, for the People tab. Never contains the token. */
   invite: { sentAt: T; revokedAt: T | null } | null;
@@ -256,7 +257,12 @@ export interface Post<T = TimestampLike> {
   /** The voice recording a staff post was drafted from (PRD F5). */
   voiceId?: string | null;
   /** For system posts: what happened, shown as a translated line. */
-  system?: { event: 'approval_rule'; rule: ApprovalRule } | null;
+  system?:
+    | { event: 'approval_rule'; rule: ApprovalRule }
+    | { event: 'handover_ready'; version: number }
+    | null;
+  /** A condition check-in (F12): a note and place for each photo, acknowledged by a client. */
+  condition?: ConditionReport<T> | null;
   commentCount: number;
   unanswered: boolean;
   createdAt: T;
@@ -452,4 +458,67 @@ export interface DailyMetrics {
   /** YYYY-MM-DD in Stockholm time. */
   date: string;
   counts: Partial<Record<MetricName, number>>;
+}
+
+export interface ConditionReport<T = TimestampLike> {
+  items: { mediaIndex: number; note: string; location: string }[];
+  acknowledgedAt?: T | null;
+  acknowledgedByName?: string | null;
+  approvalId?: string | null;
+}
+
+export interface Material {
+  name: string;
+  brand: string;
+  colourCode: string;
+  supplier: string;
+  warrantyYears: number | null;
+}
+
+export interface HandoverAttachment {
+  path: string;
+  name: string;
+  size: number;
+  contentType: string;
+}
+
+export interface HandoverPdf<T = TimestampLike> {
+  path: string;
+  version: number;
+  generatedAt: T;
+}
+
+/** The handover editor's state, at projects/{id}/handover/current (PRD F9). */
+export interface Handover<T = TimestampLike> {
+  summary: string;
+  beforeAfter: { before: Media; after: Media; caption: string }[];
+  materials: Material[];
+  careNotes: string;
+  attachments: HandoverAttachment[];
+  /** The latest PDF, and every earlier version. */
+  pdf: HandoverPdf<T> | null;
+  versions: HandoverPdf<T>[];
+  updatedAt: T;
+}
+
+/** An aftercare reminder (PRD F13), sent to clients at 09:00 on the day. */
+export interface Reminder<T = TimestampLike> {
+  title: string;
+  note: string;
+  /** YYYY-MM-DD. */
+  dueDate: string;
+  repeat: 'none' | 'yearly';
+  nextSendAt: T;
+  active: boolean;
+  createdAt: T;
+}
+
+/** A client's "Book again" from an aftercare reminder (F13), for the firm's Today list. */
+export interface BookingRequest<T = TimestampLike> {
+  reminderId: string | null;
+  clientUid: string;
+  clientName: string;
+  note: string;
+  status: 'open' | 'handled';
+  createdAt: T;
 }

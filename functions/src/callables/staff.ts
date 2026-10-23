@@ -139,7 +139,7 @@ export async function acceptStaffInviteHandler(request: CallableRequest<unknown>
 }
 
 /** Counts owners inside the transaction, so two concurrent changes can't remove the last one. */
-async function ownerCount(tx: Transaction, companyId: string): Promise<number> {
+export async function ownerCount(tx: Transaction, companyId: string): Promise<number> {
   const owners = await tx.get(
     db.collection(`companies/${companyId}/staff`).where('role', '==', 'owner'),
   );
@@ -189,24 +189,29 @@ export async function removeStaffHandler(request: CallableRequest<unknown>) {
     tx.set(db.doc(`users/${input.uid}`), { companyId: null }, { merge: true });
   });
 
+  await detachStaff(caller.companyId, input.uid);
+  return { ok: true };
+}
+
+/** Takes a former staff member off the company's projects and out of its claims. */
+export async function detachStaff(companyId: string, uid: string): Promise<void> {
   const projects = await db
     .collection('projects')
-    .where('companyId', '==', caller.companyId)
-    .where('crewUids', 'array-contains', input.uid)
+    .where('companyId', '==', companyId)
+    .where('crewUids', 'array-contains', uid)
     .get();
   const batch = db.batch();
   for (const project of projects.docs) {
     batch.update(project.ref, {
-      crewUids: FieldValue.arrayRemove(input.uid),
-      [`roles.${input.uid}`]: FieldValue.delete(),
+      crewUids: FieldValue.arrayRemove(uid),
+      [`roles.${uid}`]: FieldValue.delete(),
     });
-    batch.delete(project.ref.collection('members').doc(input.uid));
+    batch.delete(project.ref.collection('members').doc(uid));
   }
   await batch.commit();
-  await clearStaffClaims(auth, input.uid);
-  await auth.revokeRefreshTokens(input.uid);
-  await claimsChanged(input.uid);
-  return { ok: true };
+  await clearStaffClaims(auth, uid);
+  await auth.revokeRefreshTokens(uid);
+  await claimsChanged(uid);
 }
 
 export const inviteStaff = onCall(callableOptions, inviteStaffHandler);

@@ -1,8 +1,11 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { isStaffRole, POST_TEXT_MAX, type TimestampLike } from '@siteline/shared';
 
+import { Api } from '../../core/api';
+import { errorMessageKey } from '../../core/errors';
 import { Language } from '../../core/language';
 import { DecisionCard } from '../decisions/decision-card';
 import { DatePipe, formatDate } from '../pipes/date';
@@ -10,6 +13,7 @@ import { PluralPipe } from '../pipes/plural';
 import { Avatar } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { Icon } from '../ui/icon';
+import { Toasts } from '../ui/toast';
 import { Comments } from './comments';
 import type { FeedPost } from './feed-store';
 import { PhotoGrid } from './photo-grid';
@@ -24,6 +28,7 @@ export interface SeenBy {
   selector: 'sl-post-card',
   imports: [
     Icon,
+    RouterLink,
     TranslatePipe,
     DatePipe,
     PluralPipe,
@@ -40,6 +45,8 @@ export interface SeenBy {
 export class PostCard {
   private readonly translate = inject(TranslateService);
   private readonly language = inject(Language);
+  private readonly api = inject(Api);
+  private readonly toasts = inject(Toasts);
 
   readonly post = input.required<FeedPost>();
   readonly projectId = input.required<string>();
@@ -85,6 +92,22 @@ export class PostCard {
       date: formatDate(post.createdAt, 'date', this.language.lang()),
     });
   });
+
+  protected readonly acknowledging = signal(false);
+
+  /** The client confirms they've seen the condition photos (F12). */
+  protected async acknowledge(): Promise<void> {
+    this.acknowledging.set(true);
+    try {
+      await this.api.acknowledgeCondition(this.projectId(), this.post().id);
+      this.toasts.show(this.translate.instant('condition.thanks'), 'success');
+    } catch (error) {
+      const key = errorMessageKey(error);
+      if (key) this.toasts.show(this.translate.instant(key), 'error');
+    } finally {
+      this.acknowledging.set(false);
+    }
+  }
 
   protected startEdit(): void {
     this.editText.set(this.post().text);

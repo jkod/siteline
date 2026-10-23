@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { provideTestTranslations, setTestTranslations } from '../../../testing/translate';
+import { Api } from '../../core/api';
 import type { FeedPost } from './feed-store';
 import { PostCard } from './post-card';
 
@@ -51,7 +52,9 @@ class Host {
 
 describe('PostCard', () => {
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: provideTestTranslations() });
+    TestBed.configureTestingModule({
+      providers: [provideTestTranslations(), { provide: Api, useValue: {} }],
+    });
     setTestTranslations({
       feed: {
         question: 'Fråga',

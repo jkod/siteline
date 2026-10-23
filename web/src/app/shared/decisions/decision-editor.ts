@@ -17,6 +17,7 @@ import { MediaService } from '../../core/media';
 import { Button } from '../ui/button';
 import { dialogTitleId } from '../ui/dialog';
 import { Field, Input } from '../ui/field';
+import { FormError, showSaveError } from '../ui/form-error';
 import { Icon } from '../ui/icon';
 import { StorageImage } from '../ui/storage-image';
 import { Toasts } from '../ui/toast';
@@ -53,7 +54,7 @@ const oreToKronor = (ore: number | undefined) =>
 /** Creates or edits a decision card: extra work (ÄTA), a choice, or an approval (PRD F6). */
 @Component({
   selector: 'sl-decision-editor',
-  imports: [Icon, TranslatePipe, FormField, Button, Field, Input, StorageImage],
+  imports: [Icon, TranslatePipe, FormField, Button, Field, Input, StorageImage, FormError],
   templateUrl: './decision-editor.html',
   styleUrl: './decision-editor.css',
 })
@@ -91,6 +92,8 @@ export class DecisionEditor {
   protected readonly uploading = signal(false);
   protected readonly saving = signal<'draft' | 'send' | null>(null);
   protected readonly optionsError = signal(false);
+  /** An error from saving, shown in the dialog where it can be seen (not in a toast behind it). */
+  protected readonly saveError = signal<string | null>(null);
 
   protected readonly form = form(this.model, (path) => {
     required(path.title);
@@ -105,6 +108,15 @@ export class DecisionEditor {
     validate(path.labour, ({ value }) =>
       parseKronor(value()) === null ? { kind: 'price' } : null,
     );
+    // The same rule as the server: labour and material can't add up to more than the price.
+    validate(path.labour, ({ valueOf }) => {
+      const price = parseKronor(valueOf(path.price));
+      const labour = parseKronor(valueOf(path.labour)) ?? 0;
+      const material = parseKronor(valueOf(path.material)) ?? 0;
+      return this.kind() === 'extra_work' && price != null && labour + material > price
+        ? { kind: 'splitExceedsPrice' }
+        : null;
+    });
     validate(path.material, ({ value }) =>
       parseKronor(value()) === null ? { kind: 'price' } : null,
     );
@@ -159,6 +171,7 @@ export class DecisionEditor {
       this.kind() === 'choice' &&
       (options.length < 2 || options.some((o) => parseKronor(o.delta) === null));
     this.optionsError.set(choiceInvalid);
+    this.saveError.set(null);
     await submit(this.form, async () => {
       if (choiceInvalid) return undefined;
       const m = this.model();
@@ -199,7 +212,7 @@ export class DecisionEditor {
         this.toasts.show(this.translate.instant(done), 'success');
         this.ref.close(postId);
       } catch (error) {
-        this.showError(error);
+        showSaveError(error, this.saveError, this.toasts, this.translate);
       } finally {
         this.saving.set(null);
       }

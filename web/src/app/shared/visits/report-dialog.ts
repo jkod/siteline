@@ -9,6 +9,7 @@ import { errorMessageKey } from '../../core/errors';
 import { MediaService } from '../../core/media';
 import { Button } from '../ui/button';
 import { dialogTitleId } from '../ui/dialog';
+import { FormError, showSaveError } from '../ui/form-error';
 import { Icon } from '../ui/icon';
 import { StorageImage } from '../ui/storage-image';
 import { Toasts } from '../ui/toast';
@@ -30,11 +31,13 @@ type Rating = 'good' | 'ok' | 'hard';
  */
 @Component({
   selector: 'sl-report-dialog',
-  imports: [Icon, TranslatePipe, Button, StorageImage],
+  imports: [Icon, TranslatePipe, Button, StorageImage, FormError],
   templateUrl: './report-dialog.html',
   styleUrl: './report-dialog.css',
 })
 export class ReportDialog {
+  /** A failed save, shown in the dialog as well as in a toast. */
+  protected readonly saveError = signal<string | null>(null);
   private readonly api = inject(Api);
   private readonly media = inject(MediaService);
   private readonly toasts = inject(Toasts);
@@ -119,6 +122,6 @@ export class ReportDialog {
 
   private showError(error: unknown): void {
     const key = errorMessageKey(error);
-    if (key) this.toasts.show(this.translate.instant(key), 'error');
+    if (key) showSaveError(error, this.saveError, this.toasts, this.translate);
   }
 }

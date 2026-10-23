@@ -86,3 +86,9 @@
   height: 100%;
   background: var(--sl-accent);
 }
+
+.locked {
+  padding: var(--sl-space-2) var(--sl-space-3);
+  border-radius: var(--sl-radius-panel);
+  background: var(--sl-panel);
+}

@@ -124,6 +124,11 @@ service cloud.firestore {
         && request.resource.data.settings.requirePhoneCheck is bool
         && request.resource.data.updatedAt == request.time;
 
+      // Subscription details, kept by the billing webhook; owners only (PRD section 8).
+      match /private/{docId} {
+        allow read: if isStaffOf(companyId) && request.auth.token.get('crole', null) == 'owner';
+      }
+
       match /staff/{staffId} {
         allow read: if isStaffOf(companyId);
         allow update: if isStaffOf(companyId) && uid() == staffId
@@ -156,7 +161,8 @@ service cloud.firestore {
           && changedOnly(['lastSeenAt', 'notify'])
           && (!('lastSeenAt' in request.resource.data.diff(resource.data).affectedKeys())
             || request.resource.data.lastSeenAt == request.time)
-          && request.resource.data.notify.keys().hasOnly(['instant', 'digest', 'channel'])
+          && request.resource.data.notify.keys().hasOnly(['instant', 'digest', 'channel', 'aftercare'])
+          && request.resource.data.notify.get('aftercare', true) is bool
           && request.resource.data.notify.instant is bool
           && request.resource.data.notify.digest is bool
           && request.resource.data.notify.channel in ['sms', 'email', 'push'];
@@ -366,7 +372,19 @@ service cloud.firestore {
         allow read: if isProjectMember(projectData(projectId));
       }
 
-      // Handover arrives in M4.
+      // The handover editor's state and PDF versions, and aftercare reminders (PRD F9, F13):
+      // everyone on the project reads them; only functions write them.
+      match /handover/{docId} {
+        allow read: if isProjectMember(projectData(projectId));
+      }
+      match /reminders/{reminderId} {
+        allow read: if isProjectMember(projectData(projectId));
+      }
+      // "Book again" requests: the project's staff and the client who asked (F13).
+      match /bookingRequests/{requestId} {
+        allow read: if isProjectStaff(projectData(projectId))
+          || (signedIn() && resource.data.clientUid == uid());
+      }
     }
 
     // Visit report templates, readable by the company's staff (PRD 4.4).

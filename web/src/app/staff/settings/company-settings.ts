@@ -1,10 +1,12 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { form, FormField, maxLength, required, submit, validate } from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   accentTextColor,
   contrastRatio,
+  DEFAULT_ACCENT,
   isValidOrgNumber,
   type Locale,
   LOGO_MAX_BYTES,
@@ -30,12 +32,13 @@ const LOGO_TYPES: Record<string, 'png' | 'jpg' | 'svg'> = {
 /** Company profile and branding, with a live preview of the client view (PRD F1). */
 @Component({
   selector: 'sl-company-settings',
-  imports: [TranslatePipe, FormField, BrandPreview, Button, Card, Field, Input],
+  imports: [TranslatePipe, FormField, RouterLink, BrandPreview, Button, Card, Field, Input],
   templateUrl: './company-settings.html',
   styleUrl: './settings.css',
 })
 export class CompanySettings {
-  private readonly company = inject(CurrentCompany);
+  protected readonly company = inject(CurrentCompany);
+  protected readonly defaultAccent = DEFAULT_ACCENT;
   private readonly firebase = inject(FirebaseService);
   private readonly media = inject(MediaService);
   private readonly firestore = useFirestore();

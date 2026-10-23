@@ -26,6 +26,9 @@ import { PhotoViewer, type PhotoViewerData } from './photo-viewer';
               [width]="item.width"
               [height]="item.height"
             />
+            @if (item.tags.includes('hidden_work')) {
+              <span class="tag">{{ 'composer.hiddenWork' | translate }}</span>
+            }
             @if (i === 3 && media().length > 4) {
               <span class="more" aria-hidden="true">+{{ media().length - 4 }}</span>
             }
@@ -35,6 +38,16 @@ import { PhotoViewer, type PhotoViewerData } from './photo-viewer';
     </ul>
   `,
   styles: `
+    .tag {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      padding: 2px 8px;
+      border-radius: var(--sl-radius-pill);
+      background: color-mix(in srgb, var(--sl-dark) 75%, transparent);
+      color: #fff;
+      font: 600 12px/18px var(--sl-font-body);
+    }
     .grid {
       display: grid;
       gap: 4px;

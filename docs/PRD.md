@@ -108,6 +108,11 @@ The MVP is thirteen must-have features (P0) and seven that should land before th
 
 **Not planned:** native apps until the web app has proven itself, general chat between clients, video calls, analytics dashboards and a marketplace.
 
+**Phase 2 ideas from the build:**
+
+- **Inline translation:** comments and posts shown in the reader's own language, with the original one tap away. Translated in a function behind the AI adapter, cached per language, and marked as translated.
+- **Several approvers:** decisions that need several approvers have a first version already. Clients set "any one of us" or "everyone must approve" for priced decisions on their project.
+
 **Build for phase 2 now.** Keep post text plain and searchable so Ask the project can index it. Store the labour and material split on extra work for the ROT and RUT helper. Give every post a visibility field so partners can see only some posts later. Model approvals so a decision can require more than one approver without a migration.
 
 ## 4. Key flows

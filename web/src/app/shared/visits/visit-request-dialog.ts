@@ -4,10 +4,10 @@ import { Component, inject, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { Api } from '../../core/api';
-import { errorMessageKey } from '../../core/errors';
 import { Button } from '../ui/button';
 import { dialogTitleId } from '../ui/dialog';
 import { Field, Input } from '../ui/field';
+import { FormError, showSaveError } from '../ui/form-error';
 import { Toasts } from '../ui/toast';
 import { toInstant } from './visit-time';
 
@@ -23,7 +23,7 @@ export interface VisitRequestDialogData {
 /** A client asks to move or cancel one visit; staff can answer with another time (PRD 4.4). */
 @Component({
   selector: 'sl-visit-request-dialog',
-  imports: [TranslatePipe, Button, Field, Input],
+  imports: [TranslatePipe, Button, Field, Input, FormError],
   template: `
     <form class="body" (submit)="send($event)">
       <h2 [id]="titleId">
@@ -79,6 +79,7 @@ export interface VisitRequestDialogData {
           ></textarea>
         </sl-field>
       }
+      <sl-form-error [key]="saveError()" />
       <div class="actions">
         <button slButton="secondary" type="button" (click)="ref.close()">
           {{ 'common.cancel' | translate }}
@@ -136,6 +137,8 @@ export interface VisitRequestDialogData {
   `,
 })
 export class VisitRequestDialog {
+  /** A failed save, shown in the dialog as well as in a toast. */
+  protected readonly saveError = signal<string | null>(null);
   private readonly api = inject(Api);
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
@@ -175,8 +178,7 @@ export class VisitRequestDialog {
       }
       this.ref.close();
     } catch (error) {
-      const key = errorMessageKey(error);
-      if (key) this.toasts.show(this.translate.instant(key), 'error');
+      showSaveError(error, this.saveError, this.toasts, this.translate);
     } finally {
       this.sending.set(false);
     }

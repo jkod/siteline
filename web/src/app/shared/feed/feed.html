@@ -10,6 +10,12 @@
     <sl-icon name="swap_vert" [size]="20" />
     {{ (style() === 'chat' ? 'feed.styleChat' : 'feed.styleFeed') | translate }}
   </button>
+  @if (mode() === 'staff' && canReportCondition()) {
+    <button slButton="secondary" type="button" (click)="reportCondition()">
+      <sl-icon name="photo_camera" [size]="18" />
+      {{ 'condition.open' | translate }}
+    </button>
+  }
   @if (mode() === 'staff') {
     <button slButton="secondary" type="button" (click)="addMilestone()">
       <sl-icon name="flag" [size]="18" />

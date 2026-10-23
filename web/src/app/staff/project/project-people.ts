@@ -54,7 +54,7 @@ export class ProjectPeople {
 
   protected openInvite(): void {
     const projectId = this.context.projectId();
-    if (projectId) this.dialogs.open(InviteClientDialog, { projectId });
+    if (projectId) this.dialogs.open(InviteClientDialog, { projectId }, { wide: true });
   }
 
   protected editCrew(): void {

@@ -82,3 +82,29 @@ textarea::placeholder {
 .voice-note p {
   flex: 1 1 200px;
 }
+
+.tag {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  min-height: 24px;
+  padding: 0 var(--sl-space-2);
+  border: 0;
+  border-radius: var(--sl-radius-pill);
+  background: color-mix(in srgb, var(--sl-dark) 70%, transparent);
+  color: #fff;
+  font: 600 11px/24px var(--sl-font-body);
+  cursor: pointer;
+}
+.tag::before {
+  content: '';
+  position: absolute;
+  inset: -10px -6px;
+}
+.tag.on {
+  background: var(--sl-accent);
+  color: var(--sl-on-accent);
+}
+.previews img {
+  width: 96px;
+}

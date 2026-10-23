@@ -17,6 +17,7 @@ import {
   type Plan,
   PLAN_LIMITS,
   type Post,
+  projectBranding,
   type StaffRole,
   stockholmDate,
   TIME_ZONE,
@@ -228,12 +229,8 @@ async function main(): Promise<void> {
     createdAt: now,
   });
 
-  const branding = (company: (typeof companies)[number]) => ({
-    name: company.name,
-    logoUrl: null,
-    accentColor: company.accentColor,
-    showSitelineFooter: company.plan === 'free' || company.plan === 'visits',
-  });
+  const branding = (company: (typeof companies)[number]) =>
+    projectBranding({ ...company, compedUntil: null }, null, Date.now());
   const member = (role: 'client' | 'crew', name: string, phone?: string) => ({
     role,
     name,

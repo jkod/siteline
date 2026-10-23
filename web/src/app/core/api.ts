@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 
 import type {
+  BillingInterval,
   BusinessKind,
   CreateCompanyInput,
   CreateProjectInput,
@@ -8,8 +9,12 @@ import type {
   DecisionFields,
   InviteClientInput,
   InviteStaffInput,
+  PaidPlan,
+  PostConditionInput,
   PostVisitReportInput,
   ProjectStatus,
+  SaveHandoverInput,
+  SaveReminderInput,
   ScheduleInput,
   StaffRole,
   VoiceDraftInput,
@@ -207,5 +212,75 @@ export class Api {
       projectId,
       rule,
     });
+  }
+
+  createCheckoutSession(plan: PaidPlan, interval: BillingInterval) {
+    return this.firebase.call<unknown, { url: string }>('createCheckoutSession', {
+      plan,
+      interval,
+    });
+  }
+
+  createPortalSession() {
+    return this.firebase.call<unknown, { url: string }>('createPortalSession', {});
+  }
+
+  /** Emulator only: plays a Stripe event for the signed-in owner's company. */
+  devBilling(
+    action: 'pay' | 'change' | 'fail' | 'cancel',
+    plan?: PaidPlan,
+    interval?: BillingInterval,
+  ) {
+    return this.firebase.call('devBilling', { action, plan, interval });
+  }
+
+  deleteProject(projectId: string, title: string) {
+    return this.firebase.call('deleteProject', { projectId, title });
+  }
+
+  leaveProject(projectId: string) {
+    return this.firebase.call('leaveProject', { projectId });
+  }
+
+  deleteMyData() {
+    return this.firebase.call('deleteMyData', {});
+  }
+
+  deleteMyAccount() {
+    return this.firebase.call('deleteMyAccount', {});
+  }
+
+  saveHandover(input: SaveHandoverInput) {
+    return this.firebase.call('saveHandover', input);
+  }
+
+  generateHandover(projectId: string) {
+    return this.firebase.call<unknown, { path: string; version: number }>('generateHandover', {
+      projectId,
+    });
+  }
+
+  postConditionReport(input: PostConditionInput) {
+    return this.firebase.call<PostConditionInput, { postId: string }>('postConditionReport', input);
+  }
+
+  acknowledgeCondition(projectId: string, postId: string) {
+    return this.firebase.call('acknowledgeCondition', { projectId, postId });
+  }
+
+  saveReminder(input: SaveReminderInput) {
+    return this.firebase.call<SaveReminderInput, { reminderId: string }>('saveReminder', input);
+  }
+
+  deleteReminder(projectId: string, reminderId: string) {
+    return this.firebase.call('deleteReminder', { projectId, reminderId });
+  }
+
+  requestBooking(projectId: string, reminderId: string | null, note: string) {
+    return this.firebase.call('requestBooking', { projectId, reminderId, note });
+  }
+
+  resolveBooking(projectId: string, requestId: string) {
+    return this.firebase.call('resolveBooking', { projectId, requestId });
   }
 }

@@ -10,7 +10,8 @@
     "edit": "Redigera",
     "ok": "OK",
     "optional": "Valfritt",
-    "save": "Spara"
+    "save": "Spara",
+    "remove": "Ta bort"
   },
   "language": {
     "label": "Språk",
@@ -48,7 +49,8 @@
     "devUi": "Komponenter",
     "visits": "Besök",
     "clientLogin": "Logga in som kund",
-    "try": "Prova Siteline"
+    "try": "Prova Siteline",
+    "devBilling": "Fejkad betalning"
   },
   "staff": {
     "nav": "Huvudmeny",
@@ -105,7 +107,8 @@
       "min": "Värdet är för litet.",
       "max": "Värdet är för stort.",
       "price": "Skriv ett belopp, till exempel 6 500.",
-      "endBeforeStart": "Sluttiden måste vara efter starttiden."
+      "endBeforeStart": "Sluttiden måste vara efter starttiden.",
+      "splitExceedsPrice": "Arbete och material kan inte vara mer än priset."
     },
     "auth": {
       "invalid-email": "Skriv en giltig e-postadress.",
@@ -150,7 +153,15 @@
       "clients_only": "Det här kan bara kunder göra.",
       "already_answered": "Du har redan svarat på det här beslutet.",
       "choice_differs": "Någon har redan valt ett annat alternativ. Prata ihop er, eller avböj och ställ en fråga.",
-      "not_an_approver": "Det här beslutet skickades innan du kom med i projektet, så du behöver inte svara."
+      "not_an_approver": "Det här beslutet skickades innan du kom med i projektet, så du behöver inte svara.",
+      "already_subscribed": "Ni har redan ett abonnemang. Byt i kundportalen.",
+      "no_subscription": "Ni har inget abonnemang än.",
+      "emulator_only": "Det här finns bara i utvecklingsmiljön.",
+      "title_mismatch": "Namnet stämmer inte. Skriv projektets namn precis som det står.",
+      "transfer_ownership_first": "Ge ägarskapet till någon annan först, under Team.",
+      "plan_feature": "Det här ingår inte i ert abonnemang.",
+      "date_in_past": "Datumet har redan varit.",
+      "projects_only": "Det här finns bara för projekt."
     }
   },
   "dev": {
@@ -197,7 +208,16 @@
       "dialogConfirm": "Dra tillbaka"
     },
     "held": "Väntar på att skickas",
-    "heldUntil": "Skickas {{when}} (tysta timmar)"
+    "heldUntil": "Skickas {{when}} (tysta timmar)",
+    "billingIntro": "Här låtsas vi vara Stripe. Knapparna skickar samma händelser som Stripe skulle skicka.",
+    "checkoutTitle": "Betala för {{plan}}, {{interval}}",
+    "pay": "Betala",
+    "eventsTitle": "Händelser från Stripe",
+    "plan": "Abonnemang",
+    "change": "Byt abonnemang",
+    "fail": "Betalningen misslyckas",
+    "cancelSubscription": "Säg upp",
+    "eventSent": "Händelsen är skickad."
   },
   "address": {
     "street": "Adress",
@@ -355,7 +375,9 @@
     "selectedPhotos": "Valda foton",
     "removePhoto": "Ta bort foto {{n}}",
     "tooManyPhotos": "Du kan lägga till högst {{max}} foton.",
-    "photoTooLarge": "Ett foto är större än 10 MB."
+    "photoTooLarge": "Ett foto är större än 10 MB.",
+    "hiddenWork": "Dolt arbete",
+    "hiddenWorkLabel": "Bild {{n}} visar dolt arbete"
   },
   "feed": {
     "label": "Flöde",
@@ -403,7 +425,8 @@
       "approvalRule": {
         "all": "{{name}} ändrade så att alla kunder måste godkänna beslut med pris.",
         "any": "{{name}} ändrade så att det räcker att en kund godkänner beslut med pris."
-      }
+      },
+      "handoverReady": "Överlämningspaketet är klart."
     }
   },
   "milestone": {
@@ -429,7 +452,10 @@
     "logoHint": "PNG, JPG eller SVG, högst 2 MB.",
     "logoInvalid": "Logotypen måste vara PNG, JPG eller SVG och högst 2 MB.",
     "logoSaved": "Logotypen är sparad.",
-    "saved": "Ändringarna är sparade."
+    "saved": "Ändringarna är sparade.",
+    "colourFromTeam": "Kunderna ser er färg från abonnemanget Team.",
+    "logoFromSolo": "Kunderna ser er logga från abonnemanget Solo.",
+    "seePlans": "Se abonnemang"
   },
   "brandPreview": {
     "caption": "Så ser din kund det",
@@ -466,13 +492,53 @@
     "activeProjects": "{{used}} av {{limit}} aktiva projekt",
     "serviceClients": "{{used}} av {{limit}} återkommande kunder",
     "staff": "{{used}} av {{limit}} medarbetare",
-    "upgradeSoon": "Uppgradering med kort kommer snart. Hör av dig så hjälper vi dig så länge.",
     "referralsTitle": "Tipsade företag",
     "referrals": {
       "one": "Dina kunder har tagit med {{count}} företag till Siteline.",
       "other": "Dina kunder har tagit med {{count}} företag till Siteline."
     },
-    "referralsHow": "Kunder kan bjuda in andra företag de anlitar. När ett sådant företag börjar betala får ni en gratis månad (kommer med betalningarna)."
+    "pastDue": "Den senaste betalningen gick inte igenom. Uppdatera kortet så fortsätter allt som vanligt.",
+    "updateCard": "Uppdatera kortet",
+    "comped": "Ni har Team gratis som designpartner till {{date}}.",
+    "renews": "Förnyas {{date}}.",
+    "manage": "Kort, kvitton och uppsägning",
+    "plansTitle": "Abonnemang",
+    "interval": "Betalningsperiod",
+    "month": "Månadsvis",
+    "year": "Årsvis (två månader gratis)",
+    "vatNote": "Priserna är exklusive moms. 25 % moms läggs till.",
+    "per": {
+      "month": "/mån",
+      "year": "/år"
+    },
+    "includes": {
+      "projects": {
+        "one": "{{count}} aktivt projekt",
+        "other": "{{count}} aktiva projekt"
+      },
+      "clients": "{{count}} återkommande kunder",
+      "staff": {
+        "one": "{{count}} medarbetare",
+        "other": "{{count}} medarbetare"
+      }
+    },
+    "features": {
+      "serviceMode": "Rapporter efter varje besök",
+      "logo": "Er logga hos kunderna",
+      "conditionCheckIn": "Skadedokumentation vid start",
+      "colours": "Er färg hos kunderna",
+      "aftercare": "Påminnelser om service efteråt",
+      "noFooter": "Ingen Siteline-rad hos kunderna"
+    },
+    "yourPlan": "Ert abonnemang",
+    "changeInPortal": "Byt i kundportalen",
+    "choose": "Välj {{plan}}",
+    "pendingMonths": {
+      "one": "Ni har {{count}} gratis månad som dras av när ni börjar betala.",
+      "other": "Ni har {{count}} gratis månader som dras av när ni börjar betala."
+    },
+    "referralsHow": "Kunder kan bjuda in andra företag de anlitar. När ett sådant företag börjar betala får ni en gratis månad.",
+    "checkoutDone": "Tack! Abonnemanget är igång."
   },
   "redeem": {
     "working": "Öppnar ditt projekt…",
@@ -779,6 +845,10 @@
     "quiet": {
       "one": "Inget nytt på {{count}} dag",
       "other": "Inget nytt på {{count}} dagar"
+    },
+    "bookings": {
+      "one": "En kund vill boka igen",
+      "other": "{{count}} kunder vill boka igen"
     }
   },
   "invite": {
@@ -913,5 +983,117 @@
     "all": "Alla måste godkänna",
     "help": "Gäller tillägg och val som kostar. Beslut som redan är skickade behåller den regel de skickades med.",
     "saved": "Regeln är sparad. Alla i projektet ser ändringen i flödet."
+  },
+  "deleteProject": {
+    "open": "Radera projekt",
+    "title": "Radera projektet?",
+    "body": "Projektet försvinner direkt för alla, även för kunderna. Bilder och filer raderas efter 30 dagar.",
+    "keepRecords": "Spara beslut och överlämningspaket först. De kan behövas som underlag i upp till tio år.",
+    "saveDecisions": "Ladda ner beslut (CSV)",
+    "typeName": "Skriv projektets namn för att radera: {{name}}",
+    "confirm": "Radera för alltid",
+    "done": "Projektet är raderat."
+  },
+  "privacy": {
+    "leave": "Lämna projektet",
+    "leaveTitle": "Lämna {{project}}?",
+    "leaveBody": "Du ser inte projektet längre, och ditt namn tas bort ur det. Godkända beslut sparas med dina initialer som underlag.",
+    "left": "Du har lämnat projektet.",
+    "removeTitle": "Radera mina uppgifter",
+    "removeBody": "Du lämnar alla projekt, och ditt namn, nummer och konto raderas. Godkända beslut sparas med dina initialer som underlag.",
+    "remove": "Radera mina uppgifter",
+    "removeConfirm": "Det här går inte att ångra. Företagen kan bjuda in dig igen om du vill.",
+    "removed": "Dina uppgifter är raderade.",
+    "deleteAccountTitle": "Radera mitt konto",
+    "deleteAccountBody": "Ditt konto och ditt namn tas bort från företagets projekt. Är du ägare, ge först ägarskapet till någon annan.",
+    "deleteAccount": "Radera mitt konto",
+    "deleteAccountConfirm": "Det här går inte att ångra."
+  },
+  "handover": {
+    "intro": "Fyll i det kunden ska ha kvar när jobbet är klart. Paketet blir en PDF med era godkända tillägg, dolda konstruktioner och skicket vid start.",
+    "summary": "Sammanfattning",
+    "summaryLabel": "Vad som gjordes",
+    "beforeAfter": "Före och efter",
+    "before": "Före",
+    "after": "Efter",
+    "caption": "Bildtext för par {{n}}",
+    "addPair": "Lägg till före och efter",
+    "pickBefore": "Välj före-bilden",
+    "pickAfter": "Välj efter-bilden",
+    "pickPhoto": "Välj bild {{n}}",
+    "noPhotos": "Projektet har inga bilder än.",
+    "materials": "Material och produkter",
+    "materialN": "Produkt {{n}}",
+    "materialName": "Namn",
+    "brand": "Märke",
+    "colourCode": "Färgkod",
+    "supplier": "Leverantör",
+    "warrantyYears": "Garanti (år)",
+    "addMaterial": "Lägg till produkt",
+    "care": "Garanti och skötsel",
+    "careLabel": "Skötselråd och garantivillkor",
+    "attachments": "Bilagor",
+    "attach": "Lägg till bilagor",
+    "attachHint": "Manualer och intyg som PDF eller bild, högst 20 MB styck.",
+    "attachmentInvalid": "Bilagor ska vara PDF, JPG eller PNG och högst 20 MB.",
+    "removeFile": "Ta bort {{name}}",
+    "saved": "Överlämningen är sparad.",
+    "pack": "Överlämningspaket",
+    "packBody": "När ni skapar paketet markeras projektet som klart och kunderna får ett sms och ett mejl med länken.",
+    "generate": "Skapa överlämningspaket",
+    "generateTitle": "Skapa överlämningspaketet?",
+    "generateBody": "Projektet markeras som klart och kunderna får besked direkt. Ni kan skapa en ny version senare.",
+    "generated": "Version {{version}} av överlämningspaketet är klar.",
+    "versions": "Tidigare versioner",
+    "version": "Version {{n}}",
+    "readyAt": "Version {{n}}, {{date}}",
+    "download": "Ladda ner överlämningspaketet",
+    "openPack": "Öppna överlämningen",
+    "notYetTitle": "Inget överlämningspaket än",
+    "notYetBody": "Företaget skapar det när jobbet är klart. Du får ett sms när det finns."
+  },
+  "aftercare": {
+    "title": "Påminnelser efteråt",
+    "intro": "Kunden får ett sms eller mejl klockan 9 på dagen, med en knapp för att boka er igen.",
+    "reminderTitle": "Vad ska påminnas om?",
+    "note": "Kort förklaring",
+    "date": "Datum",
+    "repeatLabel": "Upprepa",
+    "repeat": {
+      "yearly": "Varje år",
+      "none": "En gång"
+    },
+    "add": "Lägg till påminnelse",
+    "saved": "Påminnelsen är sparad.",
+    "remove": "Ta bort påminnelsen {{title}}",
+    "done": "skickad",
+    "fromTeam": "Påminnelser efteråt ingår från abonnemanget Team.",
+    "wanted": "Påminn mig om det här"
+  },
+  "booking": {
+    "title": "Boka {{firm}} igen",
+    "body": "Skriv gärna vad det gäller, så hör {{firm}} av sig.",
+    "note": "Meddelande",
+    "send": "Skicka förfrågan",
+    "sent": "Förfrågan är skickad till {{firm}}.",
+    "again": "Behöver du hjälp igen?",
+    "open": "Boka {{firm}} igen",
+    "requests": "Vill boka igen",
+    "handled": "Markera som hanterad"
+  },
+  "condition": {
+    "open": "Skick vid start",
+    "title": "Dokumentera skicket",
+    "intro": "Fota det som redan fanns innan ni började, som repor och skador. Kunden bekräftar med ett tryck.",
+    "photoN": "Bild {{n}}",
+    "note": "Vad syns på bilden?",
+    "location": "Var?",
+    "addPhotos": "Lägg till bilder",
+    "publish": "Publicera",
+    "label": "Skick vid start",
+    "acknowledge": "Jag har sett bilderna",
+    "thanks": "Tack! Du har bekräftat bilderna.",
+    "acknowledged": "{{name}} bekräftade {{count}} bilder · {{date}}",
+    "waiting": "Väntar på att kunden bekräftar."
   }
 }

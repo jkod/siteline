@@ -40,6 +40,11 @@ export const CLIENT_ROUTES: Routes = [
             title: 'pages.visit',
             loadComponent: () => import('./client-visits').then((m) => m.ClientVisits),
           },
+          {
+            path: 'handover',
+            title: 'pages.handover',
+            loadComponent: () => import('./client-handover').then((m) => m.ClientHandover),
+          },
         ],
       },
     ],

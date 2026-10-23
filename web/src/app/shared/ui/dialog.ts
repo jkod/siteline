@@ -18,7 +18,7 @@ export class Dialogs {
   open<R, D, C>(
     component: Type<C>,
     data?: D,
-    options: { fullScreen?: boolean } = {},
+    options: { fullScreen?: boolean; wide?: boolean } = {},
   ): DialogRef<R, C> {
     const id = `sl-dialog-${nextId++}`;
     return this.dialog.open<R, D, C>(component, {
@@ -26,8 +26,13 @@ export class Dialogs {
       id,
       ariaLabelledBy: `${id}-title`,
       ariaModal: true,
-      panelClass: options.fullScreen ? 'sl-dialog-fullscreen' : 'sl-dialog-panel',
+      panelClass: options.fullScreen
+        ? 'sl-dialog-fullscreen'
+        : ['sl-dialog-panel', ...(options.wide ? ['sl-dialog-wide'] : [])],
       backdropClass: 'sl-dialog-backdrop',
+      // CDK sets these inline; a 16px margin keeps tall dialogs inside the screen.
+      maxHeight: options.fullScreen ? '100dvh' : 'calc(100dvh - 32px)',
+      maxWidth: options.fullScreen ? '100vw' : 'calc(100vw - 32px)',
       autoFocus: 'first-tabbable',
       restoreFocus: true,
     });

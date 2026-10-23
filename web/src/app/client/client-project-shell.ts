@@ -2,8 +2,9 @@ import { Component, computed, effect, inject, input } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
+import type { Handover } from '@siteline/shared';
 
-import { useFirestore } from '../core/live';
+import { liveDoc, useFirestore } from '../core/live';
 import { Metrics } from '../core/metrics';
 import { ProjectContext } from '../core/project-context';
 import { Session } from '../core/session';
@@ -44,6 +45,12 @@ export class ClientProjectShell {
 
   readonly projectId = input.required<string>();
   protected readonly project = computed(() => this.context.project());
+  private readonly handover = liveDoc<Handover>(() =>
+    this.projectId() ? `projects/${this.projectId()}/handover/current` : null,
+  );
+  private readonly hasHandover = computed(
+    () => !!this.handover()?.pdf || this.project()?.status !== 'active',
+  );
   /** Service clients get Feed, Visits and Decisions; projects Feed, Decisions and Next visit (PRD F3, F19). */
   protected readonly tabs = computed(() =>
     this.project()?.kind === 'service'
@@ -56,6 +63,10 @@ export class ClientProjectShell {
           { path: '', label: 'pages.projectFeed', exact: true },
           { path: 'decisions', label: 'pages.decisions', exact: false },
           { path: 'visit', label: 'pages.visit', exact: false },
+          // The handover tab appears once the firm has made the pack (PRD F3).
+          ...(this.hasHandover()
+            ? [{ path: 'handover', label: 'pages.handover', exact: false }]
+            : []),
         ],
   );
 

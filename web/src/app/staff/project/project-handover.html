@@ -1,0 +1,314 @@
+<div class="sl-stack">
+  <p class="sl-small">{{ 'handover.intro' | translate }}</p>
+
+  <section slCard class="sl-stack" aria-labelledby="summary-title">
+    <h2 id="summary-title">{{ 'handover.summary' | translate }}</h2>
+    <sl-field [label]="'handover.summaryLabel' | translate">
+      <textarea
+        slInput
+        rows="4"
+        maxlength="5000"
+        [value]="summary()"
+        (input)="summary.set($any($event.target).value)"
+      ></textarea>
+    </sl-field>
+  </section>
+
+  <section slCard class="sl-stack" aria-labelledby="pairs-title">
+    <h2 id="pairs-title">{{ 'handover.beforeAfter' | translate }}</h2>
+    @for (pair of pairs(); track $index; let i = $index) {
+      <div class="pair">
+        <div class="photos">
+          <sl-storage-image
+            [path]="pair.before.thumbPath"
+            [alt]="'handover.before' | translate"
+            [width]="pair.before.width"
+            [height]="pair.before.height"
+          />
+          <sl-storage-image
+            [path]="pair.after.thumbPath"
+            [alt]="'handover.after' | translate"
+            [width]="pair.after.width"
+            [height]="pair.after.height"
+          />
+        </div>
+        <sl-field [label]="'handover.caption' | translate: { n: i + 1 }">
+          <input
+            slInput
+            type="text"
+            maxlength="200"
+            [value]="pair.caption"
+            (input)="setCaption(i, $any($event.target).value)"
+          />
+        </sl-field>
+        <div>
+          <button slButton="ghost" type="button" (click)="removePair(i)">
+            {{ 'common.remove' | translate }}
+          </button>
+        </div>
+      </div>
+    }
+    <div>
+      <button slButton="secondary" type="button" (click)="addPair()">
+        {{ 'handover.addPair' | translate }}
+      </button>
+    </div>
+  </section>
+
+  <section slCard class="sl-stack" aria-labelledby="materials-title">
+    <h2 id="materials-title">{{ 'handover.materials' | translate }}</h2>
+    @for (m of materials(); track $index; let i = $index) {
+      <fieldset class="material">
+        <legend>{{ 'handover.materialN' | translate: { n: i + 1 } }}</legend>
+        <sl-field [label]="'handover.materialName' | translate">
+          <input
+            slInput
+            type="text"
+            maxlength="120"
+            [value]="m.name"
+            (input)="setMaterial(i, 'name', $any($event.target).value)"
+          />
+        </sl-field>
+        <sl-field [label]="'handover.brand' | translate">
+          <input
+            slInput
+            type="text"
+            maxlength="120"
+            [value]="m.brand"
+            (input)="setMaterial(i, 'brand', $any($event.target).value)"
+          />
+        </sl-field>
+        <sl-field [label]="'handover.colourCode' | translate">
+          <input
+            slInput
+            type="text"
+            maxlength="60"
+            [value]="m.colourCode"
+            (input)="setMaterial(i, 'colourCode', $any($event.target).value)"
+          />
+        </sl-field>
+        <sl-field [label]="'handover.supplier' | translate">
+          <input
+            slInput
+            type="text"
+            maxlength="120"
+            [value]="m.supplier"
+            (input)="setMaterial(i, 'supplier', $any($event.target).value)"
+          />
+        </sl-field>
+        <sl-field [label]="'handover.warrantyYears' | translate">
+          <input
+            slInput
+            type="number"
+            min="0"
+            max="50"
+            inputmode="numeric"
+            [value]="m.warrantyYears ?? ''"
+            (input)="setMaterial(i, 'warrantyYears', $any($event.target).value)"
+          />
+        </sl-field>
+        <div>
+          <button slButton="ghost" type="button" (click)="removeMaterial(i)">
+            {{ 'common.remove' | translate }}
+          </button>
+        </div>
+      </fieldset>
+    }
+    <div>
+      <button slButton="secondary" type="button" (click)="addMaterial()">
+        {{ 'handover.addMaterial' | translate }}
+      </button>
+    </div>
+  </section>
+
+  <section slCard class="sl-stack" aria-labelledby="care-title">
+    <h2 id="care-title">{{ 'handover.care' | translate }}</h2>
+    <sl-field [label]="'handover.careLabel' | translate">
+      <textarea
+        slInput
+        rows="4"
+        maxlength="5000"
+        [value]="careNotes()"
+        (input)="careNotes.set($any($event.target).value)"
+      ></textarea>
+    </sl-field>
+  </section>
+
+  <section slCard class="sl-stack" aria-labelledby="attachments-title">
+    <h2 id="attachments-title">{{ 'handover.attachments' | translate }}</h2>
+    @if (attachments().length) {
+      <ul class="files">
+        @for (file of attachments(); track file.path; let i = $index) {
+          <li>
+            <button type="button" class="link" (click)="open(file.path)">{{ file.name }}</button>
+            <span class="sl-small">{{ size(file.size) }}</span>
+            <button
+              slButton="ghost"
+              type="button"
+              [attr.aria-label]="'handover.removeFile' | translate: { name: file.name }"
+              (click)="removeAttachment(i)"
+            >
+              {{ 'common.remove' | translate }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+    <input
+      #files
+      type="file"
+      accept="application/pdf,image/jpeg,image/png"
+      multiple
+      class="sl-visually-hidden"
+      tabindex="-1"
+      aria-hidden="true"
+      (change)="attach($any($event.target).files); files.value = ''"
+    />
+    <div>
+      <button slButton="secondary" type="button" [busy]="uploading()" (click)="files.click()">
+        {{ 'handover.attach' | translate }}
+      </button>
+    </div>
+    <p class="sl-small">{{ 'handover.attachHint' | translate }}</p>
+  </section>
+
+  <div class="save">
+    <button slButton type="button" [busy]="saving()" [disabled]="saving()" (click)="save()">
+      {{ 'common.save' | translate }}
+    </button>
+  </div>
+
+  <section slCard class="sl-stack" aria-labelledby="pack-title">
+    <h2 id="pack-title">{{ 'handover.pack' | translate }}</h2>
+    <p>{{ 'handover.packBody' | translate }}</p>
+    <div>
+      <button
+        slButton
+        size="large"
+        type="button"
+        [busy]="generating()"
+        [disabled]="generating() || saving()"
+        (click)="generate()"
+      >
+        {{ 'handover.generate' | translate }}
+      </button>
+    </div>
+    @if (versions().length) {
+      <h3>{{ 'handover.versions' | translate }}</h3>
+      <ul class="files">
+        @for (v of versions(); track v.version) {
+          <li>
+            <button type="button" class="link" (click)="open(v.path)">
+              {{ 'handover.version' | translate: { n: v.version } }}
+            </button>
+            <span class="sl-small">{{ v.generatedAt | slDate }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section slCard class="sl-stack" aria-labelledby="aftercare-title">
+    <h2 id="aftercare-title">{{ 'aftercare.title' | translate }}</h2>
+    @if (company.features().aftercare) {
+      <p class="sl-small">{{ 'aftercare.intro' | translate }}</p>
+      @if (reminders()?.length) {
+        <ul class="files">
+          @for (r of reminders(); track r.id) {
+            <li>
+              <span class="grow">
+                <strong>{{ r.title }}</strong>
+                <span class="sl-small"
+                  >{{ r.dueDate }} · {{ 'aftercare.repeat.' + r.repeat | translate
+                  }}{{ r.active ? '' : ' · ' + ('aftercare.done' | translate) }}</span
+                >
+              </span>
+              <button
+                slButton="ghost"
+                type="button"
+                [attr.aria-label]="'aftercare.remove' | translate: { title: r.title }"
+                (click)="removeReminder(r.id)"
+              >
+                {{ 'common.remove' | translate }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      <form class="sl-stack" (submit)="addReminder($event)">
+        <sl-field [label]="'aftercare.reminderTitle' | translate">
+          <input
+            slInput
+            type="text"
+            maxlength="120"
+            [value]="reminder().title"
+            (input)="setReminder('title', $any($event.target).value)"
+          />
+        </sl-field>
+        <sl-field [label]="'aftercare.note' | translate" [hint]="'common.optional' | translate">
+          <input
+            slInput
+            type="text"
+            maxlength="1000"
+            [value]="reminder().note"
+            (input)="setReminder('note', $any($event.target).value)"
+          />
+        </sl-field>
+        <sl-field [label]="'aftercare.date' | translate">
+          <input
+            slInput
+            type="date"
+            [value]="reminder().dueDate"
+            (input)="setReminder('dueDate', $any($event.target).value)"
+          />
+        </sl-field>
+        <sl-field [label]="'aftercare.repeatLabel' | translate">
+          <select
+            slInput
+            [value]="reminder().repeat"
+            (change)="setReminder('repeat', $any($event.target).value)"
+          >
+            <option value="yearly">{{ 'aftercare.repeat.yearly' | translate }}</option>
+            <option value="none">{{ 'aftercare.repeat.none' | translate }}</option>
+          </select>
+        </sl-field>
+        <div>
+          <button
+            slButton="secondary"
+            type="submit"
+            [busy]="savingReminder()"
+            [disabled]="savingReminder()"
+          >
+            {{ 'aftercare.add' | translate }}
+          </button>
+        </div>
+      </form>
+    } @else {
+      <p class="locked">
+        {{ 'aftercare.fromTeam' | translate }}
+        <a routerLink="/app/settings/billing">{{ 'companySettings.seePlans' | translate }}</a>
+      </p>
+    }
+  </section>
+
+  @if (bookings()?.length) {
+    <section slCard class="sl-stack" aria-labelledby="bookings-title">
+      <h2 id="bookings-title">{{ 'booking.requests' | translate }}</h2>
+      <ul class="files">
+        @for (b of bookings(); track b.id) {
+          <li>
+            <span class="grow">
+              <strong>{{ b.clientName }}</strong>
+              <span class="sl-small"
+                >{{ b.createdAt | slDate }}{{ b.note ? ' · ' + b.note : '' }}</span
+              >
+            </span>
+            <button slButton="secondary" type="button" (click)="resolve(b.id)">
+              {{ 'booking.handled' | translate }}
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</div>

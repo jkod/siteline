@@ -1,5 +1,5 @@
 import { FieldValue, type Firestore, Timestamp, type WriteBatch } from 'firebase-admin/firestore';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import {
   buildSchedule,
   DEFAULT_ACCENT,
@@ -9,12 +9,14 @@ import {
   type Plan,
   PLAN_LIMITS,
   type Post,
+  projectBranding,
   stockholmDate,
   TIME_ZONE,
   zonedTimeToUtc,
 } from '@siteline/shared';
 
 import { bucket } from './admin';
+import { assetPath } from './assets';
 import { randomToken } from './crypto';
 import { decisionSnapshot } from './decisions';
 import { generateVisitsForProject, scheduledVisitId } from './visits';
@@ -49,13 +51,9 @@ export interface DemoRecord {
   expiresAt: Timestamp;
 }
 
-/** The example photos ship with the functions, in assets/photos (bundled or from source). */
+/** The example photos ship with the functions, in assets/photos. */
 function photoFile(name: string): Buffer {
-  for (const base of ['../assets/photos/', '../../assets/photos/']) {
-    const url = new URL(`${base}${name}`, import.meta.url);
-    if (existsSync(url)) return readFileSync(url);
-  }
-  throw new Error(`Missing example photo ${name}`);
+  return readFileSync(assetPath(`photos/${name}`));
 }
 
 /**
@@ -174,12 +172,8 @@ export async function createDemo(
     });
   }
 
-  const branding = (firm: Firm) => ({
-    name: firm.name,
-    logoUrl: null,
-    accentColor: firm.accentColor,
-    showSitelineFooter: firm.plan === 'free' || firm.plan === 'visits',
-  });
+  const branding = (firm: Firm) =>
+    projectBranding({ ...firm, compedUntil: null }, null, now.getTime());
   const member = (person: Person) => ({
     role: person.role === 'client' ? 'client' : 'crew',
     name: person.name,

@@ -1,9 +1,20 @@
 import { db } from '../lib/admin';
-import { elksPassword, elksUsername, isEmulator } from '../lib/env';
+import {
+  appUrl,
+  elksPassword,
+  elksUsername,
+  isEmulator,
+  stripePrices,
+  stripeSecretKey,
+  stripeTaxRate,
+  stripeWebhookSecret,
+} from '../lib/env';
+import { DevBillingProvider } from './dev-billing';
 import { DevEmailSender, DevPushSender, DevSmsSender } from './dev-outbox';
 import { DevSpeechDrafter } from './dev-speech';
 import { ElksSmsSender } from './elks-sms';
-import type { EmailSender, PushSender, SmsSender, SpeechDrafter } from './types';
+import { StripeBillingProvider } from './stripe-billing';
+import type { BillingProvider, EmailSender, PushSender, SmsSender, SpeechDrafter } from './types';
 import { VertexSpeechDrafter } from './vertex-speech';
 
 export type * from './types';
@@ -29,4 +40,15 @@ export function pushSender(): PushSender {
 
 export function speechDrafter(): SpeechDrafter {
   return isEmulator ? new DevSpeechDrafter() : new VertexSpeechDrafter();
+}
+
+export function billingProvider(): BillingProvider {
+  return isEmulator
+    ? new DevBillingProvider(db, appUrl.value())
+    : new StripeBillingProvider({
+        secretKey: stripeSecretKey.value(),
+        webhookSecret: stripeWebhookSecret.value(),
+        prices: JSON.parse(stripePrices.value()) as Record<string, string>,
+        taxRateId: stripeTaxRate.value(),
+      });
 }

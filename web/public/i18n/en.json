@@ -10,7 +10,8 @@
     "edit": "Edit",
     "ok": "OK",
     "optional": "Optional",
-    "save": "Save"
+    "save": "Save",
+    "remove": "Remove"
   },
   "language": {
     "label": "Language",
@@ -48,7 +49,8 @@
     "devUi": "Components",
     "visits": "Visits",
     "clientLogin": "Client sign-in",
-    "try": "Try Siteline"
+    "try": "Try Siteline",
+    "devBilling": "Fake payment"
   },
   "staff": {
     "nav": "Main menu",
@@ -105,7 +107,8 @@
       "min": "The value is too small.",
       "max": "The value is too large.",
       "price": "Enter an amount, for example 6500.",
-      "endBeforeStart": "The end time must be after the start time."
+      "endBeforeStart": "The end time must be after the start time.",
+      "splitExceedsPrice": "Labour and material can't add up to more than the price."
     },
     "auth": {
       "invalid-email": "Enter a valid email address.",
@@ -150,7 +153,15 @@
       "clients_only": "Only clients can do this.",
       "already_answered": "You've already answered this decision.",
       "choice_differs": "Someone already picked another option. Talk it over, or decline and ask a question.",
-      "not_an_approver": "This decision was sent before you joined the project, so you don't need to answer."
+      "not_an_approver": "This decision was sent before you joined the project, so you don't need to answer.",
+      "already_subscribed": "You already have a plan. Change it in the customer portal.",
+      "no_subscription": "You don't have a plan yet.",
+      "emulator_only": "This only exists in development.",
+      "title_mismatch": "The name doesn't match. Type the project name exactly as it's written.",
+      "transfer_ownership_first": "Hand ownership to someone else first, under Team.",
+      "plan_feature": "This isn't included in your plan.",
+      "date_in_past": "That date has already passed.",
+      "projects_only": "This is for projects only."
     }
   },
   "dev": {
@@ -197,7 +208,16 @@
       "dialogConfirm": "Withdraw"
     },
     "held": "Waiting to be sent",
-    "heldUntil": "Sends {{when}} (quiet hours)"
+    "heldUntil": "Sends {{when}} (quiet hours)",
+    "billingIntro": "Here we pretend to be Stripe. The buttons send the same events Stripe would.",
+    "checkoutTitle": "Pay for {{plan}}, {{interval}}",
+    "pay": "Pay",
+    "eventsTitle": "Events from Stripe",
+    "plan": "Plan",
+    "change": "Change plan",
+    "fail": "Payment fails",
+    "cancelSubscription": "Cancel",
+    "eventSent": "Event sent."
   },
   "address": {
     "street": "Address",
@@ -355,7 +375,9 @@
     "selectedPhotos": "Selected photos",
     "removePhoto": "Remove photo {{n}}",
     "tooManyPhotos": "You can add at most {{max}} photos.",
-    "photoTooLarge": "A photo is larger than 10 MB."
+    "photoTooLarge": "A photo is larger than 10 MB.",
+    "hiddenWork": "Hidden work",
+    "hiddenWorkLabel": "Photo {{n}} shows hidden work"
   },
   "feed": {
     "label": "Feed",
@@ -403,7 +425,8 @@
       "approvalRule": {
         "all": "{{name}} changed it so every client must approve decisions with a price.",
         "any": "{{name}} changed it so one client is enough to approve decisions with a price."
-      }
+      },
+      "handoverReady": "The handover pack is ready."
     }
   },
   "milestone": {
@@ -429,7 +452,10 @@
     "logoHint": "PNG, JPG or SVG, up to 2 MB.",
     "logoInvalid": "The logo must be a PNG, JPG or SVG of up to 2 MB.",
     "logoSaved": "The logo is saved.",
-    "saved": "Your changes are saved."
+    "saved": "Your changes are saved.",
+    "colourFromTeam": "Clients see your colour from the Team plan.",
+    "logoFromSolo": "Clients see your logo from the Solo plan.",
+    "seePlans": "See plans"
   },
   "brandPreview": {
     "caption": "What your client sees",
@@ -466,13 +492,53 @@
     "activeProjects": "{{used}} of {{limit}} active projects",
     "serviceClients": "{{used}} of {{limit}} recurring clients",
     "staff": "{{used}} of {{limit}} staff",
-    "upgradeSoon": "Upgrading by card is coming soon. Get in touch and we'll help in the meantime.",
     "referralsTitle": "Businesses referred",
     "referrals": {
       "one": "Your clients have brought {{count}} business to Siteline.",
       "other": "Your clients have brought {{count}} businesses to Siteline."
     },
-    "referralsHow": "Clients can invite other businesses they use. When one of them starts paying, you get a free month (arrives with payments)."
+    "pastDue": "The last payment didn't go through. Update your card and everything carries on as usual.",
+    "updateCard": "Update card",
+    "comped": "You have Team for free as a design partner until {{date}}.",
+    "renews": "Renews {{date}}.",
+    "manage": "Card, receipts and cancelling",
+    "plansTitle": "Plans",
+    "interval": "Billing period",
+    "month": "Monthly",
+    "year": "Yearly (two months free)",
+    "vatNote": "Prices exclude VAT. 25% VAT is added.",
+    "per": {
+      "month": "/month",
+      "year": "/year"
+    },
+    "includes": {
+      "projects": {
+        "one": "{{count}} active project",
+        "other": "{{count}} active projects"
+      },
+      "clients": "{{count}} recurring clients",
+      "staff": {
+        "one": "{{count}} staff member",
+        "other": "{{count}} staff"
+      }
+    },
+    "features": {
+      "serviceMode": "A report after every visit",
+      "logo": "Your logo for clients",
+      "conditionCheckIn": "Condition check-in at the start",
+      "colours": "Your colour for clients",
+      "aftercare": "Aftercare reminders",
+      "noFooter": "No Siteline line for clients"
+    },
+    "yourPlan": "Your plan",
+    "changeInPortal": "Change in the customer portal",
+    "choose": "Choose {{plan}}",
+    "pendingMonths": {
+      "one": "You have {{count}} free month, taken off when you start paying.",
+      "other": "You have {{count}} free months, taken off when you start paying."
+    },
+    "referralsHow": "Clients can invite other businesses they use. When one of them starts paying, you get a free month.",
+    "checkoutDone": "Thank you! Your plan is active."
   },
   "redeem": {
     "working": "Opening your project…",
@@ -779,6 +845,10 @@
     "quiet": {
       "one": "Nothing new for {{count}} day",
       "other": "Nothing new for {{count}} days"
+    },
+    "bookings": {
+      "one": "A client wants to book again",
+      "other": "{{count}} clients want to book again"
     }
   },
   "invite": {
@@ -913,5 +983,117 @@
     "all": "Everyone must approve",
     "help": "Covers extras and choices that cost money. Decisions already sent keep the rule they were sent under.",
     "saved": "Rule saved. Everyone on the project sees the change in the feed."
+  },
+  "deleteProject": {
+    "open": "Delete project",
+    "title": "Delete the project?",
+    "body": "The project disappears at once for everyone, clients included. Photos and files are deleted after 30 days.",
+    "keepRecords": "Save the decisions and the handover pack first. They may be needed as records for up to ten years.",
+    "saveDecisions": "Download decisions (CSV)",
+    "typeName": "Type the project name to delete: {{name}}",
+    "confirm": "Delete for good",
+    "done": "The project is deleted."
+  },
+  "privacy": {
+    "leave": "Leave the project",
+    "leaveTitle": "Leave {{project}}?",
+    "leaveBody": "You won't see the project any more, and your name is taken out of it. Approved decisions keep your initials as a record.",
+    "left": "You've left the project.",
+    "removeTitle": "Remove my data",
+    "removeBody": "You leave every project, and your name, number and account are deleted. Approved decisions keep your initials as a record.",
+    "remove": "Remove my data",
+    "removeConfirm": "This can't be undone. Businesses can invite you again if you like.",
+    "removed": "Your data is removed.",
+    "deleteAccountTitle": "Delete my account",
+    "deleteAccountBody": "Your account and your name are removed from the company's projects. If you're the owner, hand ownership to someone else first.",
+    "deleteAccount": "Delete my account",
+    "deleteAccountConfirm": "This can't be undone."
+  },
+  "handover": {
+    "intro": "Fill in what the client should keep once the job is done. The pack becomes a PDF with your approved extras, hidden work and the condition at the start.",
+    "summary": "Summary",
+    "summaryLabel": "What was done",
+    "beforeAfter": "Before and after",
+    "before": "Before",
+    "after": "After",
+    "caption": "Caption for pair {{n}}",
+    "addPair": "Add before and after",
+    "pickBefore": "Choose the before photo",
+    "pickAfter": "Choose the after photo",
+    "pickPhoto": "Choose photo {{n}}",
+    "noPhotos": "The project has no photos yet.",
+    "materials": "Materials and products",
+    "materialN": "Product {{n}}",
+    "materialName": "Name",
+    "brand": "Brand",
+    "colourCode": "Colour code",
+    "supplier": "Supplier",
+    "warrantyYears": "Warranty (years)",
+    "addMaterial": "Add product",
+    "care": "Warranty and care",
+    "careLabel": "Care advice and warranty terms",
+    "attachments": "Attachments",
+    "attach": "Add attachments",
+    "attachHint": "Manuals and certificates as PDF or image, up to 20 MB each.",
+    "attachmentInvalid": "Attachments must be PDF, JPG or PNG, up to 20 MB.",
+    "removeFile": "Remove {{name}}",
+    "saved": "Handover saved.",
+    "pack": "Handover pack",
+    "packBody": "Creating the pack marks the project as completed, and the clients get a text and an email with the link.",
+    "generate": "Create handover pack",
+    "generateTitle": "Create the handover pack?",
+    "generateBody": "The project is marked as completed and the clients are told at once. You can create a new version later.",
+    "generated": "Version {{version}} of the handover pack is ready.",
+    "versions": "Earlier versions",
+    "version": "Version {{n}}",
+    "readyAt": "Version {{n}}, {{date}}",
+    "download": "Download the handover pack",
+    "openPack": "Open the handover",
+    "notYetTitle": "No handover pack yet",
+    "notYetBody": "The business creates it when the job is done. You'll get a text when it's ready."
+  },
+  "aftercare": {
+    "title": "Aftercare reminders",
+    "intro": "The client gets a text or email at 9 am on the day, with a button to book you again.",
+    "reminderTitle": "What to remind about",
+    "note": "Short explanation",
+    "date": "Date",
+    "repeatLabel": "Repeat",
+    "repeat": {
+      "yearly": "Every year",
+      "none": "Once"
+    },
+    "add": "Add reminder",
+    "saved": "Reminder saved.",
+    "remove": "Remove the reminder {{title}}",
+    "done": "sent",
+    "fromTeam": "Aftercare reminders are included from the Team plan.",
+    "wanted": "Remind me about this"
+  },
+  "booking": {
+    "title": "Book {{firm}} again",
+    "body": "Say what it's about, and {{firm}} will get in touch.",
+    "note": "Message",
+    "send": "Send request",
+    "sent": "Your request has gone to {{firm}}.",
+    "again": "Need help again?",
+    "open": "Book {{firm}} again",
+    "requests": "Want to book again",
+    "handled": "Mark as handled"
+  },
+  "condition": {
+    "open": "Condition check-in",
+    "title": "Record the condition",
+    "intro": "Photograph what was already there before you started, like scratches and damage. The client confirms with one tap.",
+    "photoN": "Photo {{n}}",
+    "note": "What does the photo show?",
+    "location": "Where?",
+    "addPhotos": "Add photos",
+    "publish": "Post",
+    "label": "Condition at the start",
+    "acknowledge": "I've seen the photos",
+    "thanks": "Thank you! You've confirmed the photos.",
+    "acknowledged": "{{name}} acknowledged {{count}} photos · {{date}}",
+    "waiting": "Waiting for the client to confirm."
   }
 }

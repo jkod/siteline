@@ -149,23 +149,31 @@ export class ProjectVisits {
   protected edit(visit?: WithId<Visit>): void {
     const p = this.project();
     if (!p) return;
-    this.dialogs.open<void, VisitEditorData, VisitEditor>(VisitEditor, {
-      projectId: p.id,
-      companyId: p.companyId,
-      visit,
-    });
+    this.dialogs.open<void, VisitEditorData, VisitEditor>(
+      VisitEditor,
+      {
+        projectId: p.id,
+        companyId: p.companyId,
+        visit,
+      },
+      { wide: true },
+    );
   }
 
   protected openReport(visit: WithId<Visit>): void {
     const p = this.project();
     if (!p) return;
-    this.dialogs.open<string, ReportDialogData, ReportDialog>(ReportDialog, {
-      projectId: p.id,
-      visitId: visit.id,
-      when: formatDate(visit.startAt, 'visit', this.language.lang()),
-      template: this.template(),
-      photosAllowed: !this.isTutoring() || !!p.photoConsentAt,
-    });
+    this.dialogs.open<string, ReportDialogData, ReportDialog>(
+      ReportDialog,
+      {
+        projectId: p.id,
+        visitId: visit.id,
+        when: formatDate(visit.startAt, 'visit', this.language.lang()),
+        template: this.template(),
+        photosAllowed: !this.isTutoring() || !!p.photoConsentAt,
+      },
+      { wide: true },
+    );
   }
 
   protected async markDone(visit: WithId<Visit>): Promise<void> {
@@ -198,13 +206,17 @@ export class ProjectVisits {
 
   protected suggest(request: WithId<VisitRequest>): void {
     const visit = (this.visits() ?? []).find((v) => v.id === request.visitId);
-    this.dialogs.open<void, VisitRequestDialogData, VisitRequestDialog>(VisitRequestDialog, {
-      projectId: this.projectId()!,
-      visitId: request.visitId,
-      requestId: request.id,
-      when: visit ? formatDate(visit.startAt, 'visit', this.language.lang()) : '',
-      mode: 'suggest',
-    });
+    this.dialogs.open<void, VisitRequestDialogData, VisitRequestDialog>(
+      VisitRequestDialog,
+      {
+        projectId: this.projectId()!,
+        visitId: request.visitId,
+        requestId: request.id,
+        when: visit ? formatDate(visit.startAt, 'visit', this.language.lang()) : '',
+        mode: 'suggest',
+      },
+      { wide: true },
+    );
   }
 
   protected visitFor(request: WithId<VisitRequest>): WithId<Visit> | undefined {

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 
-import type { Media } from '@siteline/shared';
+import type { HandoverAttachment, Media, MediaTag } from '@siteline/shared';
 
 import { FirebaseService } from './firebase';
 import { preparePhoto } from './photos';
@@ -31,6 +31,7 @@ export class MediaService {
     projectId: string,
     file: File,
     onProgress: (fraction: number) => void,
+    tags: MediaTag[] = [],
   ): Promise<Media> {
     const photo = await preparePhoto(file);
     const [storage, s] = await Promise.all([this.firebase.storage(), import('firebase/storage')]);
@@ -64,7 +65,16 @@ export class MediaService {
       thumbPath: `${base}/thumb.jpg`,
       width: photo.width,
       height: photo.height,
-      tags: [],
+      tags,
     };
+  }
+
+  /** A handover attachment, a PDF or image up to 20 MB (PRD F9), as it was chosen. */
+  async uploadAttachment(projectId: string, file: File): Promise<HandoverAttachment> {
+    const [storage, s] = await Promise.all([this.firebase.storage(), import('firebase/storage')]);
+    const name = file.name.replace(/[^\p{L}\p{N}._ -]/gu, '_').slice(-120) || 'bilaga';
+    const path = `projects/${projectId}/attachments/${crypto.randomUUID().replace(/-/g, '')}/${name}`;
+    await s.uploadBytes(s.ref(storage, path), file, { contentType: file.type });
+    return { path, name, size: file.size, contentType: file.type };
   }
 }

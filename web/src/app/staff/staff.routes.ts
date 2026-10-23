@@ -4,11 +4,6 @@ import { roleGuard } from '../core/guards';
 import { StaffShell } from './staff-shell';
 
 const managers = { canActivate: [roleGuard('owner', 'admin')] };
-const tab = (titleKey: string, bodyKey: string) => ({
-  loadComponent: () =>
-    import('./project/project-tab-placeholder').then((m) => m.ProjectTabPlaceholder),
-  data: { titleKey, bodyKey },
-});
 
 export const STAFF_ROUTES: Routes = [
   {
@@ -63,7 +58,8 @@ export const STAFF_ROUTES: Routes = [
             path: 'handover',
             title: 'pages.handover',
             ...managers,
-            ...tab('placeholders.handoverTitle', 'placeholders.handoverBody'),
+            loadComponent: () =>
+              import('./project/project-handover').then((m) => m.ProjectHandover),
           },
         ],
       },

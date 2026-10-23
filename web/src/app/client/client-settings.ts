@@ -1,5 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { ApprovalRule, NotifyChannel, Project, ProjectMember } from '@siteline/shared';
@@ -8,15 +8,18 @@ import { Api } from '../core/api';
 import { errorMessageKey } from '../core/errors';
 import { liveDoc, liveQuery, useFirestore, type WithId } from '../core/live';
 import { Session } from '../core/session';
+import { Button } from '../shared/ui/button';
 import { Card } from '../shared/ui/card';
+import { Dialogs } from '../shared/ui/dialog';
 import { FeedStylePicker } from '../shared/ui/feed-style-picker';
+import { LanguageSwitch } from '../shared/ui/language-switch';
 import { Toasts } from '../shared/ui/toast';
 import { InviteCard } from './invite-card';
 
 /** One project's notification choices, saved on the client's own member document. */
 @Component({
   selector: 'sl-project-notify',
-  imports: [TranslatePipe, Card],
+  imports: [TranslatePipe, Card, Button],
   template: `
     @let p = project();
     <section slCard class="sl-stack" [attr.aria-labelledby]="'p-' + p.id">
@@ -67,6 +70,11 @@ import { InviteCard } from './invite-card';
           <p class="sl-small">{{ 'approvalRule.help' | translate }}</p>
         </fieldset>
       }
+      <div>
+        <button slButton="ghost" type="button" (click)="leave()">
+          {{ 'privacy.leave' | translate }}
+        </button>
+      </div>
     </section>
   `,
   styles: `
@@ -106,6 +114,7 @@ export class ProjectNotify {
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
   private readonly api = inject(Api);
+  private readonly dialogs = inject(Dialogs);
 
   readonly project = input.required<WithId<Project>>();
   protected readonly rules: ApprovalRule[] = ['any', 'all'];
@@ -119,6 +128,26 @@ export class ProjectNotify {
     channel: 'sms' as NotifyChannel,
     ...this.member()?.notify,
   }));
+
+  /** Leaving ends access and takes the client's name out of the project (PRD F11). */
+  protected async leave(): Promise<void> {
+    const t = (key: string, params?: object) => this.translate.instant(key, params) as string;
+    const ok = await this.dialogs.confirm({
+      title: t('privacy.leaveTitle', { project: this.project().title }),
+      message: t('privacy.leaveBody'),
+      confirmLabel: t('privacy.leave'),
+      cancelLabel: t('common.cancel'),
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await this.api.leaveProject(this.project().id);
+      this.toasts.show(t('privacy.left'), 'success');
+    } catch (error) {
+      const key = errorMessageKey(error);
+      if (key) this.toasts.show(t(key), 'error');
+    }
+  }
 
   /** Who must approve priced decisions on this project (the user's request). */
   protected async setRule(rule: ApprovalRule): Promise<void> {
@@ -156,10 +185,23 @@ export class ProjectNotify {
  */
 @Component({
   selector: 'sl-client-settings',
-  imports: [TranslatePipe, RouterLink, ProjectNotify, Card, FeedStylePicker, InviteCard],
+  imports: [
+    TranslatePipe,
+    RouterLink,
+    ProjectNotify,
+    Card,
+    Button,
+    FeedStylePicker,
+    InviteCard,
+    LanguageSwitch,
+  ],
   template: `
     <main class="sl-page sl-stack" id="main">
       <h1>{{ 'pages.clientSettings' | translate }}</h1>
+      <section slCard class="sl-stack" aria-labelledby="language-title">
+        <h2 id="language-title">{{ 'companySettings.language' | translate }}</h2>
+        <sl-language-switch />
+      </section>
       <section slCard>
         <sl-feed-style-picker />
       </section>
@@ -170,6 +212,20 @@ export class ProjectNotify {
       @if (projects()?.[0]; as first) {
         <sl-invite-card [projectId]="first.id" [companyId]="first.companyId" />
       }
+      <section slCard class="sl-stack" aria-labelledby="remove-title">
+        <h2 id="remove-title">{{ 'privacy.removeTitle' | translate }}</h2>
+        <p>{{ 'privacy.removeBody' | translate }}</p>
+        <div>
+          <button slButton="danger" type="button" (click)="removeMyData()">
+            {{ 'privacy.remove' | translate }}
+          </button>
+        </div>
+      </section>
+      <div>
+        <button slButton="secondary" type="button" (click)="signOut()">
+          {{ 'common.signOut' | translate }}
+        </button>
+      </div>
       <p class="sl-small legal">
         <a routerLink="/legal/privacy">{{ 'pages.privacy' | translate }}</a>
         <a routerLink="/legal/terms">{{ 'pages.terms' | translate }}</a>
@@ -191,6 +247,38 @@ export class ProjectNotify {
 })
 export class ClientSettings {
   private readonly session = inject(Session);
+  private readonly api = inject(Api);
+  private readonly dialogs = inject(Dialogs);
+  private readonly router = inject(Router);
+  private readonly toasts = inject(Toasts);
+  private readonly translate = inject(TranslateService);
+
+  protected async signOut(): Promise<void> {
+    await this.session.signOut();
+    await this.router.navigateByUrl('/login');
+  }
+
+  /** Removes the client's data and account everywhere (PRD F11). */
+  protected async removeMyData(): Promise<void> {
+    const t = (key: string) => this.translate.instant(key) as string;
+    const ok = await this.dialogs.confirm({
+      title: t('privacy.removeTitle'),
+      message: t('privacy.removeConfirm'),
+      confirmLabel: t('privacy.remove'),
+      cancelLabel: t('common.cancel'),
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await this.api.deleteMyData();
+      await this.session.signOut();
+      await this.router.navigateByUrl('/login/client');
+      this.toasts.show(t('privacy.removed'), 'success');
+    } catch (error) {
+      const key = errorMessageKey(error);
+      if (key) this.toasts.show(t(key), 'error');
+    }
+  }
   protected readonly projects = liveQuery<Project>(
     (db, fs) => {
       const uid = this.session.user()?.uid;

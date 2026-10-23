@@ -55,7 +55,23 @@ service firebase.storage {
         && request.resource.contentType.matches('audio/(webm|mp4|ogg)(;.*)?');
     }
 
-    // Attachments and handover PDFs are opened in M4.
+    // Handover attachments such as manuals and certificates (PRD F9): owners and admins upload
+    // PDFs and images up to 20 MB; everyone on the project can read them.
+    match /projects/{projectId}/attachments/{fileId}/{file} {
+      allow read: if isProjectMember(projectId);
+      allow create: if isProjectStaff(projectId)
+        && request.auth.token.get('crole', null) in ['owner', 'admin']
+        && request.resource.size <= 20 * 1024 * 1024
+        && request.resource.contentType.matches('application/pdf|image/(jpeg|png)');
+      allow delete: if isProjectStaff(projectId)
+        && request.auth.token.get('crole', null) in ['owner', 'admin'];
+    }
+
+    // Handover PDFs, written by generateHandover; readable by everyone on the project, also
+    // after it's archived.
+    match /projects/{projectId}/handover/{file} {
+      allow read: if isProjectMember(projectId);
+    }
     match /{allPaths=**} {
       allow read, write: if false;
     }

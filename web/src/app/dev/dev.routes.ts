@@ -16,6 +16,11 @@ export const DEV_ROUTES: Routes = [
         loadComponent: () => import('./outbox').then((m) => m.Outbox),
       },
       {
+        path: 'billing',
+        title: 'pages.devBilling',
+        loadComponent: () => import('./billing').then((m) => m.DevBilling),
+      },
+      {
         path: 'ui',
         title: 'pages.devUi',
         loadComponent: () => import('./ui-gallery').then((m) => m.UiGallery),

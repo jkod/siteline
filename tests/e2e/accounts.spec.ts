@@ -38,6 +38,13 @@ test('a client signs in with their mobile number and switches between firms', as
   await expect(page).toHaveURL(/\/c\/matte-elsa$/);
   await expect(page.getByRole('button', { name: 'Berg Mattehjälp, byt projekt' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 1, name: 'Matte med Elsa' })).toBeVisible();
+
+  // And signs out again, to the sign-in page.
+  await page.goto('/c');
+  await page.getByRole('button', { name: 'Logga ut' }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await page.goto('/c');
+  await expect(page).not.toHaveURL(/\/c$/);
 });
 
 test('a sign-in link is used once', async ({ page, browser }) => {
@@ -76,7 +83,7 @@ test('a firm tries Siteline in a sandbox where nothing reaches real people', asy
   await dialog.getByLabel('Namn').fill('Riktig Person');
   await dialog.getByLabel('Mobilnummer').fill('070-174 06 50');
   await dialog.getByRole('button', { name: 'Skicka inbjudan' }).click();
-  await expect(page.getByText(/I provläget kan du inte bjuda in/)).toBeVisible();
+  await expect(dialog.getByRole('alert')).toContainText('I provläget kan du inte bjuda in');
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
 

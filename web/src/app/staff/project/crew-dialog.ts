@@ -4,9 +4,9 @@ import { Component, inject, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { Api } from '../../core/api';
-import { errorMessageKey } from '../../core/errors';
 import { Button } from '../../shared/ui/button';
 import { dialogTitleId } from '../../shared/ui/dialog';
+import { FormError, showSaveError } from '../../shared/ui/form-error';
 import { Toasts } from '../../shared/ui/toast';
 
 export interface CrewDialogData {
@@ -18,7 +18,7 @@ export interface CrewDialogData {
 /** Picks the crew assigned to a project. */
 @Component({
   selector: 'sl-crew-dialog',
-  imports: [TranslatePipe, Button],
+  imports: [TranslatePipe, Button, FormError],
   template: `
     <div class="body">
       <h2 [id]="titleId">{{ 'people.crewTitle' | translate }}</h2>
@@ -39,6 +39,7 @@ export interface CrewDialogData {
       } @else {
         <p>{{ 'people.noCrewInCompany' | translate }}</p>
       }
+      <sl-form-error [key]="saveError()" />
       <div class="actions">
         <button slButton="secondary" type="button" (click)="ref.close()">
           {{ 'common.cancel' | translate }}
@@ -82,6 +83,8 @@ export interface CrewDialogData {
   `,
 })
 export class CrewDialog {
+  /** A failed save, shown in the dialog as well as in a toast. */
+  protected readonly saveError = signal<string | null>(null);
   private readonly api = inject(Api);
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
@@ -101,8 +104,7 @@ export class CrewDialog {
       await this.api.assignCrew(this.data.projectId, this.selected());
       this.ref.close();
     } catch (error) {
-      const key = errorMessageKey(error);
-      if (key) this.toasts.show(this.translate.instant(key), 'error');
+      showSaveError(error, this.saveError, this.toasts, this.translate);
     } finally {
       this.saving.set(false);
     }

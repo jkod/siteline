@@ -72,6 +72,11 @@
               {{ 'projectStatus.archive' | translate }}
             </button>
           }
+          @if (isOwner()) {
+            <button slButton="ghost" type="button" (click)="deleteProject(project.title)">
+              {{ 'deleteProject.open' | translate }}
+            </button>
+          }
         </div>
       }
     </header>

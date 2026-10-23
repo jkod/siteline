@@ -139,15 +139,4 @@ describe('company logo', () => {
   });
 });
 
-describe('paths not opened yet', () => {
-  // Audio opened in M3; tests/rules/m3.spec.ts covers it.
-  it.each(['projects/p1/attachments/f1/manual.pdf', 'projects/p1/handover/handover-v1.pdf'])(
-    'denies %s',
-    async (path) => {
-      await assertFails(
-        uploadString(ref(storageAs(owner), path), 'x', 'raw', { contentType: 'application/pdf' }),
-      );
-      await assertFails(getBytes(ref(storageAs(owner), path)));
-    },
-  );
-});
+// Audio (M3) and attachments and handover PDFs (M4) have their own specs.

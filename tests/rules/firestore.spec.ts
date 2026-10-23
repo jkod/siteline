@@ -203,8 +203,7 @@ describe('companies', () => {
     await assertFails(setDoc(doc(as(owner), 'companies/company1/staff/new1'), { role: 'owner' }));
   });
 
-  it('denies billing to everyone, owners included', async () => {
-    await assertFails(getDoc(doc(as(owner), 'companies/company1/private/billing')));
+  it('never lets the app write billing details (owners read them, see m4.spec.ts)', async () => {
     await assertFails(setDoc(doc(as(owner), 'companies/company1/private/billing'), {}));
   });
 });

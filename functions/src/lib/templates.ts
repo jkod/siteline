@@ -6,6 +6,10 @@ import { gsm7Length, type Locale, SMS_SINGLE_LENGTH, toGsm7 } from '@siteline/sh
 export type TemplateName =
   | 'clientInvite'
   | 'clientSignIn'
+  | 'paymentFailed'
+  | 'handoverReady'
+  | 'aftercareReminder'
+  | 'bookingRequest'
   | 'staffInvite'
   | 'clientQuestion'
   | 'clientComment'
@@ -77,6 +81,54 @@ const TEMPLATES: Record<TemplateName, Record<Locale, Copy>> = {
       sms: `Your Siteline sign-in link: ${p['link']} It works once, for 30 minutes.`,
       subject: 'Your Siteline sign-in link',
       text: `Sign in to Siteline with this link:\n${p['link']}\n\nIt works once, for 30 minutes. If you didn't ask for it, you can ignore this message.`,
+    }),
+  },
+  handoverReady: {
+    sv: (p) => ({
+      sms: `Ditt överlämningspaket från ${p['firm']} är klart: ${p['link']}`,
+      subject: `Ditt överlämningspaket från ${p['firm']} är klart`,
+      text: `${p['firm']} har gjort klart överlämningspaketet för ${p['project']}: sammanfattning, material, garantier och alla godkända tillägg.\n\nLadda ner det här:\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `Your handover pack from ${p['firm']} is ready: ${p['link']}`,
+      subject: `Your handover pack from ${p['firm']} is ready`,
+      text: `${p['firm']} has finished the handover pack for ${p['project']}: summary, materials, warranties and every approved extra.\n\nDownload it here:\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  aftercareReminder: {
+    sv: (p) => ({
+      sms: `Påminnelse från ${p['firm']}: ${p['title']}. Boka ${p['firm']} igen: ${p['link']}`,
+      subject: `Påminnelse från ${p['firm']}: ${p['title']}`,
+      text: `${p['title']}\n\n${p['note'] ? `${p['note']}\n\n` : ''}Boka ${p['firm']} igen:\n${p['link']}${footer.sv(p)}`,
+    }),
+    en: (p) => ({
+      sms: `Reminder from ${p['firm']}: ${p['title']}. Book ${p['firm']} again: ${p['link']}`,
+      subject: `Reminder from ${p['firm']}: ${p['title']}`,
+      text: `${p['title']}\n\n${p['note'] ? `${p['note']}\n\n` : ''}Book ${p['firm']} again:\n${p['link']}${footer.en(p)}`,
+    }),
+  },
+  bookingRequest: {
+    sv: (p) => ({
+      sms: `${p['client']} vill boka igen (${p['project']}): ${p['link']}`,
+      subject: `${p['client']} vill boka igen`,
+      text: `${p['client']} vill boka er igen, från projektet ${p['project']}.\n\nSe förfrågan i Siteline:\n${p['link']}`,
+    }),
+    en: (p) => ({
+      sms: `${p['client']} wants to book again (${p['project']}): ${p['link']}`,
+      subject: `${p['client']} wants to book again`,
+      text: `${p['client']} wants to book you again, from the project ${p['project']}.\n\nSee the request in Siteline:\n${p['link']}`,
+    }),
+  },
+  paymentFailed: {
+    sv: (p) => ({
+      sms: `Betalningen för Siteline gick inte igenom. Uppdatera kortet här: ${p['link']}`,
+      subject: 'Betalningen för Siteline gick inte igenom',
+      text: `Vi kunde inte dra betalningen för ert Siteline-abonnemang. Uppdatera kortet här, så fortsätter allt som vanligt:\n${p['link']}`,
+    }),
+    en: (p) => ({
+      sms: `Your Siteline payment didn't go through. Update your card here: ${p['link']}`,
+      subject: "Your Siteline payment didn't go through",
+      text: `We couldn't take the payment for your Siteline plan. Update your card here and everything carries on as usual:\n${p['link']}`,
     }),
   },
   staffInvite: {

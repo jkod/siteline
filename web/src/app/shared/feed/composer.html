@@ -36,6 +36,18 @@
       @for (photo of photos(); track photo.preview; let i = $index) {
         <li>
           <img [src]="photo.preview" alt="" />
+          @if (mode() === 'update') {
+            <button
+              type="button"
+              class="tag"
+              [class.on]="photo.hiddenWork"
+              [attr.aria-pressed]="photo.hiddenWork"
+              [attr.aria-label]="'composer.hiddenWorkLabel' | translate: { n: i + 1 }"
+              (click)="toggleHiddenWork(i)"
+            >
+              {{ 'composer.hiddenWork' | translate }}
+            </button>
+          }
           <button
             type="button"
             class="remove"

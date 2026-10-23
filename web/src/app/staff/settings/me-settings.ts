@@ -1,24 +1,26 @@
 import { Component, effect, inject, signal } from '@angular/core';
 import { form, FormField, maxLength, required, submit } from '@angular/forms/signals';
+import { Router } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import type { Locale } from '@siteline/shared';
 
+import { Api } from '../../core/api';
 import { errorMessageKey } from '../../core/errors';
-import { Language } from '../../core/language';
 import { useFirestore } from '../../core/live';
 import { Session } from '../../core/session';
 import { Button } from '../../shared/ui/button';
 import { Card } from '../../shared/ui/card';
+import { Dialogs } from '../../shared/ui/dialog';
 import { FeedStylePicker } from '../../shared/ui/feed-style-picker';
 import { Field, Input } from '../../shared/ui/field';
+import { LanguageSwitch } from '../../shared/ui/language-switch';
 import { Toasts } from '../../shared/ui/toast';
 import { CurrentCompany } from '../current-company';
 
-/** Name and language. Notifications arrive in M2; deleting the account in M4. */
+/** Language, name, email notifications, feed order, and deleting the account. */
 @Component({
   selector: 'sl-me-settings',
-  imports: [TranslatePipe, FormField, Button, Card, Field, Input, FeedStylePicker],
+  imports: [TranslatePipe, FormField, Button, Card, Field, Input, FeedStylePicker, LanguageSwitch],
   styles: `
     .check {
       display: flex;
@@ -35,6 +37,10 @@ import { CurrentCompany } from '../current-company';
   template: `
     <main class="sl-page sl-stack" id="main">
       <h1>{{ 'pages.settingsMe' | translate }}</h1>
+      <section slCard class="sl-stack" aria-labelledby="language-title">
+        <h2 id="language-title">{{ 'companySettings.language' | translate }}</h2>
+        <sl-language-switch />
+      </section>
       <form slCard class="sl-stack" novalidate (submit)="save($event)">
         <sl-field
           [label]="'me.name' | translate"
@@ -42,12 +48,6 @@ import { CurrentCompany } from '../current-company';
           [touched]="form.name().touched()"
         >
           <input slInput type="text" autocomplete="name" [formField]="form.name" />
-        </sl-field>
-        <sl-field [label]="'companySettings.language' | translate">
-          <select slInput [formField]="form.locale">
-            <option value="sv">Svenska</option>
-            <option value="en">English</option>
-          </select>
         </sl-field>
         <label class="check">
           <input type="checkbox" [formField]="form.emailNotifications" />
@@ -63,20 +63,31 @@ import { CurrentCompany } from '../current-company';
       <section slCard>
         <sl-feed-style-picker />
       </section>
+      <section slCard class="sl-stack" aria-labelledby="delete-title">
+        <h2 id="delete-title">{{ 'privacy.deleteAccountTitle' | translate }}</h2>
+        <p>{{ 'privacy.deleteAccountBody' | translate }}</p>
+        <div>
+          <button slButton="danger" type="button" (click)="deleteAccount()">
+            {{ 'privacy.deleteAccount' | translate }}
+          </button>
+        </div>
+      </section>
     </main>
   `,
 })
 export class MeSettings {
   private readonly session = inject(Session);
-  private readonly language = inject(Language);
   private readonly company = inject(CurrentCompany);
   private readonly firestore = useFirestore();
   private readonly toasts = inject(Toasts);
   private readonly translate = inject(TranslateService);
+  private readonly api = inject(Api);
+  private readonly dialogs = inject(Dialogs);
+  private readonly router = inject(Router);
 
   protected readonly saving = signal(false);
   protected readonly email = () => this.session.user()?.email ?? '';
-  protected readonly model = signal({ name: '', locale: 'sv' as Locale, emailNotifications: true });
+  protected readonly model = signal({ name: '', emailNotifications: true });
   protected readonly form = form(this.model, (path) => {
     required(path.name);
     maxLength(path.name, 100);
@@ -91,10 +102,30 @@ export class MeSettings {
       const staff = this.company.staff()?.find((s) => s.id === this.session.user()?.uid);
       this.model.set({
         name: profile.name,
-        locale: profile.locale,
         emailNotifications: staff?.notify?.email !== false,
       });
     });
+  }
+
+  /** Deletes the staff member's own account; owners hand over ownership first (PRD F11). */
+  protected async deleteAccount(): Promise<void> {
+    const t = (key: string) => this.translate.instant(key) as string;
+    const ok = await this.dialogs.confirm({
+      title: t('privacy.deleteAccountTitle'),
+      message: t('privacy.deleteAccountConfirm'),
+      confirmLabel: t('privacy.deleteAccount'),
+      cancelLabel: t('common.cancel'),
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await this.api.deleteMyAccount();
+      await this.session.signOut();
+      await this.router.navigateByUrl('/login');
+    } catch (error) {
+      const key = errorMessageKey(error);
+      if (key) this.toasts.show(t(key), 'error');
+    }
   }
 
   protected async save(event: Event): Promise<void> {
@@ -103,7 +134,7 @@ export class MeSettings {
       const uid = this.session.user()?.uid;
       const cid = this.session.claims().cid;
       if (!uid) return undefined;
-      const { name, locale, emailNotifications } = this.model();
+      const { name, emailNotifications } = this.model();
       const staff = this.company.staff()?.find((s) => s.id === uid);
       this.saving.set(true);
       try {
@@ -111,7 +142,6 @@ export class MeSettings {
           const batch = fs.writeBatch(db);
           batch.update(fs.doc(db, 'users', uid), {
             name: name.trim(),
-            locale,
             updatedAt: fs.serverTimestamp(),
           });
           if (cid) {
@@ -128,7 +158,6 @@ export class MeSettings {
           }
           await batch.commit();
         });
-        await this.language.use(locale);
         this.toasts.show(this.translate.instant('me.saved'), 'success');
       } catch (error) {
         const key = errorMessageKey(error);

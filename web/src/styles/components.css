@@ -204,6 +204,30 @@ textarea.sl-input {
   box-shadow: var(--sl-shadow-raised);
 }
 
+/* Larger screens (tablet landscape and up): dialogs grow, and wide form dialogs set their
+   one-line fields in two columns. Headings, long text, photos, errors and buttons span both. */
+@media (min-width: 1024px) {
+  .sl-dialog-panel {
+    width: min(560px, calc(100vw - 64px));
+  }
+  .sl-dialog-panel.sl-dialog-wide {
+    width: min(880px, calc(100vw - 64px));
+  }
+  .cdk-overlay-pane.sl-dialog-wide form.body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--sl-space-5);
+    align-items: start;
+  }
+  .cdk-overlay-pane.sl-dialog-wide form.body > * {
+    grid-column: 1 / -1;
+  }
+  .cdk-overlay-pane.sl-dialog-wide form.body > sl-field:not(:has(textarea)),
+  .cdk-overlay-pane.sl-dialog-wide form.body > fieldset {
+    grid-column: auto;
+  }
+}
+
 .sl-dialog-fullscreen {
   width: 100vw;
   height: 100dvh;
@@ -248,4 +272,11 @@ textarea.sl-input {
 }
 .sl-hide-on-scroll--hidden {
   transform: translateY(-100%);
+}
+
+/* While a dialog is open, toasts move to the top of the screen, clear of the dialog's buttons
+   (they show above dialogs, see Toaster). */
+body:has(.sl-dialog-panel, .sl-dialog-fullscreen) sl-toaster {
+  inset: 0 0 auto 0;
+  padding-top: max(var(--sl-space-4), env(safe-area-inset-top));
 }

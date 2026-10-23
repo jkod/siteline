@@ -5,6 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { approvedExtraWorkTotal, type Post } from '@siteline/shared';
 
 import { Api } from '../../core/api';
+import { saveFile } from '../../core/download';
 import { errorMessageKey } from '../../core/errors';
 import { liveQuery } from '../../core/live';
 import type { FeedPost } from '../feed/feed-store';
@@ -98,10 +99,14 @@ export class DecisionsList {
   );
 
   protected create(): void {
-    this.dialogs.open<string, DecisionEditorData, DecisionEditor>(DecisionEditor, {
-      projectId: this.projectId(),
-      mode: 'new',
-    });
+    this.dialogs.open<string, DecisionEditorData, DecisionEditor>(
+      DecisionEditor,
+      {
+        projectId: this.projectId(),
+        mode: 'new',
+      },
+      { wide: true },
+    );
   }
 
   /** "Ask a question" opens the card in the feed with its comments. */
@@ -114,12 +119,7 @@ export class DecisionsList {
   protected async exportCsv(): Promise<void> {
     try {
       const { csv, filename } = await this.api.exportDecisionsCsv(this.projectId());
-      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.click();
-      URL.revokeObjectURL(url);
+      saveFile(csv, filename, 'text/csv;charset=utf-8');
     } catch (error) {
       const key = errorMessageKey(error);
       if (key) this.toasts.show(this.translate.instant(key), 'error');

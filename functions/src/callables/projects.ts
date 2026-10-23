@@ -133,6 +133,15 @@ export async function createProjectHandler(request: CallableRequest<unknown>) {
 export async function setProjectStatusHandler(request: CallableRequest<unknown>) {
   const caller = requireManager(request);
   const input = parseInput(setProjectStatusInput, request.data);
+  await changeProjectStatus(caller, input);
+  return { ok: true };
+}
+
+/** Moves a project between active, completed and archived, keeping usage and links right. */
+export async function changeProjectStatus(
+  caller: StaffCaller,
+  input: { projectId: string; status: ProjectStatus },
+): Promise<void> {
   const projectRef = db.doc(`projects/${input.projectId}`);
   const companyRef = db.doc(`companies/${caller.companyId}`);
 
@@ -168,7 +177,6 @@ export async function setProjectStatusHandler(request: CallableRequest<unknown>)
       await setClientInviteExpiry(db, input.projectId, expiry(input.status));
     }
   }
-  return { ok: true };
 }
 
 /** Sets the crew assigned to a project; access follows immediately through the rules. */

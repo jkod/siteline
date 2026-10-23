@@ -17,5 +17,13 @@ export const appUrl = defineString('APP_URL');
 export const elksUsername = defineSecret('ELKS_USERNAME');
 export const elksPassword = defineSecret('ELKS_PASSWORD');
 
+export const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
+export const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
+/** Stripe price IDs as JSON, keyed plan_interval ({"solo_month": "price_…"}). */
+export const stripePrices = defineString('STRIPE_PRICES', { default: '{}' });
+/** The 25% Swedish VAT tax rate in Stripe. */
+export const stripeTaxRate = defineString('STRIPE_TAX_RATE', { default: '' });
+export const billingSecrets = isEmulator ? [] : [stripeSecretKey, stripeWebhookSecret];
+
 /** Secrets for functions that deliver messages. The emulator uses the dev senders instead. */
 export const messagingSecrets = isEmulator ? [] : [elksUsername, elksPassword];

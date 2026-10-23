@@ -31,8 +31,8 @@ interface TodayItem {
 
 /**
  * The staff Today list (PRD F14): decisions waiting over a day, unanswered questions, tomorrow's
- * visits with open checklist items, and projects with no post for three days. Booking requests
- * join with aftercare in M4.
+ * visits with open checklist items, projects with no post for three days, and clients asking to
+ * book again (F13).
  */
 @Component({
   selector: 'sl-today-list',
@@ -121,6 +121,8 @@ export class TodayList {
 
   /** Tomorrow's visits that still have open checklist items, with their counts. */
   private readonly tomorrow = signal<{ visit: PlannedVisit; open: number }[]>([]);
+  /** Open booking requests per project. */
+  private readonly bookings = signal<Map<string, number>>(new Map());
 
   protected readonly items = computed<TodayItem[]>(() => {
     const now = Date.now();
@@ -162,6 +164,18 @@ export class TodayList {
         link: ['/app/projects', p.id, 'visit'],
       });
     }
+    for (const [projectId, count] of this.bookings()) {
+      const p = byId.get(projectId) ?? this.company.projects()?.find((x) => x.id === projectId);
+      if (!p || !count) continue;
+      items.push({
+        key: `booking-${projectId}`,
+        icon: 'event',
+        text: 'todo.bookings',
+        params: { count },
+        project: p.title,
+        link: ['/app/projects', p.id, 'handover'],
+      });
+    }
     for (const p of projects) {
       const last = (p.lastPostAt ?? p.createdAt)?.toMillis();
       if (p.kind === 'project' && last && now - last >= QUIET_MS) {
@@ -179,6 +193,35 @@ export class TodayList {
   });
 
   constructor() {
+    // Booking requests come mostly from completed projects, so every project is watched.
+    effect((onCleanup) => {
+      const ids = (this.company.projects() ?? [])
+        .filter((p) => p.status !== 'archived')
+        .map((p) => p.id);
+      if (this.session.role() === 'crew' || !ids.length) return;
+      let cancelled = false;
+      let unsubscribe: (() => void)[] = [];
+      void Promise.all([this.firebase.firestore(), import('firebase/firestore')]).then(
+        ([db, fs]) => {
+          if (cancelled) return;
+          unsubscribe = ids.map((id) =>
+            fs.onSnapshot(
+              fs.query(
+                fs.collection(db, 'projects', id, 'bookingRequests'),
+                fs.where('status', '==', 'open'),
+              ),
+              (snap) => this.bookings.update((m) => new Map(m).set(id, snap.size)),
+              () => undefined,
+            ),
+          );
+        },
+      );
+      onCleanup(() => {
+        cancelled = true;
+        unsubscribe.forEach((u) => u());
+      });
+    });
+
     effect((onCleanup) => {
       const companyId = this.session.claims().cid;
       const isCrew = this.session.role() === 'crew';

@@ -15,13 +15,14 @@ import { CurrentCompany } from '../current-company';
         mode="staff"
         [firmName]="firmName()"
         [focusPostId]="post() ?? null"
+        [canReportCondition]="company.features().conditionCheckIn"
       />
     }
   `,
 })
 export class ProjectFeed {
   protected readonly context = inject(ProjectContext);
-  private readonly company = inject(CurrentCompany);
+  protected readonly company = inject(CurrentCompany);
   /** From a notification link (?post=). */
   readonly post = input<string>();
   protected readonly firmName = computed(

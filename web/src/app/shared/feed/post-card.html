@@ -28,7 +28,67 @@
     <p class="removed">{{ 'feed.removedByAuthor' | translate }}</p>
   } @else {
     @switch (p.type) {
+      @case ('condition') {
+        <div class="condition sl-stack">
+          <p class="sl-label">{{ 'condition.label' | translate }}</p>
+          @if (p.text) {
+            <p>{{ p.text }}</p>
+          }
+          <ol class="notes">
+            @for (item of p.condition?.items ?? []; track $index) {
+              <li>{{ item.note }}{{ item.location ? ' · ' + item.location : '' }}</li>
+            }
+          </ol>
+          @if (p.condition?.acknowledgedAt) {
+            <p class="outcome">
+              <sl-icon name="check_circle" [size]="18" />
+              {{
+                'condition.acknowledged'
+                  | translate
+                    : {
+                        name: p.condition!.acknowledgedByName,
+                        count: p.media.length,
+                        date: (p.condition!.acknowledgedAt | slDate),
+                      }
+              }}
+            </p>
+          } @else if (!viewerIsStaff()) {
+            <div>
+              <button
+                slButton
+                type="button"
+                [busy]="acknowledging()"
+                [disabled]="acknowledging()"
+                (click)="acknowledge()"
+              >
+                <sl-icon name="check" [size]="18" />
+                {{ 'condition.acknowledge' | translate }}
+              </button>
+            </div>
+          } @else {
+            <p class="sl-small">{{ 'condition.waiting' | translate }}</p>
+          }
+        </div>
+      }
       @case ('system') {
+        @if (p.system?.event === 'handover_ready') {
+          <p class="system">
+            <sl-icon name="check_circle" [size]="18" />
+            {{ 'feed.system.handoverReady' | translate }}
+          </p>
+          <div>
+            <a
+              slButton="secondary"
+              [routerLink]="
+                viewerIsStaff()
+                  ? ['/app/projects', projectId(), 'handover']
+                  : ['/c', projectId(), 'handover']
+              "
+            >
+              {{ 'handover.openPack' | translate }}
+            </a>
+          </div>
+        }
         @if (p.system?.event === 'approval_rule') {
           <p class="system">
             <sl-icon name="group" [size]="18" />

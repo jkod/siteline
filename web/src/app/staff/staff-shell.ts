@@ -11,6 +11,7 @@ import { Button } from '../shared/ui/button';
 import { DemoBanner } from '../shared/ui/demo-banner';
 import { HideOnScroll } from '../shared/ui/hide-on-scroll';
 import { Icon } from '../shared/ui/icon';
+import { LanguageSwitch } from '../shared/ui/language-switch';
 import { CurrentCompany } from './current-company';
 
 /**
@@ -30,6 +31,7 @@ import { CurrentCompany } from './current-company';
     Brand,
     HideOnScroll,
     DemoBanner,
+    LanguageSwitch,
   ],
   templateUrl: './staff-shell.html',
   styleUrl: './staff-shell.css',

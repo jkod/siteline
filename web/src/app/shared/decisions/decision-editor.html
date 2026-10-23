@@ -4,170 +4,184 @@
     <p class="sl-small">{{ 'decisions.editor.reviseHint' | translate }}</p>
   }
 
-  @if (data.mode === 'new') {
-    <div class="segments" role="group" [attr.aria-label]="'decisions.editor.kind' | translate">
-      @for (k of kinds; track k) {
-        <button type="button" [attr.aria-pressed]="kind() === k" (click)="kind.set(k)">
-          {{ 'decisions.kind.' + k | translate }}
-        </button>
-      }
-    </div>
-  }
-
-  <sl-field
-    [label]="'decisions.editor.title' | translate"
-    [hint]="'decisions.editor.titleHint.' + kind() | translate"
-    [errors]="form.title().errors()"
-    [touched]="form.title().touched()"
-  >
-    <input slInput type="text" autocomplete="off" [formField]="form.title" />
-  </sl-field>
-  <sl-field
-    [label]="'decisions.editor.description' | translate"
-    [hint]="'common.optional' | translate"
-  >
-    <textarea slInput rows="3" [formField]="form.description"></textarea>
-  </sl-field>
-
-  @if (kind() === 'extra_work') {
-    <sl-field
-      [label]="'decisions.editor.price' | translate"
-      [hint]="'decisions.editor.priceHint' | translate"
-      [errors]="form.price().errors()"
-      [touched]="form.price().touched()"
-    >
-      <input slInput type="text" inputmode="decimal" autocomplete="off" [formField]="form.price" />
-    </sl-field>
-    <div class="pair">
-      <sl-field
-        [label]="'decisions.editor.labour' | translate"
-        [hint]="'common.optional' | translate"
-        [errors]="form.labour().errors()"
-        [touched]="form.labour().touched()"
-      >
-        <input
-          slInput
-          type="text"
-          inputmode="decimal"
-          autocomplete="off"
-          [formField]="form.labour"
-        />
-      </sl-field>
-      <sl-field
-        [label]="'decisions.editor.material' | translate"
-        [hint]="'common.optional' | translate"
-        [errors]="form.material().errors()"
-        [touched]="form.material().touched()"
-      >
-        <input
-          slInput
-          type="text"
-          inputmode="decimal"
-          autocomplete="off"
-          [formField]="form.material"
-        />
-      </sl-field>
-    </div>
-  }
-
-  @if (kind() === 'choice') {
-    <fieldset class="options">
-      <legend>{{ 'decisions.editor.options' | translate }}</legend>
-      @for (option of options(); track option.id; let i = $index) {
-        <div class="option">
-          <label class="sl-visually-hidden" [attr.for]="'opt-' + option.id">{{
-            'decisions.editor.optionLabel' | translate: { n: i + 1 }
-          }}</label>
-          <input
-            slInput
-            [id]="'opt-' + option.id"
-            type="text"
-            [placeholder]="'decisions.editor.optionLabel' | translate: { n: i + 1 }"
-            [value]="option.label"
-            (input)="setOption(i, 'label', $any($event.target).value)"
-          />
-          <label class="sl-visually-hidden" [attr.for]="'delta-' + option.id">{{
-            'decisions.editor.optionDelta' | translate: { n: i + 1 }
-          }}</label>
-          <input
-            slInput
-            class="delta"
-            [id]="'delta-' + option.id"
-            type="text"
-            inputmode="decimal"
-            [placeholder]="'decisions.editor.deltaPlaceholder' | translate"
-            [value]="option.delta"
-            (input)="setOption(i, 'delta', $any($event.target).value)"
-          />
-          @if (options().length > 2) {
-            <button
-              slButton="ghost"
-              icon
-              type="button"
-              [attr.aria-label]="'decisions.editor.removeOption' | translate: { n: i + 1 }"
-              (click)="removeOption(i)"
-            >
-              <sl-icon name="close" [size]="18" />
+  <!-- Details on the left and photos on the right, from tablet landscape up. -->
+  <div class="columns">
+    <div class="main">
+      @if (data.mode === 'new') {
+        <div class="segments" role="group" [attr.aria-label]="'decisions.editor.kind' | translate">
+          @for (k of kinds; track k) {
+            <button type="button" [attr.aria-pressed]="kind() === k" (click)="kind.set(k)">
+              {{ 'decisions.kind.' + k | translate }}
             </button>
           }
         </div>
       }
-      @if (options().length < 6) {
-        <div>
-          <button slButton="ghost" type="button" (click)="addOption()">
-            <sl-icon name="add" [size]="18" />
-            {{ 'decisions.editor.addOption' | translate }}
-          </button>
+
+      <sl-field
+        [label]="'decisions.editor.title' | translate"
+        [hint]="'decisions.editor.titleHint.' + kind() | translate"
+        [errors]="form.title().errors()"
+        [touched]="form.title().touched()"
+      >
+        <input slInput type="text" autocomplete="off" [formField]="form.title" />
+      </sl-field>
+      <sl-field
+        [label]="'decisions.editor.description' | translate"
+        [hint]="'common.optional' | translate"
+      >
+        <textarea slInput rows="3" [formField]="form.description"></textarea>
+      </sl-field>
+
+      @if (kind() === 'extra_work') {
+        <sl-field
+          [label]="'decisions.editor.price' | translate"
+          [hint]="'decisions.editor.priceHint' | translate"
+          [errors]="form.price().errors()"
+          [touched]="form.price().touched()"
+        >
+          <input
+            slInput
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            [formField]="form.price"
+          />
+        </sl-field>
+        <div class="pair">
+          <sl-field
+            [label]="'decisions.editor.labour' | translate"
+            [hint]="'common.optional' | translate"
+            [errors]="form.labour().errors()"
+            [touched]="form.labour().touched()"
+          >
+            <input
+              slInput
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              [formField]="form.labour"
+            />
+          </sl-field>
+          <sl-field
+            [label]="'decisions.editor.material' | translate"
+            [hint]="'common.optional' | translate"
+            [errors]="form.material().errors()"
+            [touched]="form.material().touched()"
+          >
+            <input
+              slInput
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              [formField]="form.material"
+            />
+          </sl-field>
         </div>
       }
-      @if (optionsError()) {
-        <p class="error" role="alert">{{ 'decisions.editor.optionsError' | translate }}</p>
+
+      @if (kind() === 'choice') {
+        <fieldset class="options">
+          <legend>{{ 'decisions.editor.options' | translate }}</legend>
+          @for (option of options(); track option.id; let i = $index) {
+            <div class="option">
+              <label class="sl-visually-hidden" [attr.for]="'opt-' + option.id">{{
+                'decisions.editor.optionLabel' | translate: { n: i + 1 }
+              }}</label>
+              <input
+                slInput
+                [id]="'opt-' + option.id"
+                type="text"
+                [placeholder]="'decisions.editor.optionLabel' | translate: { n: i + 1 }"
+                [value]="option.label"
+                (input)="setOption(i, 'label', $any($event.target).value)"
+              />
+              <label class="sl-visually-hidden" [attr.for]="'delta-' + option.id">{{
+                'decisions.editor.optionDelta' | translate: { n: i + 1 }
+              }}</label>
+              <input
+                slInput
+                class="delta"
+                [id]="'delta-' + option.id"
+                type="text"
+                inputmode="decimal"
+                [placeholder]="'decisions.editor.deltaPlaceholder' | translate"
+                [value]="option.delta"
+                (input)="setOption(i, 'delta', $any($event.target).value)"
+              />
+              @if (options().length > 2) {
+                <button
+                  slButton="ghost"
+                  icon
+                  type="button"
+                  [attr.aria-label]="'decisions.editor.removeOption' | translate: { n: i + 1 }"
+                  (click)="removeOption(i)"
+                >
+                  <sl-icon name="close" [size]="18" />
+                </button>
+              }
+            </div>
+          }
+          @if (options().length < 6) {
+            <div>
+              <button slButton="ghost" type="button" (click)="addOption()">
+                <sl-icon name="add" [size]="18" />
+                {{ 'decisions.editor.addOption' | translate }}
+              </button>
+            </div>
+          }
+          @if (optionsError()) {
+            <p class="error" role="alert">{{ 'decisions.editor.optionsError' | translate }}</p>
+          }
+        </fieldset>
       }
-    </fieldset>
-  }
 
-  <sl-field
-    [label]="'decisions.editor.respondBy' | translate"
-    [hint]="'common.optional' | translate"
-  >
-    <input slInput type="date" [formField]="form.respondBy" />
-  </sl-field>
-
-  <div class="photos">
-    @for (photo of photos(); track photo.path; let i = $index) {
-      <div class="thumb">
-        <sl-storage-image [path]="photo.thumbPath" alt="" />
+      <sl-field
+        [label]="'decisions.editor.respondBy' | translate"
+        [hint]="'common.optional' | translate"
+      >
+        <input slInput type="date" [formField]="form.respondBy" />
+      </sl-field>
+    </div>
+    <div class="side">
+      <div class="photos">
+        @for (photo of photos(); track photo.path; let i = $index) {
+          <div class="thumb">
+            <sl-storage-image [path]="photo.thumbPath" alt="" />
+            <button
+              type="button"
+              class="remove"
+              [attr.aria-label]="'composer.removePhoto' | translate: { n: i + 1 }"
+              (click)="removePhoto(i)"
+            >
+              <sl-icon name="close" [size]="14" />
+            </button>
+          </div>
+        }
+        <input
+          #files
+          type="file"
+          accept="image/*"
+          multiple
+          class="sl-visually-hidden"
+          tabindex="-1"
+          aria-hidden="true"
+          (change)="addPhotos($any($event.target).files)"
+        />
         <button
+          slButton="secondary"
           type="button"
-          class="remove"
-          [attr.aria-label]="'composer.removePhoto' | translate: { n: i + 1 }"
-          (click)="removePhoto(i)"
+          [busy]="uploading()"
+          [disabled]="uploading()"
+          (click)="files.click()"
         >
-          <sl-icon name="close" [size]="14" />
+          <sl-icon name="photo_camera" [size]="18" />
+          {{ 'composer.photo' | translate }}
         </button>
       </div>
-    }
-    <input
-      #files
-      type="file"
-      accept="image/*"
-      multiple
-      class="sl-visually-hidden"
-      tabindex="-1"
-      aria-hidden="true"
-      (change)="addPhotos($any($event.target).files)"
-    />
-    <button
-      slButton="secondary"
-      type="button"
-      [busy]="uploading()"
-      [disabled]="uploading()"
-      (click)="files.click()"
-    >
-      <sl-icon name="photo_camera" [size]="18" />
-      {{ 'composer.photo' | translate }}
-    </button>
+    </div>
   </div>
+
+  <sl-form-error [key]="saveError()" />
 
   <div class="actions">
     <button slButton="ghost" type="button" (click)="ref.close()">

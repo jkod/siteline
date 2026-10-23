@@ -1,6 +1,13 @@
 import { computed, inject, Injectable } from '@angular/core';
 
-import { type Company, effectiveLimits, type Project, type StaffMember } from '@siteline/shared';
+import {
+  type Company,
+  effectiveLimits,
+  effectivePlan,
+  planFeatures,
+  type Project,
+  type StaffMember,
+} from '@siteline/shared';
 
 import { liveDoc, liveQuery } from '../core/live';
 import { Session } from '../core/session';
@@ -22,6 +29,13 @@ export class CurrentCompany {
     const company = this.company();
     return company ? effectiveLimits(company, Date.now()) : null;
   });
+
+  /** The plan whose features apply now: design partners get Team (PRD F10). */
+  readonly plan = computed(() => {
+    const company = this.company();
+    return company ? effectivePlan(company, Date.now()) : 'free';
+  });
+  readonly features = computed(() => planFeatures(this.plan()));
 
   readonly staff = liveQuery<StaffMember>(
     (db, fs) => {
