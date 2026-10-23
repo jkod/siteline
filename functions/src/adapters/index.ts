@@ -1,9 +1,13 @@
+import { getMessaging } from 'firebase-admin/messaging';
+
 import { db } from '../lib/admin';
 import {
   appUrl,
   elksPassword,
   elksUsername,
+  emailFrom,
   isEmulator,
+  smtpUrl,
   stripePrices,
   stripeSecretKey,
   stripeTaxRate,
@@ -13,16 +17,13 @@ import { DevBillingProvider } from './dev-billing';
 import { DevEmailSender, DevPushSender, DevSmsSender } from './dev-outbox';
 import { DevSpeechDrafter } from './dev-speech';
 import { ElksSmsSender } from './elks-sms';
+import { FcmPushSender } from './fcm-push';
+import { SmtpEmailSender } from './smtp-email';
 import { StripeBillingProvider } from './stripe-billing';
 import type { BillingProvider, EmailSender, PushSender, SmsSender, SpeechDrafter } from './types';
 import { VertexSpeechDrafter } from './vertex-speech';
 
 export type * from './types';
-
-// The email provider and web push arrive in later milestones.
-function notConfigured(kind: string): never {
-  throw new Error(`No ${kind} provider is configured outside the emulator yet`);
-}
 
 export function smsSender(): SmsSender {
   return isEmulator
@@ -31,11 +32,13 @@ export function smsSender(): SmsSender {
 }
 
 export function emailSender(): EmailSender {
-  return isEmulator ? new DevEmailSender(db) : notConfigured('email');
+  return isEmulator
+    ? new DevEmailSender(db)
+    : new SmtpEmailSender({ url: smtpUrl.value(), from: emailFrom.value() });
 }
 
 export function pushSender(): PushSender {
-  return isEmulator ? new DevPushSender(db) : notConfigured('push');
+  return isEmulator ? new DevPushSender(db) : new FcmPushSender(getMessaging());
 }
 
 export function speechDrafter(): SpeechDrafter {

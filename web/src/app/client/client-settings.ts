@@ -7,12 +7,14 @@ import type { ApprovalRule, NotifyChannel, Project, ProjectMember } from '@sitel
 import { Api } from '../core/api';
 import { errorMessageKey } from '../core/errors';
 import { liveDoc, liveQuery, useFirestore, type WithId } from '../core/live';
+import { PushService } from '../core/push';
 import { Session } from '../core/session';
 import { Button } from '../shared/ui/button';
 import { Card } from '../shared/ui/card';
 import { Dialogs } from '../shared/ui/dialog';
 import { FeedStylePicker } from '../shared/ui/feed-style-picker';
 import { LanguageSwitch } from '../shared/ui/language-switch';
+import { PushToggle } from '../shared/ui/push-toggle';
 import { Toasts } from '../shared/ui/toast';
 import { InviteCard } from './invite-card';
 
@@ -50,6 +52,9 @@ import { InviteCard } from './invite-card';
         >
           <option value="sms">{{ 'clientSettings.sms' | translate }}</option>
           <option value="email">{{ 'clientSettings.email' | translate }}</option>
+          @if (push.state() === 'on' || notify().channel === 'push') {
+            <option value="push">{{ 'clientSettings.push' | translate }}</option>
+          }
         </select>
       </label>
       @if (p.clientUids.length > 1) {
@@ -115,6 +120,7 @@ export class ProjectNotify {
   private readonly translate = inject(TranslateService);
   private readonly api = inject(Api);
   private readonly dialogs = inject(Dialogs);
+  protected readonly push = inject(PushService);
 
   readonly project = input.required<WithId<Project>>();
   protected readonly rules: ApprovalRule[] = ['any', 'all'];
@@ -194,6 +200,7 @@ export class ProjectNotify {
     FeedStylePicker,
     InviteCard,
     LanguageSwitch,
+    PushToggle,
   ],
   template: `
     <main class="sl-page sl-stack" id="main">
@@ -201,6 +208,9 @@ export class ProjectNotify {
       <section slCard class="sl-stack" aria-labelledby="language-title">
         <h2 id="language-title">{{ 'companySettings.language' | translate }}</h2>
         <sl-language-switch />
+      </section>
+      <section slCard aria-labelledby="push-title">
+        <sl-push-toggle />
       </section>
       <section slCard>
         <sl-feed-style-picker />

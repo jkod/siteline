@@ -2,7 +2,8 @@ import { FieldValue, type Firestore, Timestamp } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/logger';
 import { type Company, effectiveLimits, type OutboxMessage, stockholmDate } from '@siteline/shared';
 
-import type { EmailSender, SmsSender } from '../adapters/types';
+import type { EmailSender, PushSender, SmsSender } from '../adapters/types';
+import { htmlEmail } from './email-html';
 import { appUrl } from './env';
 import { render, smsSenderName, type TemplateName } from './templates';
 
@@ -11,6 +12,7 @@ export const MAX_ATTEMPTS = 3;
 export interface Senders {
   sms: () => SmsSender;
   email: () => EmailSender;
+  push?: () => PushSender;
 }
 
 /**
@@ -147,15 +149,36 @@ export async function deliver(
         to: message.to.email,
         subject: content.subject,
         text: content.text,
+        html: htmlEmail(content.text, message.locale),
       }));
     } else {
-      // Web push arrives with device registration in a later milestone.
-      await ref.update({
-        status: 'suppressed',
-        error: 'push_not_available',
-        updatedAt: FieldValue.serverTimestamp(),
+      // Web push to every browser the person turned notifications on in (PRD section 6).
+      const devices = message.to.uid
+        ? await db.collection(`users/${message.to.uid}/devices`).get()
+        : null;
+      const tokens = (devices?.docs ?? []).map((d) => d.get('fcmToken') as string).filter(Boolean);
+      if (!tokens.length || !senders.push) {
+        await ref.update({
+          status: 'suppressed',
+          error: 'no_devices',
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return;
+      }
+      const link = message.params['link'] ?? appUrl.value();
+      const result = await senders.push().send({
+        tokens,
+        title: content.subject,
+        body: content.sms
+          .replace(link, '')
+          .replace(/[:\s]+$/, '')
+          .trim(),
+        link,
       });
-      return;
+      providerMessageId = result.providerMessageId;
+      for (const doc of devices!.docs) {
+        if (result.invalidTokens?.includes(doc.get('fcmToken') as string)) await doc.ref.delete();
+      }
     }
     await ref.update({
       status: 'sent',

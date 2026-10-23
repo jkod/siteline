@@ -806,7 +806,8 @@
     "instant": "Every update straight away",
     "channel": "Send as",
     "sms": "Text message",
-    "email": "Email"
+    "email": "Email",
+    "push": "Browser notification"
   },
   "feedStyle": {
     "label": "Feed order",
@@ -1095,5 +1096,16 @@
     "thanks": "Thank you! You've confirmed the photos.",
     "acknowledged": "{{name}} acknowledged {{count}} photos · {{date}}",
     "waiting": "Waiting for the client to confirm."
+  },
+  "push": {
+    "title": "Notifications",
+    "off": "Get a notification in this browser when something happens, even when Siteline is closed.",
+    "on": "Notifications are on in this browser.",
+    "turnOn": "Turn on notifications",
+    "turnOff": "Turn off",
+    "enabled": "Notifications are on.",
+    "denied": "Your browser blocks notifications from Siteline. Allow them in the browser settings.",
+    "unsupported": "This browser can't show notifications.",
+    "install": "On iPhone you can get notifications once Siteline is on your home screen."
   }
 }

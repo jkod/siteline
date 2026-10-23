@@ -26,7 +26,8 @@
     "deploy:staging": "firebase deploy --project staging",
     "pretest:integration": "node scripts/free-ports.mjs --test",
     "test:integration": "firebase emulators:exec --config firebase.test.json --project demo-siteline-test --only firestore,auth,storage \"vitest run --config tests/integration/vitest.config.ts\"",
-    "comp": "tsx scripts/comp.ts"
+    "comp": "tsx scripts/comp.ts",
+    "stripe:setup": "tsx scripts/stripe-setup.ts"
   },
   "dependencies": {
     "@angular/aria": "22.2.1",
@@ -51,6 +52,7 @@
     "@firebase/rules-unit-testing": "^6.0.0",
     "@material-symbols/svg-400": "^0.48.1",
     "@playwright/test": "^1.64.1",
+    "@types/nodemailer": "8.0.2",
     "@types/pdfmake": "0.3.3",
     "concurrently": "^10.0.6",
     "firebase-admin": "^14.5.0",

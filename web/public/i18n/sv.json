@@ -806,7 +806,8 @@
     "instant": "Varje uppdatering direkt",
     "channel": "Skicka som",
     "sms": "Sms",
-    "email": "E-post"
+    "email": "E-post",
+    "push": "Avisering i webbläsaren"
   },
   "feedStyle": {
     "label": "Flödets ordning",
@@ -1095,5 +1096,16 @@
     "thanks": "Tack! Du har bekräftat bilderna.",
     "acknowledged": "{{name}} bekräftade {{count}} bilder · {{date}}",
     "waiting": "Väntar på att kunden bekräftar."
+  },
+  "push": {
+    "title": "Aviseringar",
+    "off": "Få en avisering i den här webbläsaren när något händer, även när Siteline är stängt.",
+    "on": "Aviseringar är på i den här webbläsaren.",
+    "turnOn": "Slå på aviseringar",
+    "turnOff": "Stäng av",
+    "enabled": "Aviseringar är på.",
+    "denied": "Webbläsaren blockerar aviseringar från Siteline. Tillåt dem i webbläsarens inställningar.",
+    "unsupported": "Den här webbläsaren kan inte visa aviseringar.",
+    "install": "På iPhone kan du få aviseringar när du har lagt till Siteline på hemskärmen."
   }
 }

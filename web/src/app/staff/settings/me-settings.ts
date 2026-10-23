@@ -14,13 +14,24 @@ import { Dialogs } from '../../shared/ui/dialog';
 import { FeedStylePicker } from '../../shared/ui/feed-style-picker';
 import { Field, Input } from '../../shared/ui/field';
 import { LanguageSwitch } from '../../shared/ui/language-switch';
+import { PushToggle } from '../../shared/ui/push-toggle';
 import { Toasts } from '../../shared/ui/toast';
 import { CurrentCompany } from '../current-company';
 
 /** Language, name, email notifications, feed order, and deleting the account. */
 @Component({
   selector: 'sl-me-settings',
-  imports: [TranslatePipe, FormField, Button, Card, Field, Input, FeedStylePicker, LanguageSwitch],
+  imports: [
+    TranslatePipe,
+    FormField,
+    Button,
+    Card,
+    Field,
+    Input,
+    FeedStylePicker,
+    LanguageSwitch,
+    PushToggle,
+  ],
   styles: `
     .check {
       display: flex;
@@ -60,6 +71,9 @@ import { CurrentCompany } from '../current-company';
           </button>
         </div>
       </form>
+      <section slCard aria-labelledby="push-title">
+        <sl-push-toggle />
+      </section>
       <section slCard>
         <sl-feed-style-picker />
       </section>

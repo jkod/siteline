@@ -68,7 +68,8 @@ Run these from the workspace root with `--workspace apps/siteline`, or from `app
 
 - `npm run dev`: starts the emulators, the app and the seed data
 - `npm test`, `npm run test:rules`, `npm run test:integration` (callables and triggers), `npm run e2e`
-- `npm run deploy:staging`. Never deploy to production from a local machine.
+- `npm run deploy:staging`, after the one-time setup in `docs/STAGING.md`. Never deploy to production from a local machine.
+- `npm run stripe:setup` creates the plans and VAT rate in Stripe; `npm run comp` gives a design partner Team for free.
 
 The emulators need Java 21+ and firebase-tools. Before `npm run dev` and the test commands, `scripts/free-ports.mjs` stops Siteline processes left over from an earlier run (a closed terminal tab can orphan the emulators) and names anything else that holds a needed port. Test runs use `firebase.test.json` (other ports, project `demo-siteline-test`, app on port 4300), so they can run while `npm run dev` is up.
 

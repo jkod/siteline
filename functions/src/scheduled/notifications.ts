@@ -18,7 +18,7 @@ import { db } from '../lib/admin';
 import { appUrl } from '../lib/env';
 import { digestSummary, timeOf } from '../lib/format';
 import { queueMessage } from '../lib/outbox';
-import { projectStaff } from '../lib/recipients';
+import { clientChannel, projectStaff } from '../lib/recipients';
 import { generateVisitsForProject } from '../lib/visits';
 
 /** The half-hour slot a Stockholm time falls in, as HH:MM: 18:14 → "18:00", 18:44 → "18:30". */
@@ -78,14 +78,7 @@ export async function sendDigests(firestore: Firestore, now = new Date()): Promi
         if (member?.notify?.digest === false || member?.notify?.instant) continue;
         const user = (await firestore.doc(`users/${uid}`).get()).data() as UserDoc | undefined;
         if (!user) continue;
-        const channel =
-          member?.notify?.channel === 'email' && user.email
-            ? 'email'
-            : user.phoneE164
-              ? 'sms'
-              : user.email
-                ? 'email'
-                : null;
+        const channel = await clientChannel(firestore, uid, user, member);
         if (!channel) continue;
         const added = await queueMessage(
           firestore,

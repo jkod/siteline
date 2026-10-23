@@ -45,52 +45,60 @@ export class FirebaseService {
   private functionsPromise?: Promise<Functions>;
   private storagePromise?: Promise<FirebaseStorage>;
 
-  constructor() {
-    if (environment.appCheckSiteKey) {
-      void this.startAppCheck(environment.appCheckSiteKey);
-    }
-  }
+  /**
+   * App Check (PRD section 10): Firestore, Functions and Storage wait for it, so no request goes
+   * out without a token. Off in the emulators and while no site key is set.
+   */
+  private readonly appCheck: Promise<void> = environment.appCheckSiteKey
+    ? this.startAppCheck(environment.appCheckSiteKey)
+    : Promise.resolve();
 
   firestore(): Promise<Firestore> {
-    return (this.firestorePromise ??= import('firebase/firestore').then((m) => {
-      const db = m.initializeFirestore(this.app, {});
-      if (environment.emulators) {
-        m.connectFirestoreEmulator(
-          db,
-          environment.emulatorHosts.firestore.host,
-          environment.emulatorHosts.firestore.port,
-        );
-      }
-      return db;
-    }));
+    return (this.firestorePromise ??= this.appCheck
+      .then(() => import('firebase/firestore'))
+      .then((m) => {
+        const db = m.initializeFirestore(this.app, {});
+        if (environment.emulators) {
+          m.connectFirestoreEmulator(
+            db,
+            environment.emulatorHosts.firestore.host,
+            environment.emulatorHosts.firestore.port,
+          );
+        }
+        return db;
+      }));
   }
 
   functions(): Promise<Functions> {
-    return (this.functionsPromise ??= import('firebase/functions').then((m) => {
-      const functions = m.getFunctions(this.app, REGION);
-      if (environment.emulators) {
-        m.connectFunctionsEmulator(
-          functions,
-          environment.emulatorHosts.functions.host,
-          environment.emulatorHosts.functions.port,
-        );
-      }
-      return functions;
-    }));
+    return (this.functionsPromise ??= this.appCheck
+      .then(() => import('firebase/functions'))
+      .then((m) => {
+        const functions = m.getFunctions(this.app, REGION);
+        if (environment.emulators) {
+          m.connectFunctionsEmulator(
+            functions,
+            environment.emulatorHosts.functions.host,
+            environment.emulatorHosts.functions.port,
+          );
+        }
+        return functions;
+      }));
   }
 
   storage(): Promise<FirebaseStorage> {
-    return (this.storagePromise ??= import('firebase/storage').then((m) => {
-      const storage = m.getStorage(this.app);
-      if (environment.emulators) {
-        m.connectStorageEmulator(
-          storage,
-          environment.emulatorHosts.storage.host,
-          environment.emulatorHosts.storage.port,
-        );
-      }
-      return storage;
-    }));
+    return (this.storagePromise ??= this.appCheck
+      .then(() => import('firebase/storage'))
+      .then((m) => {
+        const storage = m.getStorage(this.app);
+        if (environment.emulators) {
+          m.connectStorageEmulator(
+            storage,
+            environment.emulatorHosts.storage.host,
+            environment.emulatorHosts.storage.port,
+          );
+        }
+        return storage;
+      }));
   }
 
   /** Calls a callable function by name. */
@@ -115,6 +123,11 @@ export class FirebaseService {
   }
 
   private async startAppCheck(siteKey: string): Promise<void> {
+    if (environment.appCheckDebug) {
+      // A debug token for local builds against staging; register it in the Firebase console.
+      (globalThis as { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN =
+        true;
+    }
     const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import('firebase/app-check');
     initializeAppCheck(this.app, {
       provider: new ReCaptchaEnterpriseProvider(siteKey),

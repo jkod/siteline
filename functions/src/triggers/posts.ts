@@ -14,8 +14,8 @@ import { db } from '../lib/admin';
 import { appUrl } from '../lib/env';
 import { dayOf } from '../lib/format';
 import { recordEvent } from '../lib/metrics';
-import { queueBatched, queueMessage } from '../lib/outbox';
-import { projectStaff } from '../lib/recipients';
+import { queueBatched, queueMessage, queuePush } from '../lib/outbox';
+import { clientChannel, projectStaff } from '../lib/recipients';
 
 /**
  * Recounts the project's unanswered questions. Counting instead of incrementing keeps the total
@@ -81,12 +81,9 @@ async function notifyQuestion(
     Project | undefined;
   if (!project) return;
   for (const staff of await projectStaff(firestore, project)) {
-    if (!staff.email || !staff.wantsEmail) continue;
-    await queueBatched(firestore, {
-      channel: 'email',
-      to: { uid: staff.uid, email: staff.email },
-      recipientKind: 'staff',
-      template: 'clientQuestion',
+    const message = {
+      recipientKind: 'staff' as const,
+      template: 'clientQuestion' as const,
       params: {
         client: post.authorName,
         project: project.title,
@@ -96,6 +93,13 @@ async function notifyQuestion(
       companyId: project.companyId,
       projectId,
       dedupeKey: `question:${postId}:${staff.uid}`,
+    };
+    if (staff.wantsPush) await queuePush(firestore, { ...message, to: { uid: staff.uid } });
+    if (!staff.email || !staff.wantsEmail) continue;
+    await queueBatched(firestore, {
+      ...message,
+      channel: 'email',
+      to: { uid: staff.uid, email: staff.email },
     });
   }
 }
@@ -110,14 +114,6 @@ async function clientsOf(firestore: Firestore, projectId: string, project: Proje
         ProjectMember | undefined,
     })),
   );
-}
-
-/** The channel a client gets messages on: their choice, or text, or email (push comes later). */
-function channelFor(user: UserDoc, member: ProjectMember | undefined): 'sms' | 'email' | null {
-  const preferred = member?.notify?.channel;
-  if (preferred === 'email' && user.email) return 'email';
-  if (user.phoneE164) return 'sms';
-  return user.email ? 'email' : null;
 }
 
 /**
@@ -138,7 +134,7 @@ async function notifyClientsOfPost(
   for (const { uid, user, member } of await clientsOf(firestore, projectId, project)) {
     if (!user) continue;
     if (!isReport && !member?.notify?.instant) continue;
-    const channel = channelFor(user, member);
+    const channel = await clientChannel(firestore, uid, user, member);
     if (!channel) continue;
     if (isReport && !reportDate) {
       const visit = (

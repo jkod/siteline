@@ -16,6 +16,10 @@ export const appUrl = defineString('APP_URL');
 
 export const elksUsername = defineSecret('ELKS_USERNAME');
 export const elksPassword = defineSecret('ELKS_PASSWORD');
+/** The email provider's SMTP URL, such as smtps://user:password@smtp.example.eu:465. */
+export const smtpUrl = defineSecret('SMTP_URL');
+/** The sender of every email, such as "Siteline <hej@example.se>". */
+export const emailFrom = defineString('EMAIL_FROM', { default: 'Siteline <no-reply@example.com>' });
 
 export const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 export const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
@@ -26,4 +30,4 @@ export const stripeTaxRate = defineString('STRIPE_TAX_RATE', { default: '' });
 export const billingSecrets = isEmulator ? [] : [stripeSecretKey, stripeWebhookSecret];
 
 /** Secrets for functions that deliver messages. The emulator uses the dev senders instead. */
-export const messagingSecrets = isEmulator ? [] : [elksUsername, elksPassword];
+export const messagingSecrets = isEmulator ? [] : [elksUsername, elksPassword, smtpUrl];

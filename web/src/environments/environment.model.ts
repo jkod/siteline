@@ -6,6 +6,10 @@ export interface AppEnvironment {
   firebase: FirebaseOptions;
   /** reCAPTCHA Enterprise site key for App Check; App Check stays off while empty. */
   appCheckSiteKey: string;
+  /** Use an App Check debug token, for running a local build against staging. */
+  appCheckDebug?: boolean;
+  /** The web push VAPID key from Firebase Cloud Messaging; browser notifications stay off while empty. */
+  vapidKey?: string;
   release: string;
   /** Emulator addresses: the dev ports, or the test ports from firebase.test.json for e2e. */
   emulatorHosts: EmulatorHosts;

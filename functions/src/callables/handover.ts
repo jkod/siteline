@@ -39,7 +39,7 @@ import { sha256Hex } from '../lib/crypto';
 import { projectOrThrow } from '../lib/decisions';
 import { appUrl, callableOptions } from '../lib/env';
 import { type HandoverContent, type Image, renderHandoverPdf } from '../lib/handover-pdf';
-import { queueMessage } from '../lib/outbox';
+import { queueMessage, queuePush } from '../lib/outbox';
 import { projectStaff } from '../lib/recipients';
 import { parseInput } from '../lib/validate';
 import { changeProjectStatus } from './projects';
@@ -428,17 +428,22 @@ export async function requestBookingHandler(request: CallableRequest<unknown>) {
   };
   const ref = await db.collection(`projects/${input.projectId}/bookingRequests`).add(booking);
   for (const staff of await projectStaff(db, project)) {
-    if (staff.role === 'crew' || !staff.email || !staff.wantsEmail) continue;
-    await queueMessage(db, {
-      channel: 'email',
-      to: { uid: staff.uid, email: staff.email },
-      recipientKind: 'staff',
-      template: 'bookingRequest',
+    if (staff.role === 'crew') continue;
+    const message = {
+      recipientKind: 'staff' as const,
+      template: 'bookingRequest' as const,
       params: { client: name, project: project.title, link: `${appUrl.value()}/app` },
       locale: staff.locale,
       companyId: project.companyId,
       projectId: input.projectId,
       dedupeKey: `booking:${ref.id}:${staff.uid}`,
+    };
+    if (staff.wantsPush) await queuePush(db, { ...message, to: { uid: staff.uid } });
+    if (!staff.email || !staff.wantsEmail) continue;
+    await queueMessage(db, {
+      ...message,
+      channel: 'email',
+      to: { uid: staff.uid, email: staff.email },
     });
   }
   return { requestId: ref.id };

@@ -20,6 +20,7 @@ import { deleteDemo, type DemoRecord } from '../lib/demo';
 import { appUrl } from '../lib/env';
 import { queueMessage } from '../lib/outbox';
 import { purgeDeletedProjects } from '../lib/privacy';
+import { clientChannel } from '../lib/recipients';
 import { syncBranding } from '../triggers/company';
 
 /** Deletes voice recordings whose time is up: 30 days after their post, or a day unused (F5). */
@@ -145,14 +146,7 @@ export async function sendAftercareReminders(
         ).data() as ProjectMember | undefined;
         if (member?.notify?.aftercare === false) continue;
         const user = (await firestore.doc(`users/${uid}`).get()).data() as UserDoc | undefined;
-        const channel =
-          member?.notify?.channel === 'email' && user?.email
-            ? 'email'
-            : user?.phoneE164
-              ? 'sms'
-              : user?.email
-                ? 'email'
-                : null;
+        const channel = await clientChannel(firestore, uid, user, member);
         if (!user || !channel) continue;
         const queued = await queueMessage(
           firestore,

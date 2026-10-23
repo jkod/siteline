@@ -102,6 +102,19 @@ service cloud.firestore {
         && request.resource.data.locale in ['sv', 'en']
         && request.resource.data.get('feedStyle', 'feed') in ['feed', 'chat']
         && request.resource.data.updatedAt == request.time;
+
+      // Browsers the person turned notifications on in (PRD section 8): only they see them.
+      match /devices/{deviceId} {
+        allow read, delete: if signedIn() && uid() == userId;
+        allow create, update: if signedIn() && uid() == userId
+          && request.resource.data.keys().hasOnly(['fcmToken', 'platform', 'lastSeenAt'])
+          && request.resource.data.fcmToken is string
+          && request.resource.data.fcmToken.size() > 0
+          && request.resource.data.fcmToken.size() <= 4096
+          && request.resource.data.platform is string
+          && request.resource.data.platform.size() <= 100
+          && request.resource.data.lastSeenAt == request.time;
+      }
     }
 
     match /companies/{companyId} {

@@ -79,6 +79,18 @@ export function linkInTextMessage(text: string): Promise<string> {
   }, `a text message containing "${text}"`);
 }
 
+/** Web pushes in the dev outbox (Cloud Messaging isn't emulated), newest order not guaranteed. */
+export async function pushMessages(): Promise<{ title: string; body: string; link: string }[]> {
+  const docs = await listDocs('devOutbox');
+  return docs
+    .filter((d) => d.fields?.['channel']?.stringValue === 'push')
+    .map((d) => ({
+      title: d.fields?.['title']?.stringValue ?? '',
+      body: d.fields?.['body']?.stringValue ?? '',
+      link: d.fields?.['link']?.stringValue ?? '',
+    }));
+}
+
 /** Every link in the dev outbox's text messages that contain `text`. */
 export async function linksInTextMessages(text: string): Promise<string[]> {
   const docs = await listDocs('devOutbox');

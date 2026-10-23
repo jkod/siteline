@@ -26,6 +26,8 @@ export interface PushMessage {
 
 export interface SendResult {
   providerMessageId: string;
+  /** Push only: device tokens the push service no longer knows, to be forgotten. */
+  invalidTokens?: string[];
 }
 
 export interface SmsSender {

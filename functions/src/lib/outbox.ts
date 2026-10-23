@@ -118,3 +118,22 @@ export async function queueBatched(
   });
   if (first) await queueMessage(db, input, now);
 }
+
+/**
+ * Also tells a staff member by web push, when they've turned it on in a browser (PRD section 6).
+ * Nothing is queued for people without a device, so the outbox holds only real messages.
+ */
+export async function queuePush(
+  db: Firestore,
+  input: Omit<QueueInput, 'channel' | 'immediate'>,
+): Promise<boolean> {
+  if (!input.to.uid) return false;
+  const devices = await db.collection(`users/${input.to.uid}/devices`).limit(1).get();
+  if (devices.empty) return false;
+  return queueMessage(db, {
+    ...input,
+    channel: 'push',
+    immediate: true,
+    dedupeKey: `${input.dedupeKey}:push`,
+  });
+}

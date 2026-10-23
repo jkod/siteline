@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { getBytes, ref, uploadBytes, uploadString } from 'firebase/storage';
 import {
   assertFails,
@@ -126,5 +126,26 @@ describe('attachments and handover PDFs in Storage', () => {
     }
     await assertFails(getBytes(ref(storage(otherClient), 'projects/p1/handover/handover-v1.pdf')));
     await assertFails(upload(owner, 'projects/p1/handover/handover-v2.pdf'));
+  });
+});
+
+describe('push devices', () => {
+  const device = { fcmToken: 'token-123', platform: 'web', lastSeenAt: serverTimestamp() };
+
+  it('belong to the person alone', async () => {
+    await assertSucceeds(setDoc(doc(db(client), 'users/client1/devices/d1'), device));
+    await assertSucceeds(getDoc(doc(db(client), 'users/client1/devices/d1')));
+    await assertSucceeds(deleteDoc(doc(db(client), 'users/client1/devices/d1')));
+    await assertFails(setDoc(doc(db(owner), 'users/client1/devices/d2'), device));
+    await assertFails(getDoc(doc(db(owner), 'users/client1/devices/d1')));
+  });
+
+  it('hold only a token and a platform', async () => {
+    await assertFails(
+      setDoc(doc(db(client), 'users/client1/devices/d3'), { ...device, fcmToken: '' }),
+    );
+    await assertFails(
+      setDoc(doc(db(client), 'users/client1/devices/d4'), { ...device, extra: true }),
+    );
   });
 });

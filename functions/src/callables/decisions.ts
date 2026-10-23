@@ -29,7 +29,7 @@ import {
 } from '../lib/decisions';
 import { appUrl, callableOptions } from '../lib/env';
 import { recordEvent } from '../lib/metrics';
-import { queueMessage } from '../lib/outbox';
+import { queueMessage, queuePush } from '../lib/outbox';
 import { projectStaff } from '../lib/recipients';
 import { parseInput } from '../lib/validate';
 
@@ -376,12 +376,9 @@ export async function respondToDecisionHandler(request: CallableRequest<unknown>
     (s) => s.uid === d.createdByUid || s.role !== 'crew',
   );
   for (const staff of recipients) {
-    if (!staff.email || !staff.wantsEmail) continue;
-    await queueMessage(db, {
-      channel: 'email',
-      to: { uid: staff.uid, email: staff.email },
-      recipientKind: 'staff',
-      template: 'decisionAnswered',
+    const message = {
+      recipientKind: 'staff' as const,
+      template: 'decisionAnswered' as const,
       params: {
         client: result.actorName,
         outcome: OUTCOME_WORDS[staff.locale][input.outcome],
@@ -393,6 +390,13 @@ export async function respondToDecisionHandler(request: CallableRequest<unknown>
       companyId: project.companyId,
       projectId: input.projectId,
       dedupeKey: `answered:${result.approvalId}:${staff.uid}`,
+    };
+    if (staff.wantsPush) await queuePush(db, { ...message, to: { uid: staff.uid } });
+    if (!staff.email || !staff.wantsEmail) continue;
+    await queueMessage(db, {
+      ...message,
+      channel: 'email',
+      to: { uid: staff.uid, email: staff.email },
     });
   }
   await recordEvent(db, {

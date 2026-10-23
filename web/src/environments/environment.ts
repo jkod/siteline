@@ -1,7 +1,7 @@
 import { type AppEnvironment, DEV_EMULATOR_HOSTS } from './environment.model';
 
-// Production and staging. Fill in the web app config once the Firebase projects exist
-// (PRD section 15); until then nothing here is used, because nothing is deployed.
+// Production. Staging has its own file (environment.staging.ts). Fill in from the Firebase
+// console once the project exists, as docs/STAGING.md describes; nothing is deployed until then.
 export const environment: AppEnvironment = {
   emulators: false,
   firebase: {
@@ -13,6 +13,7 @@ export const environment: AppEnvironment = {
     messagingSenderId: '',
   },
   appCheckSiteKey: '',
+  vapidKey: '',
   release: '0.0.0',
   emulatorHosts: DEV_EMULATOR_HOSTS,
 };
