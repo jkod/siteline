@@ -12,7 +12,7 @@ import {
 
 import { db } from '../lib/admin';
 import { findOrCreateClient } from '../lib/clients';
-import { assertProjectStaff, requireStaff, type StaffCaller } from '../lib/context';
+import { assertProjectStaff, rejectDemo, requireStaff, type StaffCaller } from '../lib/context';
 import { callableOptions } from '../lib/env';
 import { createInvite, inviteLink, revokeClientInvites } from '../lib/invites';
 import { queueMessage } from '../lib/outbox';
@@ -115,6 +115,7 @@ export async function addClientToProject(
 }
 
 export async function inviteClientHandler(request: CallableRequest<unknown>) {
+  rejectDemo(request);
   const caller = requireStaff(request);
   const input = parseInput(inviteClientInput, request.data);
   const uid = await addClientToProject(caller, input.projectId, {
@@ -135,6 +136,7 @@ async function clientOnProject(projectId: string, uid: string) {
 }
 
 export async function resendInviteHandler(request: CallableRequest<unknown>) {
+  rejectDemo(request);
   const caller = requireStaff(request);
   const input = parseInput(projectMemberInput, request.data);
   const project = await loadProject(caller, input.projectId);

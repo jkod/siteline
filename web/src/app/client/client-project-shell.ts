@@ -11,12 +11,14 @@ import { Brand } from '../shared/ui/brand';
 import { HideOnScroll } from '../shared/ui/hide-on-scroll';
 import { Icon } from '../shared/ui/icon';
 import { InstallHint } from '../shared/ui/install-hint';
+import { ProjectSwitcher } from './project-switcher';
 
 const SEEN_HEARTBEAT_MS = 60_000;
 
 /**
  * The branded client view: the firm's name, logo and colour, and tabs for the feed, decisions
- * and the next visit. Siteline's own branding appears only in the footer (PRD F3).
+ * and the next visit, with a switcher to the client's other projects. Siteline's own branding
+ * appears only in the footer (PRD F3).
  */
 @Component({
   selector: 'sl-client-project-shell',
@@ -29,6 +31,7 @@ const SEEN_HEARTBEAT_MS = 60_000;
     Brand,
     InstallHint,
     HideOnScroll,
+    ProjectSwitcher,
   ],
   providers: [ProjectContext],
   templateUrl: './client-project-shell.html',

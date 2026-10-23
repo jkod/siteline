@@ -36,6 +36,11 @@ export const routes: Routes = [
     loadComponent: () => import('./client/link-expired').then((m) => m.LinkExpired),
   },
   {
+    path: 'try',
+    title: 'pages.try',
+    loadComponent: () => import('./auth/try').then((m) => m.Try),
+  },
+  {
     path: 'r/:code',
     title: 'pages.referral',
     loadComponent: () => import('./auth/referral').then((m) => m.Referral),

@@ -69,7 +69,10 @@ export class Redeem implements OnInit {
       const result = await this.api.redeemInvite(this.token());
       if (result.kind === 'client') {
         await this.session.signInWithClientToken(result.token);
-        await this.router.navigate(['/c', result.projectId], { replaceUrl: true });
+        // A sign-in link opens the home screen; a project link its project.
+        await this.router.navigate(result.projectId ? ['/c', result.projectId] : ['/c'], {
+          replaceUrl: true,
+        });
         return;
       }
       this.companyName.set(result.companyName);

@@ -13,7 +13,7 @@ import {
 
 import { auth, db } from '../lib/admin';
 import { clearStaffClaims, setStaffClaims } from '../lib/claims';
-import { requireManager, requireNewStaff } from '../lib/context';
+import { rejectDemo, requireManager, requireNewStaff } from '../lib/context';
 import { sha256Hex } from '../lib/crypto';
 import { callableOptions } from '../lib/env';
 import { createInvite, inviteLink, STAFF_INVITE_DAYS } from '../lib/invites';
@@ -37,6 +37,7 @@ async function getCompany(companyId: string): Promise<Company> {
 
 /** Owners and admins invite staff by email or text, with a role (PRD F1). */
 export async function inviteStaffHandler(request: CallableRequest<unknown>) {
+  rejectDemo(request);
   const caller = requireManager(request);
   const input = parseInput(inviteStaffInput, request.data);
   await enforceRateLimit(db, `invites:${caller.companyId}`, 60, 60 * 60_000);

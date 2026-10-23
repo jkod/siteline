@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -14,7 +15,7 @@ import { Toasts } from '../shared/ui/toast';
  */
 @Component({
   selector: 'sl-link-expired',
-  imports: [TranslatePipe, Button, Card],
+  imports: [TranslatePipe, RouterLink, Button, Card],
   template: `
     <main class="sl-page sl-stack" id="main">
       <section slCard class="sl-stack" aria-labelledby="expired-title">
@@ -38,6 +39,9 @@ import { Toasts } from '../shared/ui/toast';
             </div>
           }
         }
+        <p>
+          <a routerLink="/login/client">{{ 'linkExpired.signIn' | translate }}</a>
+        </p>
       </section>
     </main>
   `,

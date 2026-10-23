@@ -21,6 +21,8 @@ export interface QueueInput {
   projectId: string | null;
   /** The same key never sends twice (PRD F8). */
   dedupeKey: string;
+  /** Sent at once even in quiet hours: something the person just asked for, like a sign-in link. */
+  immediate?: boolean;
 }
 
 /**
@@ -35,6 +37,7 @@ export async function queueMessage(
   // QUIET_HOURS=off is set only for the end-to-end test project, so tests don't depend on the
   // time of day; integration tests cover quiet hours with a fixed clock.
   const quiet =
+    !input.immediate &&
     input.recipientKind === 'client' &&
     input.channel !== 'email' &&
     process.env['QUIET_HOURS'] !== 'off';

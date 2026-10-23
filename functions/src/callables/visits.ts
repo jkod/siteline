@@ -25,6 +25,7 @@ import { db } from '../lib/admin';
 import {
   assertProjectManager,
   assertProjectStaff,
+  rejectDemo,
   requireAuth,
   requireManager,
   requireStaff,
@@ -56,6 +57,7 @@ async function templateFor(companyId: string, trade: string): Promise<ReportTemp
  * template, the client and their link, and the visits for the next eight weeks.
  */
 export async function createServiceClientHandler(request: CallableRequest<unknown>) {
+  rejectDemo(request);
   const caller = requireManager(request);
   const input = parseInput(createServiceClientInput, request.data);
   const phone = phoneSchema.safeParse(input.clientPhone);

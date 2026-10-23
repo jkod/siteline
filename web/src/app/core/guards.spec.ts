@@ -15,7 +15,7 @@ import { clientGuard, homeRedirect, onboardingGuard, roleGuard, staffGuard } fro
 import { Session, type SessionClaims } from './session';
 
 function fakeSession(signedIn: boolean, claims: Partial<SessionClaims> = {}) {
-  const full: SessionClaims = { cid: null, crole: null, isClient: false, ...claims };
+  const full: SessionClaims = { cid: null, crole: null, isClient: false, isDemo: false, ...claims };
   return {
     ready: Promise.resolve(),
     signedIn: signal(signedIn),

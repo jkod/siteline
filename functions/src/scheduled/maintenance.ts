@@ -9,7 +9,8 @@ import {
   type VoiceDraft,
 } from '@siteline/shared';
 
-import { bucket, db } from '../lib/admin';
+import { auth, bucket, db } from '../lib/admin';
+import { deleteDemo, type DemoRecord } from '../lib/demo';
 
 /** Deletes voice recordings whose time is up: 30 days after their post, or a day unused (F5). */
 export async function purgeVoiceAudio(firestore: Firestore, now = new Date()): Promise<number> {
@@ -57,6 +58,26 @@ export async function aggregateMetrics(firestore: Firestore, now = new Date()): 
   await batch.commit();
   return byCompany.size;
 }
+
+/** Deletes "try Siteline" sandboxes whose few days are up. */
+export async function purgeDemos(firestore: Firestore, now = new Date()): Promise<number> {
+  const due = await firestore
+    .collection('demos')
+    .where('expiresAt', '<=', Timestamp.fromDate(now))
+    .limit(50)
+    .get();
+  for (const doc of due.docs) {
+    await deleteDemo(firestore, doc.data() as DemoRecord, (uids) => auth.deleteUsers(uids));
+  }
+  return due.size;
+}
+
+export const purgeDemosJob = onSchedule(
+  { schedule: 'every day 04:00', timeZone: TIME_ZONE },
+  async () => {
+    await purgeDemos(db);
+  },
+);
 
 export const purgeVoiceAudioJob = onSchedule(
   { schedule: 'every day 03:30', timeZone: TIME_ZONE },

@@ -18,7 +18,8 @@ import type {
 import { FirebaseService } from './firebase';
 
 export type RedeemResult =
-  { kind: 'client'; token: string; projectId: string } | { kind: 'staff'; companyName: string };
+  | { kind: 'client'; token: string; projectId: string | null }
+  | { kind: 'staff'; companyName: string };
 
 /** Typed calls to the callable functions (PRD section 9). */
 @Injectable({ providedIn: 'root' })
@@ -187,4 +188,18 @@ export class Api {
       { firstName: string | null; businessKind: BusinessKind }
     >('openReferral', { code });
   }
+
+  startDemo(kind: 'firm' | 'client', locale: 'sv' | 'en') {
+    return this.firebase.call<unknown, { token: string; kind: 'firm' | 'client' }>('startDemo', {
+      kind,
+      locale,
+    });
+  }
+
+  requestClientSignIn(contact: string) {
+    return this.firebase.call<{ contact: string }, { ok: true }>('requestClientSignIn', {
+      contact,
+    });
+  }
+
 }

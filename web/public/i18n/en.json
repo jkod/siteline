@@ -46,7 +46,9 @@
     "notFound": "Page not found",
     "devOutbox": "Dev outbox",
     "devUi": "Components",
-    "visits": "Visits"
+    "visits": "Visits",
+    "clientLogin": "Client sign-in",
+    "try": "Try Siteline"
   },
   "staff": {
     "nav": "Main menu",
@@ -62,7 +64,9 @@
     "sentTitle": "Check your inbox",
     "sentBody": "We sent a sign-in link to {{email}}. Open it on this device.",
     "useAnotherEmail": "Use another email address",
-    "devOpenOutbox": "Development: open the link in the dev outbox"
+    "devOpenOutbox": "Development: open the link in the dev outbox",
+    "client": "Are you a client? Sign in here",
+    "try": "Try Siteline with made-up projects"
   },
   "loginFinish": {
     "working": "Signing in…",
@@ -140,7 +144,10 @@
       "photos_need_consent": "Record the parent's consent before adding photos.",
       "already_reported": "This visit already has a report.",
       "visit_not_open": "This visit can no longer be changed.",
-      "request_not_open": "The request has already been answered."
+      "request_not_open": "The request has already been answered.",
+      "demo_mode": "In the trial you can't invite or send to real people.",
+      "invalid_contact": "Enter a mobile number or an email address.",
+      "clients_only": "Only clients can do this."
     }
   },
   "dev": {
@@ -470,7 +477,8 @@
     "body": "This link has expired or been revoked. Ask for a new one and the company will send it to you.",
     "noLink": "Open the link in the text message you got from the company to see your project.",
     "request": "Request a new link",
-    "requested": "Done. We've asked the company to send you a new link."
+    "requested": "Done. We've asked the company to send you a new link.",
+    "signIn": "Sign in with your mobile number or email"
   },
   "clientHome": {
     "greeting": "Hi {{name}}!",
@@ -850,5 +858,39 @@
         "body": "We give notice of changes to these terms in good time."
       }
     }
+  },
+  "clientLogin": {
+    "title": "Client sign-in",
+    "intro": "Enter the mobile number or email address the business has for you, and we'll send you a sign-in link.",
+    "contact": "Mobile number or email",
+    "send": "Send sign-in link",
+    "sentTitle": "Check your phone or email",
+    "sentBody": "If the number or address belongs to a client account, we've sent a link. It works once, for 30 minutes.",
+    "again": "Try something else",
+    "staff": "Do you work at a business? Sign in here"
+  },
+  "try": {
+    "title": "Try Siteline",
+    "intro": "Choose how you want to try it. You get your own made-up projects to click around in.",
+    "firm": {
+      "title": "I run a business",
+      "detail": "See a kitchen project as a tradesperson: post updates, send extras and plan visits."
+    },
+    "client": {
+      "title": "I'm a client",
+      "detail": "See what it's like when two businesses keep you posted: a renovation and tutoring."
+    },
+    "note": "Nothing is sent to anyone, and everything is deleted after three days.",
+    "haveAccount": "Already have an account? Sign in"
+  },
+  "demo": {
+    "label": "Trial",
+    "body": "You're trying Siteline with made-up projects. Nothing is really sent.",
+    "end": "End trial"
+  },
+  "switcher": {
+    "label": "{{firm}}, switch project",
+    "menu": "Your projects",
+    "news": "New since you last looked"
   }
 }

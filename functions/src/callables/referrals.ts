@@ -10,7 +10,7 @@ import {
 } from '@siteline/shared';
 
 import { db } from '../lib/admin';
-import { callerIp, requireAuth } from '../lib/context';
+import { callerIp, rejectDemo, requireAuth } from '../lib/context';
 import { appUrl, callableOptions } from '../lib/env';
 import { recordEvent } from '../lib/metrics';
 import { enforceRateLimit } from '../lib/rate-limit';
@@ -29,6 +29,7 @@ export function referralCode(): string {
  * Siteline never sends invite texts.
  */
 export async function createReferralHandler(request: CallableRequest<unknown>) {
+  rejectDemo(request);
   const caller = requireAuth(request);
   const input = parseInput(createReferralInput, request.data);
   const project = (await db.doc(`projects/${input.projectId}`).get()).data() as Project | undefined;

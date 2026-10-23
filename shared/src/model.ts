@@ -46,6 +46,8 @@ export interface Company<T = TimestampLike> {
   referredBy: { code: string; companyId: string; clientUid: string } | null;
   /** How many businesses this firm's clients have brought in (PRD F20). */
   referralSignups?: number;
+  /** A "try Siteline" sandbox: nothing is ever sent, and it's deleted after a few days. */
+  demo?: boolean;
   settings: CompanySettings;
   createdAt: T;
   updatedAt: T;
@@ -326,7 +328,8 @@ export interface Comment<T = TimestampLike> {
 }
 
 export interface Invite<T = TimestampLike> {
-  kind: 'client' | 'staff';
+  /** A client's or staff member's invite, or a client's one-time sign-in link. */
+  kind: 'client' | 'staff' | 'signin';
   projectId: string | null;
   companyId: string;
   role: ProjectRole | StaffRole;

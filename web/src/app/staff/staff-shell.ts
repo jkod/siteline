@@ -8,6 +8,7 @@ import { Session } from '../core/session';
 import { PluralPipe } from '../shared/pipes/plural';
 import { Brand } from '../shared/ui/brand';
 import { Button } from '../shared/ui/button';
+import { DemoBanner } from '../shared/ui/demo-banner';
 import { HideOnScroll } from '../shared/ui/hide-on-scroll';
 import { Icon } from '../shared/ui/icon';
 import { CurrentCompany } from './current-company';
@@ -28,6 +29,7 @@ import { CurrentCompany } from './current-company';
     Button,
     Brand,
     HideOnScroll,
+    DemoBanner,
   ],
   templateUrl: './staff-shell.html',
   styleUrl: './staff-shell.css',

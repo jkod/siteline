@@ -102,6 +102,16 @@ export async function deliver(
   });
   if (!message) return;
 
+  // A "try Siteline" sandbox never reaches anyone.
+  if (message.companyId && (await db.doc(`companies/${message.companyId}`).get()).get('demo')) {
+    await ref.update({
+      status: 'suppressed',
+      error: 'demo',
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    return;
+  }
+
   try {
     if (message.channel === 'sms' && message.companyId) {
       const budget = await useSmsBudget(db, message.companyId, now);

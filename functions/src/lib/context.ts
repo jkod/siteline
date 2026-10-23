@@ -71,3 +71,12 @@ export function callerIp(request: CallableRequest<unknown>): string {
   const first = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0];
   return (first ?? request.rawRequest?.ip ?? 'unknown').trim();
 }
+
+/**
+ * A "try Siteline" sandbox account can't reach real people: no invites, links or referrals.
+ * Sandboxes carry a demo claim; delivery also suppresses anything a demo company queues.
+ */
+export function rejectDemo(request: CallableRequest<unknown>): void {
+  if (request.auth?.token['demo'] === true)
+    throw new HttpsError('failed-precondition', 'demo_mode');
+}

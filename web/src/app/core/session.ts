@@ -30,6 +30,8 @@ export interface SessionClaims {
   crole: StaffRole | null;
   /** Set on client accounts created from invite links. */
   isClient: boolean;
+  /** A "try Siteline" sandbox account. */
+  isDemo: boolean;
 }
 
 /**
@@ -41,7 +43,7 @@ export class Session {
   private readonly firebase = inject(FirebaseService);
 
   private readonly userState = signal<User | null | undefined>(undefined);
-  private readonly claimsState = signal<SessionClaims>({ cid: null, crole: null, isClient: false });
+  private readonly claimsState = signal<SessionClaims>(emptyClaims());
 
   /** `undefined` until the session has been restored. */
   readonly user = this.userState.asReadonly();
@@ -50,6 +52,7 @@ export class Session {
   readonly isStaff = computed(() => this.claimsState().cid != null);
   readonly isClient = computed(() => this.claimsState().isClient);
   readonly role = computed(() => this.claimsState().crole);
+  readonly isDemo = computed(() => this.claimsState().isDemo);
 
   /** The person's own user document: name and language, kept in Firestore (PRD 8). */
   readonly profile = liveDoc<UserDoc & { claimsUpdatedAt?: TimestampLike }>(() => {
@@ -93,7 +96,7 @@ export class Session {
     });
   }
 
-  /** Signs a client in with the custom token from `redeemInvite` (PRD 4.1). */
+  /** Signs in with a custom token: a client's link (PRD 4.1) or a "try Siteline" sandbox. */
   async signInWithClientToken(token: string): Promise<void> {
     const { user } = await signInWithCustomToken(this.firebase.auth, token);
     await this.sync(user);
@@ -162,7 +165,7 @@ export class Session {
 }
 
 function emptyClaims(): SessionClaims {
-  return { cid: null, crole: null, isClient: false };
+  return { cid: null, crole: null, isClient: false, isDemo: false };
 }
 
 async function readClaims(user: User): Promise<SessionClaims> {
@@ -172,5 +175,6 @@ async function readClaims(user: User): Promise<SessionClaims> {
     cid: typeof claims['cid'] === 'string' ? claims['cid'] : null,
     crole: isStaffRole(role) ? role : null,
     isClient: claims['kind'] === 'client',
+    isDemo: claims['demo'] === true,
   };
 }

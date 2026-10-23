@@ -1,11 +1,21 @@
-import { FieldValue, type Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { type CallableRequest, HttpsError, onCall } from 'firebase-functions/https';
-import { type Company, type Invite, type Project, tokenInput } from '@siteline/shared';
+import {
+  clientSignInInput,
+  type Company,
+  emailSchema,
+  type Invite,
+  phoneSchema,
+  type Project,
+  tokenInput,
+  type UserDoc,
+} from '@siteline/shared';
 
 import { auth, db } from '../lib/admin';
 import { callerIp } from '../lib/context';
 import { sha256Hex } from '../lib/crypto';
 import { appUrl, callableOptions } from '../lib/env';
+import { createInvite, inviteLink } from '../lib/invites';
 import { queueMessage } from '../lib/outbox';
 import { enforceRateLimit } from '../lib/rate-limit';
 import { projectStaff } from '../lib/recipients';
@@ -14,7 +24,11 @@ import { parseInput } from '../lib/validate';
 const TEN_MINUTES = 10 * 60_000;
 
 export type RedeemResult =
-  { kind: 'client'; token: string; projectId: string } | { kind: 'staff'; companyName: string };
+  | { kind: 'client'; token: string; projectId: string | null }
+  | { kind: 'staff'; companyName: string };
+
+/** A client's sign-in link works once, for this long. */
+const SIGN_IN_MINUTES = 30;
 
 /**
  * Exchanges a link token for a sign-in (PRD 4.1), with no sign-in needed. Client links return a
@@ -39,6 +53,16 @@ export async function redeemInviteHandler(
     const company = (await db.doc(`companies/${invite.companyId}`).get()).data() as
       Company | undefined;
     return { kind: 'staff', companyName: company?.name ?? '' };
+  }
+
+  if (invite.kind === 'signin') {
+    if (invite.redeemCount > 0) throw new HttpsError('failed-precondition', 'link_used');
+    await inviteRef.update({
+      redeemCount: FieldValue.increment(1),
+      lastRedeemedAt: FieldValue.serverTimestamp(),
+    });
+    const token = await auth.createCustomToken(invite.uid!, { kind: 'client' });
+    return { kind: 'client', token, projectId: null };
   }
 
   const projectId = invite.projectId!;
@@ -97,5 +121,64 @@ export async function requestNewLinkHandler(request: CallableRequest<unknown>) {
   return { ok: true };
 }
 
+/**
+ * "Logga in som kund" (the user's request): a client asks for a sign-in link by mobile number or
+ * email. If it belongs to a client, a one-time link valid for 30 minutes goes out on the same
+ * channel. The answer is the same either way, so nobody can find out who is a client. Client
+ * accounts still hold no contact details in Firebase Authentication (PRD 4.1).
+ */
+export async function requestClientSignInHandler(request: CallableRequest<unknown>) {
+  await enforceRateLimit(db, `signin:${callerIp(request)}`, 10, 60 * 60_000);
+  const { contact } = parseInput(clientSignInInput, request.data);
+  const phone = phoneSchema.safeParse(contact);
+  const email = phone.success ? null : emailSchema.safeParse(contact.toLowerCase());
+  if (!phone.success && !email?.success)
+    throw new HttpsError('invalid-argument', 'invalid_contact');
+  const address = phone.success ? phone.data : email!.data!;
+  await enforceRateLimit(db, `signin-to:${address}`, 3, 60 * 60_000);
+
+  const uid = phone.success
+    ? (((await db.doc(`clientPhones/${sha256Hex(address)}`).get()).get('uid') as string) ?? null)
+    : ((
+        await db
+          .collection('users')
+          .where('kind', '==', 'client')
+          .where('email', '==', address)
+          .limit(1)
+          .get()
+      ).docs[0]?.id ?? null);
+  const user = uid
+    ? ((await db.doc(`users/${uid}`).get()).data() as UserDoc | undefined)
+    : undefined;
+  if (!uid || !user || user.kind !== 'client') return { ok: true };
+
+  const { token, hash } = await createInvite(db, {
+    kind: 'signin',
+    projectId: null,
+    companyId: '',
+    role: 'client',
+    uid,
+    name: user.name,
+    phoneE164: null,
+    email: null,
+    createdBy: uid,
+    expiresAt: Timestamp.fromMillis(Date.now() + SIGN_IN_MINUTES * 60_000),
+  });
+  await queueMessage(db, {
+    channel: phone.success ? 'sms' : 'email',
+    to: { uid, phone: phone.success ? address : null, email: phone.success ? null : address },
+    recipientKind: 'client',
+    immediate: true,
+    template: 'clientSignIn',
+    params: { link: inviteLink(token), settingsPath: '/c/settings' },
+    locale: user.locale,
+    companyId: null,
+    projectId: null,
+    dedupeKey: `signin:${hash}`,
+  });
+  return { ok: true };
+}
+
 export const redeemInvite = onCall(callableOptions, redeemInviteHandler);
 export const requestNewLink = onCall(callableOptions, requestNewLinkHandler);
+export const requestClientSignIn = onCall(callableOptions, requestClientSignInHandler);

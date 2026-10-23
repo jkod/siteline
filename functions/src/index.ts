@@ -11,7 +11,8 @@ export {
   sendDecision,
   withdrawDecision,
 } from './callables/decisions';
-export { redeemInvite, requestNewLink } from './callables/links';
+export { startDemo } from './callables/demo';
+export { redeemInvite, requestClientSignIn, requestNewLink } from './callables/links';
 export { logClientError } from './callables/log-client-error';
 export { assignCrew, createProject, setProjectStatus } from './callables/projects';
 export { createReferral, openReferral } from './callables/referrals';
@@ -27,6 +28,7 @@ export {
 export { discardVoiceDraft, draftFromVoice } from './callables/voice';
 export {
   aggregateMetricsJob as aggregateMetrics,
+  purgeDemosJob as purgeDemos,
   purgeVoiceAudioJob as purgeVoiceAudio,
 } from './scheduled/maintenance';
 export {

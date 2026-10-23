@@ -79,6 +79,24 @@ export function linkInTextMessage(text: string): Promise<string> {
   }, `a text message containing "${text}"`);
 }
 
+/** Every link in the dev outbox's text messages that contain `text`. */
+export async function linksInTextMessages(text: string): Promise<string[]> {
+  const docs = await listDocs('devOutbox');
+  return docs
+    .map((d) => d.fields?.['text']?.stringValue ?? '')
+    .filter((t) => t.includes(text))
+    .map((t) => t.match(/https?:\/\/\S+\/p\/[\w-]+/)?.[0])
+    .filter((link): link is string => !!link);
+}
+
+/** Waits for a link in a text containing `text` that isn't one of `seen`. */
+export function newLinkInTextMessage(text: string, seen: string[]): Promise<string> {
+  return poll(
+    async () => (await linksInTextMessages(text)).find((link) => !seen.includes(link)),
+    `a new text message containing "${text}"`,
+  );
+}
+
 /** The display photo paths of the post in a project with this text. */
 export async function postMedia(projectId: string, text: string): Promise<string[]> {
   const posts = await listDocs(`projects/${projectId}/posts`);

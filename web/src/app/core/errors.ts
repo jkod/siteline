@@ -22,6 +22,9 @@ const FUNCTION_CODES = new Set([
 /** Specific reasons callables give in the message, which get their own translation. */
 const FUNCTION_REASONS = new Set([
   'plan_limit',
+  'demo_mode',
+  'invalid_contact',
+  'clients_only',
   'link_expired',
   'link_revoked',
   'link_used',

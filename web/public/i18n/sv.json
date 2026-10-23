@@ -46,7 +46,9 @@
     "notFound": "Sidan finns inte",
     "devOutbox": "Dev-utkorg",
     "devUi": "Komponenter",
-    "visits": "Besök"
+    "visits": "Besök",
+    "clientLogin": "Logga in som kund",
+    "try": "Prova Siteline"
   },
   "staff": {
     "nav": "Huvudmeny",
@@ -62,7 +64,9 @@
     "sentTitle": "Kolla din inkorg",
     "sentBody": "Vi har skickat en inloggningslänk till {{email}}. Öppna den på den här enheten.",
     "useAnotherEmail": "Använd en annan e-postadress",
-    "devOpenOutbox": "Utveckling: öppna länken i dev-utkorgen"
+    "devOpenOutbox": "Utveckling: öppna länken i dev-utkorgen",
+    "client": "Är du kund? Logga in här",
+    "try": "Prova Siteline med påhittade projekt"
   },
   "loginFinish": {
     "working": "Loggar in…",
@@ -140,7 +144,10 @@
       "photos_need_consent": "Spela in förälderns samtycke innan du lägger till foton.",
       "already_reported": "Besöket har redan en rapport.",
       "visit_not_open": "Besöket går inte att ändra längre.",
-      "request_not_open": "Önskemålet är redan besvarat."
+      "request_not_open": "Önskemålet är redan besvarat.",
+      "demo_mode": "I provläget kan du inte bjuda in eller skicka till riktiga personer.",
+      "invalid_contact": "Skriv ett mobilnummer eller en e-postadress.",
+      "clients_only": "Det här kan bara kunder göra."
     }
   },
   "dev": {
@@ -470,7 +477,8 @@
     "body": "Länken har gått ut eller återkallats. Be om en ny så skickar företaget den till dig.",
     "noLink": "Öppna länken i sms:et du fick från företaget för att se ditt projekt.",
     "request": "Be om en ny länk",
-    "requested": "Klart. Vi har bett företaget skicka en ny länk till dig."
+    "requested": "Klart. Vi har bett företaget skicka en ny länk till dig.",
+    "signIn": "Logga in med ditt mobilnummer eller din e-post"
   },
   "clientHome": {
     "greeting": "Hej {{name}}!",
@@ -850,5 +858,39 @@
         "body": "Vi meddelar ändringar av villkoren i god tid."
       }
     }
+  },
+  "clientLogin": {
+    "title": "Logga in som kund",
+    "intro": "Skriv mobilnumret eller e-postadressen som företaget har till dig, så skickar vi en inloggningslänk.",
+    "contact": "Mobilnummer eller e-post",
+    "send": "Skicka inloggningslänk",
+    "sentTitle": "Kolla din telefon eller e-post",
+    "sentBody": "Om numret eller adressen hör till ett kundkonto har vi skickat en länk. Den fungerar en gång i 30 minuter.",
+    "again": "Försök med något annat",
+    "staff": "Jobbar du på ett företag? Logga in här"
+  },
+  "try": {
+    "title": "Prova Siteline",
+    "intro": "Välj hur du vill prova. Du får egna påhittade projekt att klicka runt i.",
+    "firm": {
+      "title": "Jag driver ett företag",
+      "detail": "Se ett köksprojekt som hantverkare: lägg upp uppdateringar, skicka tillägg och planera besök."
+    },
+    "client": {
+      "title": "Jag är kund",
+      "detail": "Se hur det ser ut när två företag håller dig uppdaterad: en renovering och läxhjälp."
+    },
+    "note": "Inget skickas till någon, och allt raderas efter tre dagar.",
+    "haveAccount": "Har du redan ett konto? Logga in"
+  },
+  "demo": {
+    "label": "Provläge",
+    "body": "Du provar Siteline med påhittade projekt. Inget skickas på riktigt.",
+    "end": "Avsluta provet"
+  },
+  "switcher": {
+    "label": "{{firm}}, byt projekt",
+    "menu": "Dina projekt",
+    "news": "Nytt sedan du tittade senast"
   }
 }

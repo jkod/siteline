@@ -9,7 +9,7 @@
       } @else {
         <span class="mark" aria-hidden="true">{{ p.branding.name[0] }}</span>
       }
-      <span class="firm">{{ p.branding.name }}</span>
+      <sl-project-switcher [current]="p" />
     </header>
 
     <main class="sl-page sl-stack" id="main">

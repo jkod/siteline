@@ -69,3 +69,16 @@ form {
   align-items: center;
   min-height: var(--sl-target);
 }
+
+.others {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sl-space-1);
+}
+.others a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sl-target);
+  font-weight: 600;
+}

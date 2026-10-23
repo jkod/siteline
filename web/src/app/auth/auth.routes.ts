@@ -7,4 +7,9 @@ export const AUTH_ROUTES: Routes = [
     title: 'pages.loginFinish',
     loadComponent: () => import('./login-finish').then((m) => m.LoginFinish),
   },
+  {
+    path: 'client',
+    title: 'pages.clientLogin',
+    loadComponent: () => import('./client-login').then((m) => m.ClientLogin),
+  },
 ];

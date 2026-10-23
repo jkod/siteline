@@ -5,6 +5,7 @@ import { gsm7Length, type Locale, SMS_SINGLE_LENGTH, toGsm7 } from '@siteline/sh
 
 export type TemplateName =
   | 'clientInvite'
+  | 'clientSignIn'
   | 'staffInvite'
   | 'clientQuestion'
   | 'clientComment'
@@ -64,6 +65,18 @@ const TEMPLATES: Record<TemplateName, Record<Locale, Copy>> = {
       sms: `Hi ${p['firstName']}! ${p['firm']} shares updates on ${p['project']} here: ${p['link']}`,
       subject: `${p['firm']} shares updates on ${p['project']}`,
       text: `Hi ${p['firstName']}!\n\n${p['firm']} shares updates on ${p['project']} here:\n${p['link']}`,
+    }),
+  },
+  clientSignIn: {
+    sv: (p) => ({
+      sms: `Din inloggningslänk till Siteline: ${p['link']} Den fungerar en gång i 30 minuter.`,
+      subject: 'Din inloggningslänk till Siteline',
+      text: `Logga in på Siteline med den här länken:\n${p['link']}\n\nDen fungerar en gång i 30 minuter. Bad du inte om den kan du strunta i det här meddelandet.`,
+    }),
+    en: (p) => ({
+      sms: `Your Siteline sign-in link: ${p['link']} It works once, for 30 minutes.`,
+      subject: 'Your Siteline sign-in link',
+      text: `Sign in to Siteline with this link:\n${p['link']}\n\nIt works once, for 30 minutes. If you didn't ask for it, you can ignore this message.`,
     }),
   },
   staffInvite: {

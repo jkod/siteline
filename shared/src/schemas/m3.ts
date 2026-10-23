@@ -23,3 +23,14 @@ export const createReferralInput = z.object({
 export type CreateReferralInput = z.input<typeof createReferralInput>;
 
 export const openReferralInput = z.object({ code: z.string().regex(/^[A-Za-z0-9]{6,32}$/) });
+
+export const startDemoInput = z.object({
+  kind: z.enum(['firm', 'client']),
+  locale: z.enum(['sv', 'en']).default('sv'),
+});
+export type StartDemoInput = z.input<typeof startDemoInput>;
+
+/** A mobile number or an email address, for a client's sign-in link. */
+export const emailSchema = z.email().max(120);
+
+export const clientSignInInput = z.object({ contact: z.string().trim().min(3).max(120) });

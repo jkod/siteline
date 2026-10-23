@@ -134,7 +134,9 @@ async function main(): Promise<void> {
   const photo = async (projectId: string, name: string) => {
     const base = `projects/${projectId}/media/seed-${name}`;
     for (const size of ['display', 'thumb'] as const) {
-      const file = readFileSync(new URL(`./seed-photos/${name}-${size}.jpg`, import.meta.url));
+      const file = readFileSync(
+        new URL(`../functions/assets/photos/${name}-${size}.jpg`, import.meta.url),
+      );
       await bucket().file(`${base}/${size}.jpg`).save(file, { contentType: 'image/jpeg' });
     }
     return {
